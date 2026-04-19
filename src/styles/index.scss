@@ -1,5 +1,5 @@
 :root {
-  --app-font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --app-font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --app-bg: #edf3f8;
   --app-surface: rgba(255, 255, 255, 0.84);
   --app-surface-strong: rgba(255, 255, 255, 0.92);
@@ -144,19 +144,43 @@ textarea {
   margin-left: 0;
 }
 
-.actions .el-button:not(.is-text):not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(.el-button--danger),
-.header-actions .el-button:not(.is-text):not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(.el-button--danger),
-.toolbar .el-button:not(.is-text):not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(.el-button--danger),
-.hero-actions .el-button:not(.is-text):not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(.el-button--danger) {
+.actions
+  .el-button:not(.is-text):not(.el-button--primary):not(
+    .el-button--success
+  ):not(.el-button--warning):not(.el-button--danger),
+.header-actions
+  .el-button:not(.is-text):not(.el-button--primary):not(
+    .el-button--success
+  ):not(.el-button--warning):not(.el-button--danger),
+.toolbar
+  .el-button:not(.is-text):not(.el-button--primary):not(
+    .el-button--success
+  ):not(.el-button--warning):not(.el-button--danger),
+.hero-actions
+  .el-button:not(.is-text):not(.el-button--primary):not(
+    .el-button--success
+  ):not(.el-button--warning):not(.el-button--danger) {
   background: #d99a4d;
   color: #f3f7fb;
   border-color: #d99a4d;
 }
 
-.actions .el-button:not(.is-text):not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(.el-button--danger):hover,
-.header-actions .el-button:not(.is-text):not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(.el-button--danger):hover,
-.toolbar .el-button:not(.is-text):not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(.el-button--danger):hover,
-.hero-actions .el-button:not(.is-text):not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(.el-button--danger):hover {
+.actions
+  .el-button:not(.is-text):not(.el-button--primary):not(
+    .el-button--success
+  ):not(.el-button--warning):not(.el-button--danger):hover,
+.header-actions
+  .el-button:not(.is-text):not(.el-button--primary):not(
+    .el-button--success
+  ):not(.el-button--warning):not(.el-button--danger):hover,
+.toolbar
+  .el-button:not(.is-text):not(.el-button--primary):not(
+    .el-button--success
+  ):not(.el-button--warning):not(.el-button--danger):hover,
+.hero-actions
+  .el-button:not(.is-text):not(.el-button--primary):not(
+    .el-button--success
+  ):not(.el-button--warning):not(.el-button--danger):hover {
   background: #c98737;
   border-color: #c98737;
   color: #fff;
@@ -170,13 +194,19 @@ textarea {
   font-weight: 600;
 }
 
-.row-actions .el-button:not(.is-text):not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(.el-button--danger) {
+.row-actions
+  .el-button:not(.is-text):not(.el-button--primary):not(
+    .el-button--success
+  ):not(.el-button--warning):not(.el-button--danger) {
   background: #d99a4d;
   color: #f3f7fb;
   border-color: #d99a4d;
 }
 
-.row-actions .el-button:not(.is-text):not(.el-button--primary):not(.el-button--success):not(.el-button--warning):not(.el-button--danger):hover {
+.row-actions
+  .el-button:not(.is-text):not(.el-button--primary):not(
+    .el-button--success
+  ):not(.el-button--warning):not(.el-button--danger):hover {
   background: #c98737;
   border-color: #c98737;
   color: #fff;

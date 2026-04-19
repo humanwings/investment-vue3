@@ -77,7 +77,8 @@ export const appRoutes = [
           {
             path: 'verification/compare/:idOne/:idTwo',
             name: 'VerificationCompare',
-            component: () => import('@/views/analyte/verificationcomparison.vue'),
+            component: () =>
+              import('@/views/analyte/verificationcomparison.vue'),
             meta: {
               hidden: true,
               title: '验证结果比较',

@@ -21,23 +21,23 @@
 
       <div class="table-shell table-shell--fill">
         <el-table v-loading="listLoading" :data="list" border height="100%">
-        <el-table-column prop="id" label="ID" width="80" align="center" />
-        <el-table-column label="参数名" min-width="220">
-          <template #default="{ row }">
-            {{ getSettingName(row.id) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="comment" label="备注" min-width="240" />
-        <el-table-column label="参数值" width="220" align="center">
-          <template #default="{ row }">
-            <el-input-number
-              v-model="row.value"
-              :precision="getPrecision(row.id)"
-              :step="getStep(row.id)"
-              controls-position="right"
-            />
-          </template>
-        </el-table-column>
+          <el-table-column prop="id" label="ID" width="80" align="center" />
+          <el-table-column label="参数名" min-width="220">
+            <template #default="{ row }">
+              {{ getSettingName(row.id) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="comment" label="备注" min-width="240" />
+          <el-table-column label="参数值" width="220" align="center">
+            <template #default="{ row }">
+              <el-input-number
+                v-model="row.value"
+                :precision="getPrecision(row.id)"
+                :step="getStep(row.id)"
+                controls-position="right"
+              />
+            </template>
+          </el-table-column>
         </el-table>
       </div>
     </div>
@@ -80,7 +80,10 @@ function resetAll() {
 }
 
 async function saveAll() {
-  const invalidItem = list.value.find(item => item.value === null || item.value === undefined || item.value === '')
+  const invalidItem = list.value.find(
+    (item) =>
+      item.value === null || item.value === undefined || item.value === ''
+  )
   if (invalidItem) {
     ElMessage.error(`参数 ${getSettingName(invalidItem.id)} 的值不能为空`)
     return
@@ -95,7 +98,9 @@ async function saveAll() {
         value: Number(item.value),
         comment: item.comment
       })
-      updatedList.push(data.macroSetting || { ...item, value: Number(item.value) })
+      updatedList.push(
+        data.macroSetting || { ...item, value: Number(item.value) }
+      )
     }
     originalList.value = cloneList(updatedList)
     list.value = cloneList(updatedList)

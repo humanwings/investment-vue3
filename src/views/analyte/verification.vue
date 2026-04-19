@@ -11,25 +11,33 @@
 
       <div class="table-shell">
         <el-table v-loading="listLoading" :data="list">
-        <el-table-column prop="analyteId" label="序号" width="70" />
-        <el-table-column prop="name" label="名称" width="140" />
-        <el-table-column prop="stockCode" label="代码" width="120" />
-        <el-table-column prop="ndate" label="N日" width="120" />
-        <el-table-column label="买入价" width="100">
-          <template #default="{ row }">{{ formatAmount(row.buyPrice) }}</template>
-        </el-table-column>
-        <el-table-column prop="buyDateSeq" label="买入日序" width="100" />
-        <el-table-column label="仓位" width="90">
-          <template #default="{ row }">{{ formatAmount(row.position) }}</template>
-        </el-table-column>
-        <el-table-column label="卖出价" width="100">
-          <template #default="{ row }">{{ formatAmount(row.sellPrice) }}</template>
-        </el-table-column>
-        <el-table-column prop="sellDateSeq" label="卖出日序" width="100" />
-        <el-table-column label="盈亏" width="100">
-          <template #default="{ row }">{{ formatAmount(row.balance) }}</template>
-        </el-table-column>
-        <el-table-column prop="comment" label="备注" min-width="160" />
+          <el-table-column prop="analyteId" label="序号" width="70" />
+          <el-table-column prop="name" label="名称" width="140" />
+          <el-table-column prop="stockCode" label="代码" width="120" />
+          <el-table-column prop="ndate" label="N日" width="120" />
+          <el-table-column label="买入价" width="100">
+            <template #default="{ row }">{{
+              formatAmount(row.buyPrice)
+            }}</template>
+          </el-table-column>
+          <el-table-column prop="buyDateSeq" label="买入日序" width="100" />
+          <el-table-column label="仓位" width="90">
+            <template #default="{ row }">{{
+              formatAmount(row.position)
+            }}</template>
+          </el-table-column>
+          <el-table-column label="卖出价" width="100">
+            <template #default="{ row }">{{
+              formatAmount(row.sellPrice)
+            }}</template>
+          </el-table-column>
+          <el-table-column prop="sellDateSeq" label="卖出日序" width="100" />
+          <el-table-column label="盈亏" width="100">
+            <template #default="{ row }">{{
+              formatAmount(row.balance)
+            }}</template>
+          </el-table-column>
+          <el-table-column prop="comment" label="备注" min-width="160" />
         </el-table>
       </div>
     </div>

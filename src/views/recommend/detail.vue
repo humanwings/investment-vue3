@@ -8,7 +8,11 @@
           <h2>推荐详情</h2>
         </div>
         <div class="actions">
-          <el-tag type="info">股票 {{ summary.stockName || '-' }} ({{ summary.stockCode || '-' }})</el-tag>
+          <el-tag type="info"
+            >股票 {{ summary.stockName || '-' }} ({{
+              summary.stockCode || '-'
+            }})</el-tag
+          >
           <el-tag type="info">榜单日期 {{ snapshotDate || '-' }}</el-tag>
         </div>
       </div>
@@ -28,7 +32,9 @@
         </div>
         <div class="summary-item">
           <div class="summary-label">估值偏差</div>
-          <div class="summary-value">{{ formatPercent(summary.deviation) }}</div>
+          <div class="summary-value">
+            {{ formatPercent(summary.deviation) }}
+          </div>
         </div>
         <div class="summary-item">
           <div class="summary-label">财务评分</div>
@@ -42,25 +48,36 @@
 
       <div class="table-shell">
         <el-table v-loading="listLoading" :data="list" class="detail-table">
-        <el-table-column prop="authorName" label="大V" width="140" />
-        <el-table-column prop="sourceSite" label="来源" width="120" />
-        <el-table-column prop="tradeDate" label="推荐日" width="120" />
-        <el-table-column prop="actionType" label="动作" width="90" />
-        <el-table-column label="仓位" width="90">
-          <template #default="{ row }">
-            {{ formatPercent(row.positionRatio) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="authorWeight" label="大V权重" width="100" />
-        <el-table-column prop="positionWeight" label="仓位权重" width="100" />
-        <el-table-column prop="decayWeight" label="时效权重" width="100" />
-        <el-table-column prop="contributionScore" label="贡献分" width="100" sortable />
-        <el-table-column label="链接" min-width="180">
-          <template #default="{ row }">
-            <el-link v-if="row.sourceUrl" :href="row.sourceUrl" target="_blank" type="primary">源地址</el-link>
-            <span v-else>-</span>
-          </template>
-        </el-table-column>
+          <el-table-column prop="authorName" label="大V" width="140" />
+          <el-table-column prop="sourceSite" label="来源" width="120" />
+          <el-table-column prop="tradeDate" label="推荐日" width="120" />
+          <el-table-column prop="actionType" label="动作" width="90" />
+          <el-table-column label="仓位" width="90">
+            <template #default="{ row }">
+              {{ formatPercent(row.positionRatio) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="authorWeight" label="大V权重" width="100" />
+          <el-table-column prop="positionWeight" label="仓位权重" width="100" />
+          <el-table-column prop="decayWeight" label="时效权重" width="100" />
+          <el-table-column
+            prop="contributionScore"
+            label="贡献分"
+            width="100"
+            sortable
+          />
+          <el-table-column label="链接" min-width="180">
+            <template #default="{ row }">
+              <el-link
+                v-if="row.sourceUrl"
+                :href="row.sourceUrl"
+                target="_blank"
+                type="primary"
+                >源地址</el-link
+              >
+              <span v-else>-</span>
+            </template>
+          </el-table-column>
         </el-table>
       </div>
     </div>

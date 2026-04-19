@@ -9,18 +9,18 @@ const request = axios.create({
 })
 
 request.interceptors.request.use(
-  config => {
+  (config) => {
     const token = getToken()
     if (token) {
       config.headers['X-Token'] = token
     }
     return config
   },
-  error => Promise.reject(error)
+  (error) => Promise.reject(error)
 )
 
 request.interceptors.response.use(
-  response => {
+  (response) => {
     const responseData = response.data
     if (responseData.code !== 20000) {
       ElMessage.error(responseData.message || 'Error')
@@ -38,7 +38,7 @@ request.interceptors.response.use(
 
     return responseData
   },
-  error => {
+  (error) => {
     const responseMessage = error?.response?.data?.message
     ElMessage.error(responseMessage || error.message || 'Request Error')
     if (responseMessage) {

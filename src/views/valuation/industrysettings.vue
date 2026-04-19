@@ -29,27 +29,32 @@
           :expand-row-keys="expandedRowKeys"
           :tree-props="{ children: 'children' }"
         >
-        <el-table-column label="行业名称" min-width="220">
-          <template #default="{ row }">
-            <span :class="getIndustryNameClass(row)">{{ row.name }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="code" label="行业代码" width="150" align="center" />
-        <el-table-column label="层级" width="100" align="center">
-          <template #default="{ row }">
-            {{ formatLevel(row.level) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="行业风险系数" width="220" align="center">
-          <template #default="{ row }">
-            <el-input
-              :model-value="formatRisk(row.valuationRisk)"
-              clearable
-              @update:model-value="handleRiskChange(row, $event)"
-              @clear="clearRisk(row)"
-            />
-          </template>
-        </el-table-column>
+          <el-table-column label="行业名称" min-width="220">
+            <template #default="{ row }">
+              <span :class="getIndustryNameClass(row)">{{ row.name }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="code"
+            label="行业代码"
+            width="150"
+            align="center"
+          />
+          <el-table-column label="层级" width="100" align="center">
+            <template #default="{ row }">
+              {{ formatLevel(row.level) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="行业风险系数" width="220" align="center">
+            <template #default="{ row }">
+              <el-input
+                :model-value="formatRisk(row.valuationRisk)"
+                clearable
+                @update:model-value="handleRiskChange(row, $event)"
+                @clear="clearRisk(row)"
+              />
+            </template>
+          </el-table-column>
         </el-table>
       </div>
     </div>
@@ -61,7 +66,10 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { RefreshLeft, Select } from '@element-plus/icons-vue'
 
-import { getIndustrySettings, saveAllIndustrySettings } from '@/api/industrysettings'
+import {
+  getIndustrySettings,
+  saveAllIndustrySettings
+} from '@/api/industrysettings'
 
 const total = ref(0)
 const listLoading = ref(false)
@@ -97,10 +105,10 @@ function setList(list) {
 function buildTree(list) {
   const map = {}
   const roots = []
-  list.forEach(item => {
+  list.forEach((item) => {
     map[item.code] = { ...item, children: [] }
   })
-  Object.values(map).forEach(item => {
+  Object.values(map).forEach((item) => {
     if (item.parent && map[item.parent]) {
       map[item.parent].children.push(item)
     } else {
@@ -119,7 +127,11 @@ function clearRisk(row) {
 }
 
 function hasRisk(row) {
-  return row.valuationRisk !== null && row.valuationRisk !== undefined && row.valuationRisk !== ''
+  return (
+    row.valuationRisk !== null &&
+    row.valuationRisk !== undefined &&
+    row.valuationRisk !== ''
+  )
 }
 
 function getIndustryNameClass(row) {
@@ -146,10 +158,10 @@ function formatRisk(value) {
 function getExpandedRowKeys(list) {
   const expanded = new Set()
   const map = {}
-  list.forEach(item => {
+  list.forEach((item) => {
     map[item.code] = item
   })
-  list.forEach(item => {
+  list.forEach((item) => {
     if (!hasRisk(item)) {
       return
     }
@@ -163,7 +175,7 @@ function getExpandedRowKeys(list) {
 }
 
 function formatLevel(level) {
-  return ({ 1: '一级', 2: '二级', 3: '三级' })[level] || level
+  return { 1: '一级', 2: '二级', 3: '三级' }[level] || level
 }
 
 function resetAll() {
@@ -172,8 +184,12 @@ function resetAll() {
 }
 
 async function saveAll() {
-  const invalidItem = flatList.value.find(item => {
-    if (item.valuationRisk === null || item.valuationRisk === undefined || item.valuationRisk === '') {
+  const invalidItem = flatList.value.find((item) => {
+    if (
+      item.valuationRisk === null ||
+      item.valuationRisk === undefined ||
+      item.valuationRisk === ''
+    ) {
       return false
     }
     return Number.isNaN(Number(item.valuationRisk))
@@ -187,10 +203,12 @@ async function saveAll() {
   listLoading.value = true
   try {
     const { data } = await saveAllIndustrySettings({
-      list: flatList.value.map(item => ({
+      list: flatList.value.map((item) => ({
         code: item.code,
         valuationRisk:
-          item.valuationRisk === null || item.valuationRisk === undefined || item.valuationRisk === ''
+          item.valuationRisk === null ||
+          item.valuationRisk === undefined ||
+          item.valuationRisk === ''
             ? null
             : Number(item.valuationRisk)
       }))

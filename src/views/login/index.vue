@@ -3,7 +3,9 @@
     <div class="login-card">
       <div class="eyebrow">investment-front-vue3</div>
       <h1>登录</h1>
-      <p class="intro">登录后可进入投资分析工作台，查看待处理数据、策略表现和估值结果。</p>
+      <p class="intro">
+        登录后可进入投资分析工作台，查看待处理数据、策略表现和估值结果。
+      </p>
 
       <el-form
         ref="formRef"
@@ -16,9 +18,19 @@
           <el-input v-model="form.username" placeholder="请输入用户名" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="form.password" type="password" show-password placeholder="请输入密码" />
+          <el-input
+            v-model="form.password"
+            type="password"
+            show-password
+            placeholder="请输入密码"
+          />
         </el-form-item>
-        <el-button type="primary" :loading="loading" class="submit" @click="handleSubmit">
+        <el-button
+          type="primary"
+          :loading="loading"
+          class="submit"
+          @click="handleSubmit"
+        >
           登录
         </el-button>
       </el-form>
@@ -72,8 +84,16 @@ async function handleSubmit() {
   min-height: 100vh;
   padding: 24px;
   background:
-    radial-gradient(circle at 20% 20%, rgba(17, 108, 190, 0.34), transparent 0 25%),
-    radial-gradient(circle at 80% 15%, rgba(238, 184, 62, 0.26), transparent 0 18%),
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(17, 108, 190, 0.34),
+      transparent 0 25%
+    ),
+    radial-gradient(
+      circle at 80% 15%,
+      rgba(238, 184, 62, 0.26),
+      transparent 0 18%
+    ),
     linear-gradient(135deg, #091a2b 0%, #163657 52%, #edf3f8 52%, #edf3f8 100%);
 }
 

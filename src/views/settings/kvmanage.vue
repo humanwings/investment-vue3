@@ -24,44 +24,67 @@
 
           <div class="table-shell">
             <el-table v-loading="authorLoading" :data="authors">
-            <el-table-column prop="authorName" label="名称" min-width="140" />
-            <el-table-column prop="sourceSite" label="来源" width="120" />
-            <el-table-column prop="styleTags" label="标签" min-width="140" />
-            <el-table-column label="启用" width="80" align="center">
-              <template #default="{ row }">
-                <el-tag :type="row.enabled ? 'success' : 'info'">{{ row.enabled ? '是' : '否' }}</el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="defaultConfidence" label="默认可信度" width="110" />
-            <el-table-column prop="manualAdjustWeight" label="调整权重" width="100" />
-            <el-table-column prop="sampleCount" label="样本数" width="90" />
-            <el-table-column label="30日收益" width="110">
-              <template #default="{ row }">
-                {{ formatPercent(row.return30d) }}
-              </template>
-            </el-table-column>
-            <el-table-column label="胜率" width="90">
-              <template #default="{ row }">
-                {{ formatPercent(row.winRate) }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="finalWeight" label="当前权重" width="100" />
-            <el-table-column prop="latestDataDate" label="最近数据日" width="120" />
-            <el-table-column label="处理" width="100" fixed="right">
-              <template #default="{ row }">
-                <el-button text type="primary" @click="openAuthorDialog(row)">
-                  <el-icon><Edit /></el-icon>
-                  <span>编辑</span>
-                </el-button>
-              </template>
-            </el-table-column>
+              <el-table-column prop="authorName" label="名称" min-width="140" />
+              <el-table-column prop="sourceSite" label="来源" width="120" />
+              <el-table-column prop="styleTags" label="标签" min-width="140" />
+              <el-table-column label="启用" width="80" align="center">
+                <template #default="{ row }">
+                  <el-tag :type="row.enabled ? 'success' : 'info'">{{
+                    row.enabled ? '是' : '否'
+                  }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="defaultConfidence"
+                label="默认可信度"
+                width="110"
+              />
+              <el-table-column
+                prop="manualAdjustWeight"
+                label="调整权重"
+                width="100"
+              />
+              <el-table-column prop="sampleCount" label="样本数" width="90" />
+              <el-table-column label="30日收益" width="110">
+                <template #default="{ row }">
+                  {{ formatPercent(row.return30d) }}
+                </template>
+              </el-table-column>
+              <el-table-column label="胜率" width="90">
+                <template #default="{ row }">
+                  {{ formatPercent(row.winRate) }}
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="finalWeight"
+                label="当前权重"
+                width="100"
+              />
+              <el-table-column
+                prop="latestDataDate"
+                label="最近数据日"
+                width="120"
+              />
+              <el-table-column label="处理" width="100" fixed="right">
+                <template #default="{ row }">
+                  <el-button text type="primary" @click="openAuthorDialog(row)">
+                    <el-icon><Edit /></el-icon>
+                    <span>编辑</span>
+                  </el-button>
+                </template>
+              </el-table-column>
             </el-table>
           </div>
         </el-tab-pane>
 
         <el-tab-pane label="推荐数据" name="raw">
           <div class="toolbar">
-            <el-select v-model="rawQuery.authorId" clearable filterable placeholder="选择大V">
+            <el-select
+              v-model="rawQuery.authorId"
+              clearable
+              filterable
+              placeholder="选择大V"
+            >
               <el-option
                 v-for="item in authors"
                 :key="item.authorId"
@@ -88,54 +111,87 @@
 
           <div class="table-shell">
             <el-table v-loading="rawLoading" :data="rawList">
-            <el-table-column prop="authorName" label="大V" width="120" />
-            <el-table-column prop="tradeDate" label="日期" width="120" />
-            <el-table-column prop="stockCode" label="代码" width="100" />
-            <el-table-column prop="stockName" label="名称" min-width="120" />
-            <el-table-column prop="actionType" label="动作" width="90" />
-            <el-table-column label="仓位" width="90">
-              <template #default="{ row }">
-                {{ formatPercent(row.positionRatio) }}
-              </template>
-            </el-table-column>
-            <el-table-column label="30日收益" width="100">
-              <template #default="{ row }">
-                {{ formatPercent(row.resultReturn30d) }}
-              </template>
-            </el-table-column>
-            <el-table-column label="有效" width="80" align="center">
-              <template #default="{ row }">
-                <el-tag :type="row.isValid ? 'success' : 'info'">{{ row.isValid ? '是' : '否' }}</el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column label="处理" width="120" fixed="right">
-              <template #default="{ row }">
-                <el-button text type="primary" @click="openRawDialog(row)">
-                  <el-icon><Edit /></el-icon>
-                  <span>编辑</span>
-                </el-button>
-                <el-button text type="danger" @click="deleteRawItem(row)">
-                  <el-icon><Delete /></el-icon>
-                  <span>删除</span>
-                </el-button>
-              </template>
-            </el-table-column>
+              <el-table-column prop="authorName" label="大V" width="120" />
+              <el-table-column prop="tradeDate" label="日期" width="120" />
+              <el-table-column prop="stockCode" label="代码" width="100" />
+              <el-table-column prop="stockName" label="名称" min-width="120" />
+              <el-table-column prop="actionType" label="动作" width="90" />
+              <el-table-column label="仓位" width="90">
+                <template #default="{ row }">
+                  {{ formatPercent(row.positionRatio) }}
+                </template>
+              </el-table-column>
+              <el-table-column label="30日收益" width="100">
+                <template #default="{ row }">
+                  {{ formatPercent(row.resultReturn30d) }}
+                </template>
+              </el-table-column>
+              <el-table-column label="有效" width="80" align="center">
+                <template #default="{ row }">
+                  <el-tag :type="row.isValid ? 'success' : 'info'">{{
+                    row.isValid ? '是' : '否'
+                  }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column label="处理" width="120" fixed="right">
+                <template #default="{ row }">
+                  <el-button text type="primary" @click="openRawDialog(row)">
+                    <el-icon><Edit /></el-icon>
+                    <span>编辑</span>
+                  </el-button>
+                  <el-button text type="danger" @click="deleteRawItem(row)">
+                    <el-icon><Delete /></el-icon>
+                    <span>删除</span>
+                  </el-button>
+                </template>
+              </el-table-column>
             </el-table>
           </div>
         </el-tab-pane>
       </el-tabs>
     </div>
 
-    <el-dialog v-model="authorDialogVisible" :title="authorForm.authorId ? '编辑大V' : '新增大V'" width="520px">
+    <el-dialog
+      v-model="authorDialogVisible"
+      :title="authorForm.authorId ? '编辑大V' : '新增大V'"
+      width="520px"
+    >
       <el-form :model="authorForm" label-width="110px">
-        <el-form-item label="大V名称"><el-input v-model="authorForm.authorName" /></el-form-item>
-        <el-form-item label="来源站点"><el-input v-model="authorForm.sourceSite" /></el-form-item>
-        <el-form-item label="来源UID"><el-input v-model="authorForm.sourceUid" /></el-form-item>
-        <el-form-item label="风格标签"><el-input v-model="authorForm.styleTags" /></el-form-item>
-        <el-form-item label="默认可信度"><el-input-number v-model="authorForm.defaultConfidence" :precision="2" :step="0.1" :min="0.1" /></el-form-item>
-        <el-form-item label="调整权重"><el-input-number v-model="authorForm.manualAdjustWeight" :precision="2" :step="0.1" :min="0" /></el-form-item>
-        <el-form-item label="启用"><el-switch v-model="authorForm.enabled" :active-value="1" :inactive-value="0" /></el-form-item>
-        <el-form-item label="备注"><el-input v-model="authorForm.remark" type="textarea" :rows="3" /></el-form-item>
+        <el-form-item label="大V名称"
+          ><el-input v-model="authorForm.authorName"
+        /></el-form-item>
+        <el-form-item label="来源站点"
+          ><el-input v-model="authorForm.sourceSite"
+        /></el-form-item>
+        <el-form-item label="来源UID"
+          ><el-input v-model="authorForm.sourceUid"
+        /></el-form-item>
+        <el-form-item label="风格标签"
+          ><el-input v-model="authorForm.styleTags"
+        /></el-form-item>
+        <el-form-item label="默认可信度"
+          ><el-input-number
+            v-model="authorForm.defaultConfidence"
+            :precision="2"
+            :step="0.1"
+            :min="0.1"
+        /></el-form-item>
+        <el-form-item label="调整权重"
+          ><el-input-number
+            v-model="authorForm.manualAdjustWeight"
+            :precision="2"
+            :step="0.1"
+            :min="0"
+        /></el-form-item>
+        <el-form-item label="启用"
+          ><el-switch
+            v-model="authorForm.enabled"
+            :active-value="1"
+            :inactive-value="0"
+        /></el-form-item>
+        <el-form-item label="备注"
+          ><el-input v-model="authorForm.remark" type="textarea" :rows="3"
+        /></el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="authorDialogVisible = false">取消</el-button>
@@ -143,10 +199,18 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="rawDialogVisible" :title="rawForm.recId ? '编辑推荐数据' : '新增推荐数据'" width="560px">
+    <el-dialog
+      v-model="rawDialogVisible"
+      :title="rawForm.recId ? '编辑推荐数据' : '新增推荐数据'"
+      width="560px"
+    >
       <el-form :model="rawForm" label-width="110px">
         <el-form-item label="大V">
-          <el-select v-model="rawForm.authorId" filterable placeholder="选择大V">
+          <el-select
+            v-model="rawForm.authorId"
+            filterable
+            placeholder="选择大V"
+          >
             <el-option
               v-for="item in authors"
               :key="item.authorId"
@@ -155,9 +219,21 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="推荐日期"><el-date-picker v-model="rawForm.tradeDate" type="date" value-format="YYYY-MM-DD" /></el-form-item>
-        <el-form-item label="股票代码"><el-input v-model.trim="rawForm.stockCode" @input="onStockCodeInput" @blur="fillStockNameByCode" /></el-form-item>
-        <el-form-item label="股票名称"><el-input v-model="rawForm.stockName" /></el-form-item>
+        <el-form-item label="推荐日期"
+          ><el-date-picker
+            v-model="rawForm.tradeDate"
+            type="date"
+            value-format="YYYY-MM-DD"
+        /></el-form-item>
+        <el-form-item label="股票代码"
+          ><el-input
+            v-model.trim="rawForm.stockCode"
+            @input="onStockCodeInput"
+            @blur="fillStockNameByCode"
+        /></el-form-item>
+        <el-form-item label="股票名称"
+          ><el-input v-model="rawForm.stockName"
+        /></el-form-item>
         <el-form-item label="动作">
           <el-select v-model="rawForm.actionType">
             <el-option label="BUY" value="BUY" />
@@ -167,13 +243,47 @@
             <el-option label="SELL" value="SELL" />
           </el-select>
         </el-form-item>
-        <el-form-item label="仓位"><el-input-number v-model="rawForm.positionRatio" :precision="2" :step="0.05" :min="0" :max="1" /></el-form-item>
-        <el-form-item label="30日收益"><el-input-number v-model="rawForm.resultReturn30d" :precision="3" :step="0.01" /></el-form-item>
-        <el-form-item label="90日收益"><el-input-number v-model="rawForm.resultReturn90d" :precision="3" :step="0.01" /></el-form-item>
-        <el-form-item label="180日收益"><el-input-number v-model="rawForm.resultReturn180d" :precision="3" :step="0.01" /></el-form-item>
-        <el-form-item label="最大回撤"><el-input-number v-model="rawForm.resultDrawdown" :precision="3" :step="0.01" /></el-form-item>
-        <el-form-item label="来源链接"><el-input v-model="rawForm.sourceUrl" /></el-form-item>
-        <el-form-item label="有效"><el-switch v-model="rawForm.isValid" :active-value="1" :inactive-value="0" /></el-form-item>
+        <el-form-item label="仓位"
+          ><el-input-number
+            v-model="rawForm.positionRatio"
+            :precision="2"
+            :step="0.05"
+            :min="0"
+            :max="1"
+        /></el-form-item>
+        <el-form-item label="30日收益"
+          ><el-input-number
+            v-model="rawForm.resultReturn30d"
+            :precision="3"
+            :step="0.01"
+        /></el-form-item>
+        <el-form-item label="90日收益"
+          ><el-input-number
+            v-model="rawForm.resultReturn90d"
+            :precision="3"
+            :step="0.01"
+        /></el-form-item>
+        <el-form-item label="180日收益"
+          ><el-input-number
+            v-model="rawForm.resultReturn180d"
+            :precision="3"
+            :step="0.01"
+        /></el-form-item>
+        <el-form-item label="最大回撤"
+          ><el-input-number
+            v-model="rawForm.resultDrawdown"
+            :precision="3"
+            :step="0.01"
+        /></el-form-item>
+        <el-form-item label="来源链接"
+          ><el-input v-model="rawForm.sourceUrl"
+        /></el-form-item>
+        <el-form-item label="有效"
+          ><el-switch
+            v-model="rawForm.isValid"
+            :active-value="1"
+            :inactive-value="0"
+        /></el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="rawDialogVisible = false">取消</el-button>
@@ -186,7 +296,13 @@
 <script setup>
 import { onBeforeUnmount, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Delete, Edit, Plus, RefreshRight, Search } from '@element-plus/icons-vue'
+import {
+  Delete,
+  Edit,
+  Plus,
+  RefreshRight,
+  Search
+} from '@element-plus/icons-vue'
 
 import {
   deleteRecommendRaw,
@@ -307,9 +423,13 @@ async function saveRaw() {
 }
 
 async function deleteRawItem(row) {
-  await ElMessageBox.confirm(`确认删除 ${row.stockCode} 这条推荐数据吗？`, '提示', {
-    type: 'warning'
-  })
+  await ElMessageBox.confirm(
+    `确认删除 ${row.stockCode} 这条推荐数据吗？`,
+    '提示',
+    {
+      type: 'warning'
+    }
+  )
   await deleteRecommendRaw(row.recId)
   await getRawList()
   ElMessage.success('删除成功')

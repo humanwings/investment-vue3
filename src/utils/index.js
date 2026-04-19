@@ -1,5 +1,7 @@
 export function formatPercent(num) {
-  return num !== null && num !== undefined && !Number.isNaN(num) ? `${(num * 100).toFixed(2)}%` : ''
+  return num !== null && num !== undefined && !Number.isNaN(num)
+    ? `${(num * 100).toFixed(2)}%`
+    : ''
 }
 
 export function formatYi(num) {

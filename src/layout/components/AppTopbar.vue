@@ -13,7 +13,7 @@
       <el-dropdown trigger="click">
         <button class="profile-btn" type="button">
           <span class="avatar">
-            <img v-if="avatarUrl" :src="avatarUrl" alt="avatar">
+            <img v-if="avatarUrl" :src="avatarUrl" alt="avatar" />
             <span v-else>{{ initials }}</span>
           </span>
           <span class="profile-text">
@@ -24,7 +24,9 @@
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item @click="router.push('/')">首页</el-dropdown-item>
-            <el-dropdown-item divided @click="handleLogout">退出登录</el-dropdown-item>
+            <el-dropdown-item divided @click="handleLogout"
+              >退出登录</el-dropdown-item
+            >
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -46,7 +48,9 @@ const appStore = useAppStore()
 const userStore = useUserStore()
 
 const avatarUrl = computed(() => userStore.avatar || '')
-const initials = computed(() => (userStore.name || 'A').slice(0, 1).toUpperCase())
+const initials = computed(() =>
+  (userStore.name || 'A').slice(0, 1).toUpperCase()
+)
 
 async function handleLogout() {
   await userStore.logoutAction()

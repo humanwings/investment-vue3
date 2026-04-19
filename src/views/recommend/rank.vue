@@ -34,35 +34,79 @@
           height="100%"
           @row-dblclick="goDetail"
         >
-        <el-table-column prop="rankNo" label="排名" width="80" align="center" />
-        <el-table-column prop="stockCode" label="代码" width="100" align="center" />
-        <el-table-column prop="stockName" label="名称" min-width="140" />
-        <el-table-column prop="recommendScore" label="综合推荐分" width="120" sortable />
-        <el-table-column prop="authorCount" label="推荐人数" width="100" sortable />
-        <el-table-column prop="weightedAuthorCount" label="加权人数" width="110" sortable />
-        <el-table-column label="平均仓位" width="100" align="center">
-          <template #default="{ row }">
-            {{ formatPercent(row.avgPositionRatio) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="topAuthorName" label="核心大V" width="130" />
-        <el-table-column prop="lastRecommendDate" label="最近推荐日" width="120" />
-        <el-table-column label="估值偏差" width="110" align="center">
-          <template #default="{ row }">
-            {{ formatPercent(row.deviation) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="financialScore" label="财务评分" width="100" sortable />
-        <el-table-column prop="valuationScore" label="综合评分" width="100" sortable />
-        <el-table-column prop="industryName" label="行业" min-width="140" />
-        <el-table-column label="处理" width="110" fixed="right" align="center">
-          <template #default="{ row }">
-            <el-button text type="primary" @click="goDetail(row)">
-              <el-icon><View /></el-icon>
-              <span>查看详情</span>
-            </el-button>
-          </template>
-        </el-table-column>
+          <el-table-column
+            prop="rankNo"
+            label="排名"
+            width="80"
+            align="center"
+          />
+          <el-table-column
+            prop="stockCode"
+            label="代码"
+            width="100"
+            align="center"
+          />
+          <el-table-column prop="stockName" label="名称" min-width="140" />
+          <el-table-column
+            prop="recommendScore"
+            label="综合推荐分"
+            width="120"
+            sortable
+          />
+          <el-table-column
+            prop="authorCount"
+            label="推荐人数"
+            width="100"
+            sortable
+          />
+          <el-table-column
+            prop="weightedAuthorCount"
+            label="加权人数"
+            width="110"
+            sortable
+          />
+          <el-table-column label="平均仓位" width="100" align="center">
+            <template #default="{ row }">
+              {{ formatPercent(row.avgPositionRatio) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="topAuthorName" label="核心大V" width="130" />
+          <el-table-column
+            prop="lastRecommendDate"
+            label="最近推荐日"
+            width="120"
+          />
+          <el-table-column label="估值偏差" width="110" align="center">
+            <template #default="{ row }">
+              {{ formatPercent(row.deviation) }}
+            </template>
+          </el-table-column>
+          <el-table-column
+            prop="financialScore"
+            label="财务评分"
+            width="100"
+            sortable
+          />
+          <el-table-column
+            prop="valuationScore"
+            label="综合评分"
+            width="100"
+            sortable
+          />
+          <el-table-column prop="industryName" label="行业" min-width="140" />
+          <el-table-column
+            label="处理"
+            width="110"
+            fixed="right"
+            align="center"
+          >
+            <template #default="{ row }">
+              <el-button text type="primary" @click="goDetail(row)">
+                <el-icon><View /></el-icon>
+                <span>查看详情</span>
+              </el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </div>
     </div>
@@ -87,7 +131,9 @@ const query = reactive({
   snapshotDate: ''
 })
 
-const displaySnapshotDate = computed(() => query.snapshotDate || snapshotDate.value || '-')
+const displaySnapshotDate = computed(
+  () => query.snapshotDate || snapshotDate.value || '-'
+)
 
 getList()
 

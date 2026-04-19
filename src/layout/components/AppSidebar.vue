@@ -1,7 +1,11 @@
 <template>
   <div>
     <transition name="sidebar-fade">
-      <div v-if="appStore.showMobileSidebar" class="drawer-mask" @click="appStore.closeMobileSidebar()" />
+      <div
+        v-if="appStore.showMobileSidebar"
+        class="drawer-mask"
+        @click="appStore.closeMobileSidebar()"
+      />
     </transition>
 
     <aside :class="sidebarClasses">
@@ -14,7 +18,11 @@
           </div>
         </div>
 
-        <el-button class="collapse-btn" text @click="appStore.toggleNavigation()">
+        <el-button
+          class="collapse-btn"
+          text
+          @click="appStore.toggleNavigation()"
+        >
           <el-icon><component :is="collapseIcon" /></el-icon>
         </el-button>
       </div>
@@ -30,7 +38,10 @@
           @select="handleSelect"
         >
           <template v-for="group in sidebarRoutes" :key="group.path">
-            <el-sub-menu v-if="hasVisibleSectionChildren(group)" :index="group.path">
+            <el-sub-menu
+              v-if="hasVisibleSectionChildren(group)"
+              :index="group.path"
+            >
               <template #title>
                 <el-icon v-if="group.meta?.icon">
                   <component :is="group.meta.icon" />
@@ -38,31 +49,46 @@
                 <span>{{ group.meta?.title }}</span>
               </template>
 
-              <template v-for="section in visibleSections(group)" :key="section.path">
+              <template
+                v-for="section in visibleSections(group)"
+                :key="section.path"
+              >
                 <el-menu-item-group v-if="hasVisibleLeafChildren(section)">
                   <template #title>
-                    <span class="menu-group-title">{{ section.meta?.title }}</span>
+                    <span class="menu-group-title">{{
+                      section.meta?.title
+                    }}</span>
                   </template>
                   <el-menu-item
                     v-for="item in visibleLeafChildren(section)"
                     :key="resolveChildPath(group.path, section.path, item.path)"
-                    :index="resolveChildPath(group.path, section.path, item.path)"
+                    :index="
+                      resolveChildPath(group.path, section.path, item.path)
+                    "
                     class="menu-leaf-item"
                   >
                     <span class="menu-leaf-label">{{ item.meta?.title }}</span>
                   </el-menu-item>
                 </el-menu-item-group>
-                <el-menu-item v-else :index="resolveSinglePath(group.path, section.path)">
+                <el-menu-item
+                  v-else
+                  :index="resolveSinglePath(group.path, section.path)"
+                >
                   {{ section.meta?.title }}
                 </el-menu-item>
               </template>
             </el-sub-menu>
 
-            <el-menu-item v-else :index="resolveSinglePath(group.path, group.children?.[0]?.path)">
+            <el-menu-item
+              v-else
+              :index="resolveSinglePath(group.path, group.children?.[0]?.path)"
+            >
               <el-icon v-if="group.meta?.icon">
                 <component :is="group.meta.icon" />
               </el-icon>
-              <span>{{ group.meta?.title || group.children?.[0]?.meta?.title }}</span>
+              <span>{{
+                group.meta?.title || group.children?.[0]?.meta?.title
+              }}</span>
             </el-menu-item>
           </template>
         </el-menu>
@@ -82,7 +108,9 @@ import { useAppStore } from '@/stores/app'
 const route = useRoute()
 const appStore = useAppStore()
 
-const sidebarRoutes = computed(() => appRoutes.filter(item => !item.meta?.hidden && item.children?.length))
+const sidebarRoutes = computed(() =>
+  appRoutes.filter((item) => !item.meta?.hidden && item.children?.length)
+)
 const activeMenu = computed(() => route.meta?.activeMenu || route.path)
 const collapseIcon = computed(() => {
   if (appStore.isMobile) {
@@ -109,11 +137,11 @@ function resolveSinglePath(groupPath, childPath = '') {
 }
 
 function visibleSections(group) {
-  return (group.children || []).filter(item => !item.meta?.hidden)
+  return (group.children || []).filter((item) => !item.meta?.hidden)
 }
 
 function visibleLeafChildren(section) {
-  return (section.children || []).filter(item => !item.meta?.hidden)
+  return (section.children || []).filter((item) => !item.meta?.hidden)
 }
 
 function hasVisibleLeafChildren(section) {
@@ -121,7 +149,9 @@ function hasVisibleLeafChildren(section) {
 }
 
 function hasVisibleSectionChildren(group) {
-  return visibleSections(group).some(section => hasVisibleLeafChildren(section))
+  return visibleSections(group).some((section) =>
+    hasVisibleLeafChildren(section)
+  )
 }
 
 function handleSelect() {
@@ -149,7 +179,9 @@ function handleSelect() {
   background: linear-gradient(180deg, #102235 0%, #142e48 100%);
   color: #f4f7fb;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
-  transition: width 0.2s ease, transform 0.2s ease;
+  transition:
+    width 0.2s ease,
+    transform 0.2s ease;
 }
 
 .sidebar:not(.collapsed) {
@@ -180,7 +212,11 @@ function handleSelect() {
   width: 42px;
   height: 42px;
   border-radius: 14px;
-  background: linear-gradient(135deg, rgba(236, 243, 248, 0.16), rgba(236, 243, 248, 0.28));
+  background: linear-gradient(
+    135deg,
+    rgba(236, 243, 248, 0.16),
+    rgba(236, 243, 248, 0.28)
+  );
   color: #fff;
   font-size: 14px;
   font-weight: 800;
@@ -291,7 +327,10 @@ function handleSelect() {
   background: #f7c948;
 }
 
-.menu :deep(.el-sub-menu .el-menu-item:not(.el-menu-item-group__wrap .el-menu-item)) {
+.menu
+  :deep(
+    .el-sub-menu .el-menu-item:not(.el-menu-item-group__wrap .el-menu-item)
+  ) {
   margin-left: 34px;
   padding-left: 20px !important;
   width: calc(100% - 34px);

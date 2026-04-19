@@ -14,30 +14,42 @@
 
       <div class="table-shell">
         <el-table v-loading="listLoading" :data="list">
-        <el-table-column prop="analyteId" label="序号" width="70" />
-        <el-table-column prop="name" label="名称" width="140" />
-        <el-table-column prop="stockCode" label="代码" width="120" />
-        <el-table-column prop="ndate" label="N日" width="120" />
-        <el-table-column label="买入价1" width="100">
-          <template #default="{ row }">{{ formatAmount(row.buyPriceOne) }}</template>
-        </el-table-column>
-        <el-table-column label="买入价2" width="100">
-          <template #default="{ row }">{{ formatAmount(row.buyPriceTwo) }}</template>
-        </el-table-column>
-        <el-table-column label="卖出价1" width="100">
-          <template #default="{ row }">{{ formatAmount(row.sellPriceOne) }}</template>
-        </el-table-column>
-        <el-table-column label="卖出价2" width="100">
-          <template #default="{ row }">{{ formatAmount(row.sellPriceTwo) }}</template>
-        </el-table-column>
-        <el-table-column label="盈亏1" width="100">
-          <template #default="{ row }">{{ formatAmount(row.balanceOne) }}</template>
-        </el-table-column>
-        <el-table-column label="盈亏2" width="100">
-          <template #default="{ row }">{{ formatAmount(row.balanceTwo) }}</template>
-        </el-table-column>
-        <el-table-column prop="commentOne" label="备注1" min-width="140" />
-        <el-table-column prop="commentTwo" label="备注2" min-width="140" />
+          <el-table-column prop="analyteId" label="序号" width="70" />
+          <el-table-column prop="name" label="名称" width="140" />
+          <el-table-column prop="stockCode" label="代码" width="120" />
+          <el-table-column prop="ndate" label="N日" width="120" />
+          <el-table-column label="买入价1" width="100">
+            <template #default="{ row }">{{
+              formatAmount(row.buyPriceOne)
+            }}</template>
+          </el-table-column>
+          <el-table-column label="买入价2" width="100">
+            <template #default="{ row }">{{
+              formatAmount(row.buyPriceTwo)
+            }}</template>
+          </el-table-column>
+          <el-table-column label="卖出价1" width="100">
+            <template #default="{ row }">{{
+              formatAmount(row.sellPriceOne)
+            }}</template>
+          </el-table-column>
+          <el-table-column label="卖出价2" width="100">
+            <template #default="{ row }">{{
+              formatAmount(row.sellPriceTwo)
+            }}</template>
+          </el-table-column>
+          <el-table-column label="盈亏1" width="100">
+            <template #default="{ row }">{{
+              formatAmount(row.balanceOne)
+            }}</template>
+          </el-table-column>
+          <el-table-column label="盈亏2" width="100">
+            <template #default="{ row }">{{
+              formatAmount(row.balanceTwo)
+            }}</template>
+          </el-table-column>
+          <el-table-column prop="commentOne" label="备注1" min-width="140" />
+          <el-table-column prop="commentTwo" label="备注2" min-width="140" />
         </el-table>
       </div>
     </div>

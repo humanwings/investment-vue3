@@ -13,7 +13,9 @@ export const useAppStore = defineStore('app', () => {
     opened: sidebarOpened.value
   }))
   const showDesktopLabel = computed(() => sidebarOpened.value)
-  const showMobileSidebar = computed(() => isMobile.value && mobileSidebarOpened.value)
+  const showMobileSidebar = computed(
+    () => isMobile.value && mobileSidebarOpened.value
+  )
 
   function toggleSidebar() {
     sidebarOpened.value = !sidebarOpened.value

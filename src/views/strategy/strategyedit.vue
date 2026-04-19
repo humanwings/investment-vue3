@@ -33,48 +33,52 @@
 
       <div class="table-shell">
         <el-table v-loading="listLoading" :data="list">
-        <el-table-column label="操作" width="120" align="center">
-          <template #default="{ row, $index }">
-            <el-button
-              v-if="row.tacticsId === -1"
-              type="success"
-              size="small"
-              round
-              @click="addItem(row)"
-            >
-              追加
-            </el-button>
-            <el-button
-              v-else
-              type="danger"
-              size="small"
-              round
-              @click="delItem($index)"
-            >
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
+          <el-table-column label="操作" width="120" align="center">
+            <template #default="{ row, $index }">
+              <el-button
+                v-if="row.tacticsId === -1"
+                type="success"
+                size="small"
+                round
+                @click="addItem(row)"
+              >
+                追加
+              </el-button>
+              <el-button
+                v-else
+                type="danger"
+                size="small"
+                round
+                @click="delItem($index)"
+              >
+                删除
+              </el-button>
+            </template>
+          </el-table-column>
 
-        <el-table-column label="分类" width="300" align="center">
-          <template #default="{ row }">
-            <el-cascader
-              v-if="row.tacticsId !== -1"
-              v-model="row.option"
-              :options="tacticsOptions"
-              @change="setOption(row)"
-            />
-          </template>
-        </el-table-column>
+          <el-table-column label="分类" width="300" align="center">
+            <template #default="{ row }">
+              <el-cascader
+                v-if="row.tacticsId !== -1"
+                v-model="row.option"
+                :options="tacticsOptions"
+                @change="setOption(row)"
+              />
+            </template>
+          </el-table-column>
 
-        <el-table-column label="子策略设定" min-width="760" align="center">
-          <template #default="{ row }">
-            <TacticsItem v-if="row.tacticsId !== -1" :item="row" />
-          </template>
-        </el-table-column>
+          <el-table-column label="子策略设定" min-width="760" align="center">
+            <template #default="{ row }">
+              <TacticsItem
+                v-if="row.tacticsId !== -1"
+                :item="row"
+                @update:item="updateItem(row, $event)"
+              />
+            </template>
+          </el-table-column>
 
-        <el-table-column prop="category" label="category" width="100" />
-        <el-table-column prop="kind" label="kind" width="140" />
+          <el-table-column prop="category" label="category" width="100" />
+          <el-table-column prop="kind" label="kind" width="140" />
         </el-table>
       </div>
     </div>
@@ -87,7 +91,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Edit, EditPen, Plus, RefreshLeft } from '@element-plus/icons-vue'
 
-import { createStrategy, getStrategy, updateStrategy, updateStrategyName } from '@/api/strategy'
+import {
+  createStrategy,
+  getStrategy,
+  updateStrategy,
+  updateStrategyName
+} from '@/api/strategy'
 import { tacticsOptions } from '@/codebook'
 import TacticsItem from './TacticsItem.vue'
 
@@ -112,7 +121,7 @@ async function getDetail() {
   try {
     const { data } = await getStrategy(strategyId)
     name.value = data.strategy.name
-    list.value = (data.strategy.list || []).map(item => ({
+    list.value = (data.strategy.list || []).map((item) => ({
       ...item,
       option: [item.category, item.kind],
       param3: item.param3 ?? undefined,
@@ -127,6 +136,10 @@ async function getDetail() {
 function setOption(row) {
   row.category = row.option?.[0]
   row.kind = row.option?.[1]
+}
+
+function updateItem(row, patch) {
+  Object.assign(row, patch)
 }
 
 function delItem(index) {
@@ -162,8 +175,8 @@ function resetLocal() {
 
 function normalizedList() {
   return list.value
-    .filter(item => item.tacticsId !== -1)
-    .map(item => ({
+    .filter((item) => item.tacticsId !== -1)
+    .map((item) => ({
       tacticsId: item.tacticsId > 0 ? item.tacticsId : 0,
       category: item.category,
       kind: item.kind,
@@ -175,7 +188,11 @@ function normalizedList() {
 }
 
 async function confirmCreate() {
-  await ElMessageBox.confirm(`此操作将${label.value}此策略，是否继续？`, '提示', { type: 'success' })
+  await ElMessageBox.confirm(
+    `此操作将${label.value}此策略，是否继续？`,
+    '提示',
+    { type: 'success' }
+  )
   await create()
 }
 
@@ -189,7 +206,11 @@ async function create() {
 }
 
 async function confirmUpdate() {
-  await ElMessageBox.confirm(`此操作将${label.value}此策略，是否继续？`, '提示', { type: 'warning' })
+  await ElMessageBox.confirm(
+    `此操作将${label.value}此策略，是否继续？`,
+    '提示',
+    { type: 'warning' }
+  )
   await update()
 }
 

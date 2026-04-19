@@ -19,20 +19,32 @@ export default defineConfig(({ mode }) => {
         '/api': {
           target: 'http://localhost:8080',
           changeOrigin: true,
-          rewrite: requestPath => requestPath.replace(/^\/api/, '')
+          rewrite: (requestPath) => requestPath.replace(/^\/api/, '')
         }
       }
+    },
+    test: {
+      environment: 'jsdom',
+      globals: true,
+      setupFiles: './src/test/setup.js'
     },
     build: {
       chunkSizeWarningLimit: 900,
       rollupOptions: {
         output: {
           manualChunks(id) {
-            if (id.includes('node_modules/vue') || id.includes('node_modules/@vue/') || id.includes('node_modules/pinia')) {
+            if (
+              id.includes('node_modules/vue') ||
+              id.includes('node_modules/@vue/') ||
+              id.includes('node_modules/pinia')
+            ) {
               return 'vue-vendor'
             }
 
-            if (id.includes('node_modules/axios') || id.includes('node_modules/js-cookie')) {
+            if (
+              id.includes('node_modules/axios') ||
+              id.includes('node_modules/js-cookie')
+            ) {
               return 'axios-vendor'
             }
 
@@ -57,7 +69,9 @@ export default defineConfig(({ mode }) => {
       }
     },
     define: {
-      __APP_TITLE__: JSON.stringify(env.VITE_APP_TITLE || 'investment-front-vue3')
+      __APP_TITLE__: JSON.stringify(
+        env.VITE_APP_TITLE || 'investment-front-vue3'
+      )
     }
   }
 })

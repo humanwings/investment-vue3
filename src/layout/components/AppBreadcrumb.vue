@@ -2,7 +2,9 @@
   <nav class="breadcrumb" aria-label="Breadcrumb">
     <ol>
       <li v-for="item in breadcrumbItems" :key="item.path" class="crumb">
-        <router-link v-if="!item.isCurrent" :to="item.path">{{ item.title }}</router-link>
+        <router-link v-if="!item.isCurrent" :to="item.path">{{
+          item.title
+        }}</router-link>
         <span v-else>{{ item.title }}</span>
       </li>
     </ol>
@@ -17,9 +19,15 @@ const route = useRoute()
 
 const breadcrumbItems = computed(() =>
   route.matched
-    .filter(record => record.meta?.title && !record.meta?.hidden && record.path !== '/')
+    .filter(
+      (record) =>
+        record.meta?.title && !record.meta?.hidden && record.path !== '/'
+    )
     .map((record, index, matched) => ({
-      path: typeof record.redirect === 'string' ? record.redirect : resolveRecordPath(record.path),
+      path:
+        typeof record.redirect === 'string'
+          ? record.redirect
+          : resolveRecordPath(record.path),
       title: record.meta.title,
       isCurrent: index === matched.length - 1
     }))

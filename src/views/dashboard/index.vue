@@ -4,16 +4,27 @@
       <div>
         <div class="eyebrow">Overview</div>
         <h2>投资分析工作台</h2>
-        <p>集中查看待处理数据、估值覆盖、策略数量和推荐榜状态，直接进入高频业务页面。</p>
+        <p>
+          集中查看待处理数据、估值覆盖、策略数量和推荐榜状态，直接进入高频业务页面。
+        </p>
       </div>
       <div class="hero-actions">
-        <el-button type="primary" @click="router.push('/barginhunting/analyte/waitlist')">处理新数据</el-button>
+        <el-button
+          type="primary"
+          @click="router.push('/barginhunting/analyte/waitlist')"
+          >处理新数据</el-button
+        >
         <el-button @click="refreshDashboard">刷新看板</el-button>
       </div>
     </div>
 
     <div class="metric-grid">
-      <article v-for="card in metrics" :key="card.key" class="metric-card" @click="router.push(card.to)">
+      <article
+        v-for="card in metrics"
+        :key="card.key"
+        class="metric-card"
+        @click="router.push(card.to)"
+      >
         <span class="label">{{ card.label }}</span>
         <strong>{{ card.value }}</strong>
         <small>{{ card.helper }}</small>
@@ -27,11 +38,21 @@
             <div class="eyebrow">Queue</div>
             <h3>待处理数据</h3>
           </div>
-          <el-button text @click="router.push('/barginhunting/analyte/waitlist')">查看全部</el-button>
+          <el-button
+            text
+            @click="router.push('/barginhunting/analyte/waitlist')"
+            >查看全部</el-button
+          >
         </div>
         <div v-if="loading" class="empty">正在加载概览数据...</div>
         <div v-else-if="waitHighlights.length" class="list">
-          <button v-for="item in waitHighlights" :key="item.analyteId" class="list-item" type="button" @click="router.push('/barginhunting/analyte/waitlist')">
+          <button
+            v-for="item in waitHighlights"
+            :key="item.analyteId"
+            class="list-item"
+            type="button"
+            @click="router.push('/barginhunting/analyte/waitlist')"
+          >
             <strong>{{ item.name }}</strong>
             <span>{{ item.stockCode }} · {{ item.ndate }}</span>
           </button>
@@ -45,7 +66,11 @@
             <div class="eyebrow">Ranking</div>
             <h3>推荐榜前列</h3>
           </div>
-          <el-button text @click="router.push('/companyvaluation/valuation/recommend')">进入榜单</el-button>
+          <el-button
+            text
+            @click="router.push('/companyvaluation/valuation/recommend')"
+            >进入榜单</el-button
+          >
         </div>
         <div v-if="loading" class="empty">正在加载推荐榜...</div>
         <div v-else-if="recommendHighlights.length" class="list">
@@ -57,7 +82,10 @@
             @click="goRecommendDetail(item)"
           >
             <strong>{{ item.rankNo }}. {{ item.stockName }}</strong>
-            <span>{{ item.stockCode }} · 推荐分 {{ item.recommendScore ?? '-' }}</span>
+            <span
+              >{{ item.stockCode }} · 推荐分
+              {{ item.recommendScore ?? '-' }}</span
+            >
           </button>
         </div>
         <div v-else class="empty">当前没有推荐榜数据</div>
@@ -71,7 +99,13 @@
           </div>
         </div>
         <div class="shortcut-grid">
-          <button v-for="item in shortcuts" :key="item.label" class="shortcut" type="button" @click="router.push(item.to)">
+          <button
+            v-for="item in shortcuts"
+            :key="item.label"
+            class="shortcut"
+            type="button"
+            @click="router.push(item.to)"
+          >
             <strong>{{ item.label }}</strong>
             <span>{{ item.helper }}</span>
           </button>
@@ -131,18 +165,38 @@ const metrics = computed(() => [
     key: 'recommend',
     label: '推荐榜股票',
     value: recommendSummary.value.total,
-    helper: recommendSummary.value.snapshotDate ? `榜单日期 ${recommendSummary.value.snapshotDate}` : '最新推荐榜概览',
+    helper: recommendSummary.value.snapshotDate
+      ? `榜单日期 ${recommendSummary.value.snapshotDate}`
+      : '最新推荐榜概览',
     to: '/companyvaluation/valuation/recommend'
   }
 ])
 
 const waitHighlights = computed(() => waitSummary.value.list.slice(0, 4))
-const recommendHighlights = computed(() => recommendSummary.value.list.slice(0, 5))
+const recommendHighlights = computed(() =>
+  recommendSummary.value.list.slice(0, 5)
+)
 const shortcuts = [
-  { label: '公司估值', helper: '管理估值池与价格更新', to: '/companyvaluation/valuation/company' },
-  { label: '策略一览', helper: '检证、比较和维护策略', to: '/barginhunting/strategy/strategylist' },
-  { label: '大V管理', helper: '维护作者及原始推荐数据', to: '/companyvaluation/settings/recommendauthors' },
-  { label: '参数设置', helper: '调整宏观与行业参数', to: '/companyvaluation/settings/macrosettings' }
+  {
+    label: '公司估值',
+    helper: '管理估值池与价格更新',
+    to: '/companyvaluation/valuation/company'
+  },
+  {
+    label: '策略一览',
+    helper: '检证、比较和维护策略',
+    to: '/barginhunting/strategy/strategylist'
+  },
+  {
+    label: '大V管理',
+    helper: '维护作者及原始推荐数据',
+    to: '/companyvaluation/settings/recommendauthors'
+  },
+  {
+    label: '参数设置',
+    helper: '调整宏观与行业参数',
+    to: '/companyvaluation/settings/macrosettings'
+  }
 ]
 
 refreshDashboard()
@@ -150,7 +204,13 @@ refreshDashboard()
 async function refreshDashboard() {
   loading.value = true
   try {
-    const [waitResult, doneResult, companyResult, strategyResult, recommendResult] = await Promise.allSettled([
+    const [
+      waitResult,
+      doneResult,
+      companyResult,
+      strategyResult,
+      recommendResult
+    ] = await Promise.allSettled([
       getWaitList(),
       getDonePage(),
       getCompanyList(),
@@ -198,7 +258,9 @@ function goRecommendDetail(item) {
   router.push({
     name: 'RecommendDetail',
     params: { stockCode: item.stockCode },
-    query: recommendSummary.value.snapshotDate ? { snapshotDate: recommendSummary.value.snapshotDate } : {}
+    query: recommendSummary.value.snapshotDate
+      ? { snapshotDate: recommendSummary.value.snapshotDate }
+      : {}
   })
 }
 </script>
@@ -216,7 +278,13 @@ function goRecommendDetail(item) {
   gap: 16px;
   padding: 28px;
   border-radius: 24px;
-  background: linear-gradient(135deg, #123353 0%, #1f517e 55%, #dbeaf5 55%, #dbeaf5 100%);
+  background: linear-gradient(
+    135deg,
+    #123353 0%,
+    #1f517e 55%,
+    #dbeaf5 55%,
+    #dbeaf5 100%
+  );
   color: #fff;
 }
 

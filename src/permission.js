@@ -6,7 +6,7 @@ import getPageTitle from '@/utils/get-page-title'
 
 const whiteList = ['/login']
 
-router.beforeEach(async to => {
+router.beforeEach(async (to) => {
   document.title = getPageTitle(to.meta?.title)
 
   const hasToken = getToken()

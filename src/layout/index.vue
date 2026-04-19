@@ -38,7 +38,11 @@ onBeforeUnmount(() => {
   height: 100vh;
   overflow: hidden;
   background:
-    radial-gradient(circle at top left, rgba(140, 196, 255, 0.18), transparent 28%),
+    radial-gradient(
+      circle at top left,
+      rgba(140, 196, 255, 0.18),
+      transparent 28%
+    ),
     linear-gradient(180deg, #f6f8fb 0%, #ecf1f6 100%);
 }
 

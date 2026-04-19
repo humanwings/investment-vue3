@@ -17,48 +17,60 @@
 
       <div class="table-shell table-shell--fill">
         <el-table v-loading="listLoading" :data="list" height="100%">
-        <el-table-column prop="analyteId" label="序号" width="70" />
-        <el-table-column prop="name" label="名称" width="140" />
-        <el-table-column prop="ndate" label="N日" width="120" />
-        <el-table-column prop="stockCode" label="代码" width="120" />
-        <el-table-column label="状态" width="120">
-          <template #default="{ row }">
-            <el-tag :type="listingStatusType[row.listingStatus]" effect="dark">{{ getListingStatus(row.listingStatus) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="PE-TTM" width="110">
-          <template #default="{ row }">{{ formatAmount(row.pe) }}</template>
-        </el-table-column>
-        <el-table-column label="PB(不含商誉)" width="130">
-          <template #default="{ row }">{{ formatAmount(row.pb) }}</template>
-        </el-table-column>
-        <el-table-column label="市值" width="120">
-          <template #default="{ row }">{{ formatYi(row.mc) }}</template>
-        </el-table-column>
-        <el-table-column label="自由流通市值" width="140">
-          <template #default="{ row }">{{ formatYi(row.ecmc) }}</template>
-        </el-table-column>
-        <el-table-column label="股东人数" width="100" prop="shn" />
-        <el-table-column label="人均自由流通市值" width="150">
-          <template #default="{ row }">{{ formatWan(row.ecmc_psh) }}</template>
-        </el-table-column>
-        <el-table-column prop="plungeReason" label="暴跌原因" width="130" />
-        <el-table-column prop="plungeDates" label="暴跌天数" width="110" />
-        <el-table-column prop="plungeGap" label="暴跌缺口数" width="110" />
-        <el-table-column prop="plungeTerrace" label="暴跌平台数" width="110" />
-        <el-table-column label="暴跌最大幅度" width="130">
-          <template #default="{ row }">{{ formatPercent(row.plungeMax) }}</template>
-        </el-table-column>
-        <el-table-column fixed="right" label="处理" width="90">
-          <template #default="{ row, $index }">
-            <div class="row-actions">
-              <el-button text type="danger" @click="confirmDel(row, $index)">
-                <el-icon><Delete /></el-icon>
-                <span>删除</span>
-              </el-button>
-            </div>
-          </template>
-        </el-table-column>
+          <el-table-column prop="analyteId" label="序号" width="70" />
+          <el-table-column prop="name" label="名称" width="140" />
+          <el-table-column prop="ndate" label="N日" width="120" />
+          <el-table-column prop="stockCode" label="代码" width="120" />
+          <el-table-column label="状态" width="120">
+            <template #default="{ row }">
+              <el-tag
+                :type="listingStatusType[row.listingStatus]"
+                effect="dark"
+                >{{ getListingStatus(row.listingStatus) }}</el-tag
+              >
+            </template>
+          </el-table-column>
+          <el-table-column label="PE-TTM" width="110">
+            <template #default="{ row }">{{ formatAmount(row.pe) }}</template>
+          </el-table-column>
+          <el-table-column label="PB(不含商誉)" width="130">
+            <template #default="{ row }">{{ formatAmount(row.pb) }}</template>
+          </el-table-column>
+          <el-table-column label="市值" width="120">
+            <template #default="{ row }">{{ formatYi(row.mc) }}</template>
+          </el-table-column>
+          <el-table-column label="自由流通市值" width="140">
+            <template #default="{ row }">{{ formatYi(row.ecmc) }}</template>
+          </el-table-column>
+          <el-table-column label="股东人数" width="100" prop="shn" />
+          <el-table-column label="人均自由流通市值" width="150">
+            <template #default="{ row }">{{
+              formatWan(row.ecmc_psh)
+            }}</template>
+          </el-table-column>
+          <el-table-column prop="plungeReason" label="暴跌原因" width="130" />
+          <el-table-column prop="plungeDates" label="暴跌天数" width="110" />
+          <el-table-column prop="plungeGap" label="暴跌缺口数" width="110" />
+          <el-table-column
+            prop="plungeTerrace"
+            label="暴跌平台数"
+            width="110"
+          />
+          <el-table-column label="暴跌最大幅度" width="130">
+            <template #default="{ row }">{{
+              formatPercent(row.plungeMax)
+            }}</template>
+          </el-table-column>
+          <el-table-column fixed="right" label="处理" width="90">
+            <template #default="{ row, $index }">
+              <div class="row-actions">
+                <el-button text type="danger" @click="confirmDel(row, $index)">
+                  <el-icon><Delete /></el-icon>
+                  <span>删除</span>
+                </el-button>
+              </div>
+            </template>
+          </el-table-column>
         </el-table>
       </div>
 
@@ -78,17 +90,36 @@
 
     <el-dialog v-model="importVisible" title="导入数据" width="520px">
       <el-form ref="formRef" :model="temp" :rules="rules" label-width="100px">
-        <el-form-item label="StockCode" prop="stockCode"><el-input v-model="temp.stockCode" /></el-form-item>
-        <el-form-item label="Date" prop="ndate"><el-date-picker v-model="temp.ndate" type="date" value-format="YYYY-MM-DD" /></el-form-item>
-        <el-form-item label="关注度"><el-rate v-model="temp.popularity" :max="3" /></el-form-item>
+        <el-form-item label="StockCode" prop="stockCode"
+          ><el-input v-model="temp.stockCode"
+        /></el-form-item>
+        <el-form-item label="Date" prop="ndate"
+          ><el-date-picker
+            v-model="temp.ndate"
+            type="date"
+            value-format="YYYY-MM-DD"
+        /></el-form-item>
+        <el-form-item label="关注度"
+          ><el-rate v-model="temp.popularity" :max="3"
+        /></el-form-item>
         <el-form-item label="走势">
           <el-select v-model="temp.trend" clearable>
-            <el-option v-for="item in trendOptions" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option
+              v-for="item in trendOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="原因">
           <el-select v-model="temp.plungeReason" clearable>
-            <el-option v-for="item in reasonOptions" :key="item.value" :label="item.label" :value="item.value" />
+            <el-option
+              v-for="item in reasonOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
           </el-select>
         </el-form-item>
       </el-form>
@@ -135,7 +166,9 @@ const temp = reactive({
 })
 
 const rules = {
-  stockCode: [{ required: true, message: 'stockCode is required', trigger: 'blur' }],
+  stockCode: [
+    { required: true, message: 'stockCode is required', trigger: 'blur' }
+  ],
   ndate: [{ required: true, message: 'date is required', trigger: 'change' }]
 }
 
@@ -153,7 +186,9 @@ async function getList() {
 }
 
 function getListingStatus(status) {
-  return listingStatusOptions.find(item => item.value === status)?.label || status
+  return (
+    listingStatusOptions.find((item) => item.value === status)?.label || status
+  )
 }
 
 function formatAmount(value) {
@@ -182,7 +217,9 @@ async function importData() {
 }
 
 async function confirmDel(row) {
-  await ElMessageBox.confirm('此操作将删除此数据，是否继续？', '提示', { type: 'warning' })
+  await ElMessageBox.confirm('此操作将删除此数据，是否继续？', '提示', {
+    type: 'warning'
+  })
   await deleteAnalyte(row.analyteId)
   await getList()
   ElMessage.success('删除成功')

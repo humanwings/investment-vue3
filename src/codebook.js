@@ -38,24 +38,24 @@ export const tacticsOptions = [
   {
     value: tacticsArray[0][0],
     label: tacticsArray[0][1],
-    children: stockArray.map(v => ({ value: v[0], label: v[1] }))
+    children: stockArray.map((v) => ({ value: v[0], label: v[1] }))
   },
   {
     value: tacticsArray[1][0],
     label: tacticsArray[1][1],
-    children: buyArray.map(v => ({ value: v[0], label: v[1] }))
+    children: buyArray.map((v) => ({ value: v[0], label: v[1] }))
   },
   {
     value: tacticsArray[2][0],
     label: tacticsArray[2][1],
-    children: sellArray.map(v => ({ value: v[0], label: v[1] }))
+    children: sellArray.map((v) => ({ value: v[0], label: v[1] }))
   }
 ]
 
 export const tacticsMap = new Map([
-  ...stockArray.map(v => [tacticsOptions[0].value + v[0], v[1]]),
-  ...buyArray.map(v => [tacticsOptions[1].value + v[0], v[1]]),
-  ...sellArray.map(v => [tacticsOptions[2].value + v[0], v[1]])
+  ...stockArray.map((v) => [tacticsOptions[0].value + v[0], v[1]]),
+  ...buyArray.map((v) => [tacticsOptions[1].value + v[0], v[1]]),
+  ...sellArray.map((v) => [tacticsOptions[2].value + v[0], v[1]])
 ])
 
 export const comparisonOptions = [
