@@ -4,7 +4,7 @@
       <div>
         <div class="eyebrow">Company Valuation</div>
         <h2>公司列表</h2>
-        <p>公司池摘要入口，可执行新增、重估、价格更新、财报更新和总览查看。</p>
+        <p>公司池摘要入口，聚合估值、财务和推荐信号，支持进入公司总览。</p>
       </div>
       <div class="header-actions">
         <IndustryFilter v-model="industryFilter" :industries="industries" />
@@ -39,107 +39,85 @@
               {{ $index + 1 }}
             </template>
           </el-table-column>
-          <el-table-column fixed prop="name" label="名称" min-width="120" />
-          <el-table-column prop="score" label="综合评分" width="100" sortable />
-          <el-table-column prop="price" label="现价" width="100" sortable />
-          <el-table-column label="假定增速" width="130">
-            <template #default="{ row, $index }">
-              <el-input
-                v-model="row.growthRateAssumption"
-                size="small"
-                @change="changeGrowthRate(row, $index)"
-              />
+          <el-table-column fixed label="公司" min-width="150">
+            <template #default="{ row }">
+              <div class="company-cell">
+                <strong>{{ row.name }}</strong>
+                <span>{{ row.stockCode }}</span>
+              </div>
             </template>
           </el-table-column>
           <el-table-column
-            prop="growthRatePrediction"
-            label="预估增速"
-            width="110"
+            prop="industryName"
+            label="行业"
+            min-width="120"
+            :filters="industryColumnFilters"
+            :filter-method="filterIndustry"
           />
+          <el-table-column prop="price" label="当前价" width="100" sortable />
           <el-table-column
-            prop="valuation"
-            label="利润贴现估值"
-            width="130"
+            prop="profitValuation"
+            label="利润贴现"
+            width="120"
             sortable
           />
           <el-table-column
             align="center"
-            label="利润贴现偏离"
+            label="贴现偏离"
             width="120"
             :filters="deviationFilter"
             :filter-method="filterDeviationByProfit"
           >
             <template #default="{ row }">
-              <span :class="deviationClass(row.deviation)">{{
-                formatPercent(row.deviation)
+              <span :class="deviationClass(row.profitDeviation)">{{
+                formatPercent(row.profitDeviation)
               }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="FCF参考值" width="110">
+          <el-table-column label="DCF摘要" width="120">
             <template #default="{ row }">
-              {{ roundToDecimal((row.freeCashFlowPer || 0) * 10, 2) }}
+              {{ row.dcfValuationSummary }}
             </template>
           </el-table-column>
           <el-table-column
-            align="center"
-            label="FCF参考偏离"
-            width="120"
-            :filters="deviationFilter"
-            :filter-method="filterDeviationByFcf"
-          >
-            <template #default="{ row }">
-              <span :class="deviationClass(fcfDeviation(row))">{{
-                formatPercent(fcfDeviation(row))
-              }}</span>
-            </template>
-          </el-table-column>
+            prop="totalScore"
+            label="综合评分"
+            width="100"
+            sortable
+          />
+          <el-table-column prop="financialScore" label="财务评分" width="100" />
           <el-table-column
             prop="recommendationScore"
             label="大V评分"
             width="100"
           />
-          <el-table-column prop="financialScore" label="财务评分" width="100" />
-          <el-table-column
-            prop="industryName"
-            label="行业分类"
-            min-width="120"
-          />
-          <el-table-column label="市值" width="120" sortable>
+          <el-table-column label="结论" min-width="110">
             <template #default="{ row }">
-              {{ formatYi(row.marketValue) }}
+              <el-tag :type="conclusionType(row.conclusion)">
+                {{ row.conclusion }}
+              </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="cfDate" label="财报" width="110" />
-          <el-table-column prop="cvUpdateTime" label="股价日" width="110" />
-          <el-table-column prop="cfUpdateTime" label="更新日" width="110" />
-          <el-table-column fixed="right" label="处理" width="320">
-            <template #default="{ row, $index }">
+          <el-table-column fixed="right" label="处理" width="260">
+            <template #default="{ row }">
               <div class="row-actions">
                 <el-button text type="primary" @click="goDetail(row)">
                   <el-icon><View /></el-icon>
                   <span>总览</span>
                 </el-button>
-                <el-button
-                  text
-                  type="warning"
-                  @click="confirmUpdatePrice(row, $index)"
-                >
+                <el-button text type="warning" @click="confirmUpdatePrice(row)">
                   <el-icon><RefreshRight /></el-icon>
                   <span>股价更新</span>
                 </el-button>
                 <el-button
                   text
                   type="success"
-                  @click="confirmUpdateReport(row, $index)"
+                  @click="confirmUpdateReport(row)"
                 >
                   <el-icon><DocumentChecked /></el-icon>
                   <span>财报更新</span>
                 </el-button>
-                <el-button
-                  text
-                  type="danger"
-                  @click="confirmDelete(row, $index)"
-                >
+                <el-button text type="danger" @click="confirmDelete(row)">
                   <el-icon><Delete /></el-icon>
                   <span>删除</span>
                 </el-button>
@@ -187,9 +165,8 @@ import {
   updatePriceAll,
   updateReport
 } from '@/api/company-command'
-import { updateProfitGrowthRate } from '@/api/profit-valuation'
 import { getCompanyList } from '@/api/valuation-query'
-import { formatPercent, formatYi, roundToDecimal } from '@/utils'
+import { formatPercent } from '@/utils'
 import IndustryFilter from './components/IndustryFilter.vue'
 
 const router = useRouter()
@@ -209,8 +186,7 @@ const submitting = ref(false)
 const formRef = ref()
 const temp = reactive({
   companyId: undefined,
-  stockCode: '',
-  growthRateAssumption: undefined
+  stockCode: ''
 })
 
 const rules = {
@@ -225,6 +201,13 @@ const industries = computed(() => [
   ...new Set(list.value.map((item) => item.industryName).filter(Boolean))
 ])
 
+const industryColumnFilters = computed(() =>
+  industries.value.map((industry) => ({
+    text: industry,
+    value: industry
+  }))
+)
+
 const filteredList = computed(() => {
   if (!industryFilter.value) {
     return list.value
@@ -237,7 +220,7 @@ async function getList() {
   try {
     const { data } = await getCompanyList()
     total.value = data.sum || 0
-    list.value = data.list || []
+    list.value = normalizeSummaryList(data.list)
   } finally {
     listLoading.value = false
   }
@@ -246,13 +229,6 @@ async function getList() {
 function openAddDialog() {
   temp.stockCode = ''
   addDialogVisible.value = true
-}
-
-function fcfDeviation(row) {
-  if (!row?.price) {
-    return null
-  }
-  return roundToDecimal((row.freeCashFlowPer || 0) * 10, 2) / row.price - 1
 }
 
 function deviationClass(value) {
@@ -285,11 +261,11 @@ function passesDeviationFilter(value, deviation) {
 }
 
 function filterDeviationByProfit(value, row) {
-  return passesDeviationFilter(value, row.deviation)
+  return passesDeviationFilter(value, row.profitDeviation)
 }
 
-function filterDeviationByFcf(value, row) {
-  return passesDeviationFilter(value, fcfDeviation(row))
+function filterIndustry(value, row) {
+  return row.industryName === value
 }
 
 async function doAddCompany() {
@@ -301,7 +277,7 @@ async function doAddCompany() {
   submitting.value = true
   try {
     const response = await addCompany(temp)
-    list.value.unshift(response.data.companyInfo)
+    list.value.unshift(normalizeSummary(response.data.companyInfo))
     total.value += 1
     addDialogVisible.value = false
     ElNotification.success({
@@ -324,7 +300,7 @@ async function confirmReValuateAll() {
   listLoading.value = true
   try {
     const response = await reValuateAll()
-    list.value = response.data.list || []
+    list.value = normalizeSummaryList(response.data.list)
     total.value = response.data.sum || 0
     ElNotification.success({
       title: 'Success',
@@ -346,7 +322,7 @@ async function confirmUpdatePriceAll() {
   listLoading.value = true
   try {
     const response = await updatePriceAll()
-    list.value = response.data.list || []
+    list.value = normalizeSummaryList(response.data.list)
     total.value = response.data.sum || 0
     ElNotification.success({
       title: 'Success',
@@ -357,7 +333,7 @@ async function confirmUpdatePriceAll() {
   }
 }
 
-async function confirmUpdatePrice(row, index) {
+async function confirmUpdatePrice(row) {
   await ElMessageBox.confirm(
     '此操作将重新获取该公司的股价，是否继续？',
     '提示',
@@ -366,31 +342,31 @@ async function confirmUpdatePrice(row, index) {
     }
   )
   const response = await updatePrice(row.companyId)
-  list.value.splice(index, 1, response.data.companyInfo)
+  replaceSummary(row.companyId, normalizeSummary(response.data.companyInfo))
   ElNotification.success({
     title: 'Success',
     message: '股价更新成功'
   })
 }
 
-async function confirmUpdateReport(row, index) {
+async function confirmUpdateReport(row) {
   await ElMessageBox.confirm('此操作将更新公司财报数据，是否继续？', '提示', {
     type: 'warning'
   })
   const response = await updateReport({ companyId: row.companyId })
-  list.value.splice(index, 1, response.data.companyInfo)
+  replaceSummary(row.companyId, normalizeSummary(response.data.companyInfo))
   ElNotification.success({
     title: 'Success',
     message: '财报更新成功'
   })
 }
 
-async function confirmDelete(row, index) {
+async function confirmDelete(row) {
   await ElMessageBox.confirm('此操作将删除该公司，是否继续？', '提示', {
     type: 'warning'
   })
   await deleteCompany(row.companyId)
-  list.value.splice(index, 1)
+  removeSummary(row.companyId)
   total.value -= 1
   ElNotification.success({
     title: 'Success',
@@ -398,20 +374,72 @@ async function confirmDelete(row, index) {
   })
 }
 
-async function changeGrowthRate(row, index) {
-  const response = await updateProfitGrowthRate({
-    companyId: row.companyId,
-    growthRateAssumption: row.growthRateAssumption
-  })
-  list.value.splice(index, 1, response.data.companyInfo)
-  ElNotification.success({
-    title: 'Success',
-    message: '假定增速更新成功'
-  })
-}
-
 function goDetail(row) {
   router.push(`/companyvaluation/valuation/company/${row.companyId}`)
+}
+
+function normalizeSummaryList(rows = []) {
+  return rows.map((row) => normalizeSummary(row))
+}
+
+function normalizeSummary(row = {}) {
+  const profitDeviation = row.profitDeviation ?? row.deviation
+  const financialScore = row.financialScore
+  return {
+    companyId: row.companyId,
+    stockCode: row.stockCode,
+    name: row.name,
+    industryName: row.industryName,
+    price: row.price,
+    profitValuation: row.profitValuation ?? row.valuation ?? '',
+    profitDeviation,
+    dcfValuationSummary: row.dcfValuationSummary || '-',
+    financialScore,
+    recommendationScore: row.recommendationScore,
+    totalScore: row.totalScore ?? row.score,
+    conclusion:
+      row.conclusion || buildConclusion(profitDeviation, financialScore)
+  }
+}
+
+function replaceSummary(companyId, summary) {
+  const index = list.value.findIndex((item) => item.companyId === companyId)
+  if (index >= 0) {
+    list.value.splice(index, 1, summary)
+  }
+}
+
+function removeSummary(companyId) {
+  const index = list.value.findIndex((item) => item.companyId === companyId)
+  if (index >= 0) {
+    list.value.splice(index, 1)
+  }
+}
+
+function buildConclusion(profitDeviation, financialScore) {
+  if (profitDeviation === null || profitDeviation === undefined) {
+    return '待补数据'
+  }
+  if (profitDeviation >= 0.2 && financialScore >= 80) {
+    return '重点关注'
+  }
+  if (profitDeviation >= 0) {
+    return '可跟踪'
+  }
+  return '偏贵'
+}
+
+function conclusionType(conclusion) {
+  if (conclusion === '重点关注') {
+    return 'success'
+  }
+  if (conclusion === '偏贵') {
+    return 'warning'
+  }
+  if (conclusion === '待补数据') {
+    return 'info'
+  }
+  return ''
 }
 </script>
 
@@ -429,5 +457,22 @@ p {
 .deviation-mid {
   color: #bb7b13;
   font-weight: 700;
+}
+
+.company-cell {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.company-cell strong {
+  overflow-wrap: anywhere;
+  color: var(--app-text);
+  line-height: 1.25;
+}
+
+.company-cell span {
+  color: var(--app-text-muted);
+  font-size: 12px;
 }
 </style>

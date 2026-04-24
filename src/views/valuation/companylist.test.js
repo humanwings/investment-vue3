@@ -67,7 +67,46 @@ describe('companylist page', () => {
     expect(wrapper.vm.list).toHaveLength(1)
     expect(wrapper.vm.filteredList).toHaveLength(1)
     expect(wrapper.vm.list[0].name).toBe('贵州茅台')
+    expect(wrapper.vm.list[0].profitValuation).toBe(1500)
+    expect(wrapper.vm.list[0].conclusion).toBe('重点关注')
     expect(wrapper.vm.total).toBe(1)
+    expect(wrapper.text()).not.toContain('假定增速')
+  })
+
+  it('normalizes legacy company info into list summary rows', async () => {
+    mock.onGet('/company/all').reply(
+      ok({
+        sum: 1,
+        list: [
+          {
+            companyId: 2,
+            stockCode: '000001',
+            name: '平安银行',
+            industryName: '银行',
+            valuation: 12,
+            deviation: -0.1,
+            financialScore: 70,
+            score: 65
+          }
+        ]
+      })
+    )
+
+    const wrapper = shallowMount(CompanyList, {
+      global: {
+        stubs: elementPlusStubs,
+        directives: {
+          loading: {}
+        }
+      }
+    })
+
+    await flushPromises()
+
+    expect(wrapper.vm.list[0].profitValuation).toBe(12)
+    expect(wrapper.vm.list[0].profitDeviation).toBe(-0.1)
+    expect(wrapper.vm.list[0].totalScore).toBe(65)
+    expect(wrapper.vm.list[0].conclusion).toBe('偏贵')
   })
 
   it('filters companies by industry', async () => {
