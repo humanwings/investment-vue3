@@ -3,12 +3,11 @@
     <div class="page-header">
       <div>
         <div class="eyebrow">Company Valuation</div>
-        <h2>公司估值</h2>
-        <p>
-          列表已接入现有后端，可执行新增、重估、价格更新、财报更新和详情查看。
-        </p>
+        <h2>公司列表</h2>
+        <p>公司池摘要入口，可执行新增、重估、价格更新、财报更新和总览查看。</p>
       </div>
       <div class="header-actions">
+        <IndustryFilter v-model="industryFilter" :industries="industries" />
         <el-tag type="info">数据总计 {{ total }}</el-tag>
         <el-button type="primary" @click="openAddDialog">
           <el-icon><Plus /></el-icon>
@@ -29,7 +28,7 @@
       <div class="table-shell table-shell--fill">
         <el-table
           v-loading="listLoading"
-          :data="list"
+          :data="filteredList"
           row-key="companyId"
           :default-sort="{ prop: 'deviation', order: 'descending' }"
           height="100%"
@@ -57,10 +56,15 @@
             label="预估增速"
             width="110"
           />
-          <el-table-column prop="valuation" label="估值" width="110" sortable />
+          <el-table-column
+            prop="valuation"
+            label="利润贴现估值"
+            width="130"
+            sortable
+          />
           <el-table-column
             align="center"
-            label="价值偏差1"
+            label="利润贴现偏离"
             width="120"
             :filters="deviationFilter"
             :filter-method="filterDeviationByProfit"
@@ -71,14 +75,14 @@
               }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="FCF估值" width="110">
+          <el-table-column label="FCF参考值" width="110">
             <template #default="{ row }">
               {{ roundToDecimal((row.freeCashFlowPer || 0) * 10, 2) }}
             </template>
           </el-table-column>
           <el-table-column
             align="center"
-            label="价值偏差2"
+            label="FCF参考偏离"
             width="120"
             :filters="deviationFilter"
             :filter-method="filterDeviationByFcf"
@@ -113,7 +117,7 @@
               <div class="row-actions">
                 <el-button text type="primary" @click="goDetail(row)">
                   <el-icon><View /></el-icon>
-                  <span>详情</span>
+                  <span>总览</span>
                 </el-button>
                 <el-button
                   text
@@ -163,7 +167,7 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox, ElNotification } from 'element-plus'
 import {
@@ -178,14 +182,15 @@ import {
 import {
   addCompany,
   deleteCompany,
-  getCompanyList,
   reValuateAll,
-  updateGrowthRate,
   updatePrice,
   updatePriceAll,
   updateReport
-} from '@/api/company'
+} from '@/api/company-command'
+import { updateProfitGrowthRate } from '@/api/profit-valuation'
+import { getCompanyList } from '@/api/valuation-query'
 import { formatPercent, formatYi, roundToDecimal } from '@/utils'
+import IndustryFilter from './components/IndustryFilter.vue'
 
 const router = useRouter()
 
@@ -197,6 +202,7 @@ const deviationFilter = [
 
 const total = ref(0)
 const list = ref([])
+const industryFilter = ref('')
 const listLoading = ref(false)
 const addDialogVisible = ref(false)
 const submitting = ref(false)
@@ -214,6 +220,17 @@ const rules = {
 }
 
 getList()
+
+const industries = computed(() => [
+  ...new Set(list.value.map((item) => item.industryName).filter(Boolean))
+])
+
+const filteredList = computed(() => {
+  if (!industryFilter.value) {
+    return list.value
+  }
+  return list.value.filter((item) => item.industryName === industryFilter.value)
+})
 
 async function getList() {
   listLoading.value = true
@@ -382,7 +399,7 @@ async function confirmDelete(row, index) {
 }
 
 async function changeGrowthRate(row, index) {
-  const response = await updateGrowthRate({
+  const response = await updateProfitGrowthRate({
     companyId: row.companyId,
     growthRateAssumption: row.growthRateAssumption
   })

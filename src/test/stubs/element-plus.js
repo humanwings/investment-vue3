@@ -36,6 +36,7 @@ export const elementPlusStubs = {
   ElForm: createStub('ElForm', 'form'),
   ElFormItem: createStub('ElFormItem'),
   ElIcon: createStub('ElIcon', 'span'),
+  ElOption: createStub('ElOption'),
   ElInput: defineComponent({
     name: 'ElInput',
     props: {
@@ -55,6 +56,29 @@ export const elementPlusStubs = {
         })
     }
   }),
+  ElSelect: defineComponent({
+    name: 'ElSelect',
+    props: {
+      modelValue: {
+        type: [String, Number, Boolean],
+        default: ''
+      }
+    },
+    emits: ['update:modelValue'],
+    setup(props, { emit, slots, attrs }) {
+      return () =>
+        h(
+          'select',
+          {
+            ...attrs,
+            value: props.modelValue,
+            onChange: (event) => emit('update:modelValue', event.target.value)
+          },
+          slots.default?.()
+        )
+    }
+  }),
+  ElTabPane: createStub('ElTabPane'),
   ElTable: createStub('ElTable'),
   ElTableColumn: defineComponent({
     name: 'ElTableColumn',
@@ -68,5 +92,6 @@ export const elementPlusStubs = {
         ])
     }
   }),
+  ElTabs: createStub('ElTabs'),
   ElTag: createStub('ElTag', 'span')
 }

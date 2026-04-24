@@ -149,7 +149,7 @@ export const appRoutes = [
             name: 'CompanyList',
             component: () => import('@/views/valuation/companylist.vue'),
             meta: {
-              title: '公司估值'
+              title: '公司列表'
             }
           },
           {
@@ -158,8 +158,24 @@ export const appRoutes = [
             component: () => import('@/views/valuation/companydetail.vue'),
             meta: {
               hidden: true,
-              title: '公司详情',
+              title: '公司总览',
               activeMenu: '/companyvaluation/valuation/company'
+            }
+          },
+          {
+            path: 'profit-discount',
+            name: 'ProfitDiscountList',
+            component: () => import('@/views/valuation/profitdiscount.vue'),
+            meta: {
+              title: '利润贴现一览'
+            }
+          },
+          {
+            path: 'dcf',
+            name: 'DcfValuationList',
+            component: () => import('@/views/valuation/dcfvaluation.vue'),
+            meta: {
+              title: 'DCF一览'
             }
           },
           {
@@ -167,7 +183,7 @@ export const appRoutes = [
             name: 'RecommendRank',
             component: () => import('@/views/recommend/rank.vue'),
             meta: {
-              title: '大V推荐'
+              title: '大V推荐排行'
             }
           },
           {
@@ -212,7 +228,7 @@ export const appRoutes = [
             name: 'RecommendAuthors',
             component: () => import('@/views/settings/kvmanage.vue'),
             meta: {
-              title: '大V管理'
+              title: '推荐作者'
             }
           },
           {
@@ -220,7 +236,7 @@ export const appRoutes = [
             name: 'RecommendRules',
             component: () => import('@/views/settings/kvrules.vue'),
             meta: {
-              title: '推荐权重规则'
+              title: '推荐规则'
             }
           }
         ]

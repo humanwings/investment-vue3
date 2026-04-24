@@ -11,6 +11,12 @@ import {
   updatePriceAll,
   updateReport
 } from './company'
+import { getDcfValuationList } from './dcf-valuation'
+import {
+  getProfitValuationList,
+  updateProfitGrowthRate
+} from './profit-valuation'
+import { getCompanyOverview } from './valuation-query'
 import { createHttpMock, ok } from '@/test/mocks/http'
 
 describe('company api', () => {
@@ -33,6 +39,15 @@ describe('company api', () => {
     mock.onGet('/company/12').reply(ok({ company: { companyId: 12 } }))
 
     const result = await getCompany(12)
+
+    expect(result.data.company.companyId).toBe(12)
+    expect(mock.history.get[0].url).toBe('/company/12')
+  })
+
+  it('requests the company overview from the valuation query module', async () => {
+    mock.onGet('/company/12').reply(ok({ company: { companyId: 12 } }))
+
+    const result = await getCompanyOverview(12)
 
     expect(result.data.company.companyId).toBe(12)
     expect(mock.history.get[0].url).toBe('/company/12')
@@ -74,5 +89,26 @@ describe('company api', () => {
       companyId: 1,
       growthRateAssumption: 0.15
     })
+  })
+
+  it('requests split valuation workbench endpoints', async () => {
+    mock.onGet('/valuation/profit-discount').reply(ok({ list: [] }))
+    mock.onGet('/valuation/dcf').reply(ok({ list: [] }))
+    mock
+      .onPost('/company/updateGrowthRate')
+      .reply(ok({ companyInfo: { companyId: 1 } }))
+
+    await getProfitValuationList({ industry: '白酒' })
+    await getDcfValuationList({ industry: '白酒' })
+    await updateProfitGrowthRate({
+      companyId: 1,
+      growthRateAssumption: 0.12
+    })
+
+    expect(mock.history.get[0].url).toBe('/valuation/profit-discount')
+    expect(mock.history.get[0].params).toEqual({ industry: '白酒' })
+    expect(mock.history.get[1].url).toBe('/valuation/dcf')
+    expect(mock.history.get[1].params).toEqual({ industry: '白酒' })
+    expect(mock.history.post[0].url).toBe('/company/updateGrowthRate')
   })
 })

@@ -63,10 +63,32 @@ describe('companylist page', () => {
 
     await flushPromises()
 
-    expect(wrapper.text()).toContain('公司估值')
+    expect(wrapper.text()).toContain('公司列表')
     expect(wrapper.vm.list).toHaveLength(1)
+    expect(wrapper.vm.filteredList).toHaveLength(1)
     expect(wrapper.vm.list[0].name).toBe('贵州茅台')
     expect(wrapper.vm.total).toBe(1)
+  })
+
+  it('filters companies by industry', async () => {
+    mock.onGet('/company/all').reply(ok(companyListPayload))
+
+    const wrapper = shallowMount(CompanyList, {
+      global: {
+        stubs: elementPlusStubs,
+        directives: {
+          loading: {}
+        }
+      }
+    })
+
+    await flushPromises()
+
+    wrapper.vm.industryFilter = '白酒'
+    expect(wrapper.vm.filteredList).toHaveLength(1)
+
+    wrapper.vm.industryFilter = '银行'
+    expect(wrapper.vm.filteredList).toHaveLength(0)
   })
 
   it('navigates to the detail page when clicking the detail action', async () => {
