@@ -29,7 +29,8 @@ export const companyListPayload = {
 }
 
 export const companyDetailPayload = {
-  company: {
+  overview: {
+    companyId: 1,
     name: '贵州茅台',
     stockCode: '600519',
     exchange: 'SH',
@@ -40,67 +41,62 @@ export const companyDetailPayload = {
     firstIndustry: '消费',
     secondIndustry: '白酒',
     thirdIndustry: '高端白酒',
-    mainBusiness: '高端白酒生产和销售'
-  },
-  valuation: {
-    score: 92,
+    mainBusiness: '高端白酒生产和销售',
+    price: 1234,
+    profitValuation: 1500,
+    profitDeviation: 0.22,
+    totalScore: 92,
     recommendationScore: 88,
     financialScore: 90,
+    conclusion: '重点关注',
+    highlights: ['利润贴现估值高于当前价格', 'ROE 表现较强']
+  },
+  profitValuation: {
+    growthRatePrediction: 18,
+    growthRateAssumption: 15,
+    growthRateApplied: 15,
     valuation: 1500,
-    growthRatePrediction: 0.18,
-    growthRateAssumption: 0.15,
-    price: 1234,
     deviation: 0.22,
-    pe: 28.5,
-    pb: 9.2,
-    marketValue: 2500000000000,
-    capitalization: 125000000000,
-    dividendRate: 0.52,
-    dividendYears: 10,
-    dividendIsSure: '是',
-    yield: 0.03,
-    yieldAverage: 0.028,
-    yieldPrediction: 0.031
-  },
-  financialReport: {
-    date: '2025-12-31',
-    wroe: 0.31,
-    wdroe: 0.29,
-    netAssetValuePer: 120.5,
-    npadnrpatoshaopcPer: 55.4,
-    operatingCashFlowPer: 62.1,
-    freeCashFlowPer: 58.8,
-    grossMargin: 0.91,
-    assetLiabilityRatio: 0.18,
-    interestLiabilityRatio: 0.02,
-    incomeGrowthRateCurrent: 0.11,
-    profitGrowthRateCurrent: 0.12,
-    incomeGrowthRateTotal: 0.13,
-    profitGrowthRateTotal: 0.14
-  },
-  valuationData: {
-    netAssetDiscount: 0.85,
-    netAssetValuation: 100,
-    dividendStability: 0.9,
-    dividendRatePrediction: 0.52,
-    incomeGrowthRatePrediction: 0.11,
-    profitGrowthRatePrediction: 0.12,
-    growthRatePrediction: 0.13,
     growthYears: 8,
     discountRate: 0.1,
-    highGrowthDiscountCoefficientSum: 4.2,
     highGrowthValuation: 500,
     perpetualGrowthRate: 0.03,
-    perpetualDiscountCoefficientSum: 6.1,
     perpetualValuation: 700,
-    marketRisk: 0.95,
-    industryRisk: 0.9
+    finalValuation: 1111.5
   },
-  dividendList: [
-    {
-      dividendYear: '2025',
-      dividendAmount: 20000000000,
-      freeCashFlow: 25000000000
-    }
-  ]
+  dcfValuation: {
+    status: 'pending',
+    message: 'DCF 模型将在后续步骤接入'
+  },
+  financialReview: {
+    latestReport: {
+      date: '2025-12-31',
+      wroe: 0.31,
+      wdroe: 0.29,
+      netAssetValuePer: 120.5,
+      npadnrpatoshaopcPer: 55.4,
+      operatingCashFlowPer: 62.1,
+      freeCashFlowPer: 58.8,
+      grossMargin: 0.91,
+      assetLiabilityRatio: 0.18,
+      interestLiabilityRatio: 0.02,
+      incomeGrowthRateCurrent: 0.11,
+      profitGrowthRateCurrent: 0.12,
+      incomeGrowthRateTotal: 0.13,
+      profitGrowthRateTotal: 0.14
+    },
+    dividendList: [
+      {
+        dividendYear: '2025',
+        dividendAmount: 20000000000,
+        freeCashFlow: 25000000000
+      }
+    ],
+    highlights: ['加权 ROE: 0.31']
+  },
+  recommendationSummary: {
+    score: 88,
+    status: 'summary',
+    message: '推荐明细将在公司总览后续步骤接入'
+  }
 }

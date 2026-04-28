@@ -8,7 +8,7 @@
           >返回列表</el-button
         >
         <div class="eyebrow">Company Overview</div>
-        <h2>{{ company.name || `公司 #${companyId}` }}</h2>
+        <h2>{{ overview.name || `公司 #${companyId}` }}</h2>
       </div>
       <div class="header-actions">
         <el-tag type="success">companyId {{ companyId }}</el-tag>
@@ -25,26 +25,53 @@
             <div class="metric-grid">
               <ValuationMetric
                 label="现价"
-                :value="safeRound(valuation.price)"
+                :value="safeRound(overview.price)"
               />
               <ValuationMetric
                 label="利润贴现估值"
-                :value="safeRound(valuation.valuation)"
+                :value="safeRound(overview.profitValuation)"
               />
               <ValuationMetric
                 label="价值偏离"
-                :value="formatPercent(valuation.deviation)"
+                :value="formatPercent(overview.profitDeviation)"
               />
-              <ValuationMetric label="综合评分" :value="valuation.score" />
+              <ValuationMetric label="综合评分" :value="overview.totalScore" />
               <ValuationMetric
                 label="财务评分"
-                :value="valuation.financialScore"
+                :value="overview.financialScore"
               />
               <ValuationMetric
                 label="大V评分"
-                :value="valuation.recommendationScore"
+                :value="overview.recommendationScore"
               />
             </div>
+          </div>
+
+          <div class="page-card overview-focus">
+            <div class="section-head">
+              <h3>当前结论</h3>
+            </div>
+            <el-tag :type="conclusionType(overview.conclusion)">
+              {{ overview.conclusion || '待补数据' }}
+            </el-tag>
+            <ul class="highlight-list">
+              <li v-for="item in overview.highlights || []" :key="item">
+                {{ item }}
+              </li>
+            </ul>
+          </div>
+
+          <div class="page-card nav-grid">
+            <button
+              v-for="item in researchNavItems"
+              :key="item.name"
+              type="button"
+              class="nav-card"
+              @click="activeTab = item.name"
+            >
+              <strong>{{ item.label }}</strong>
+              <span>{{ item.summary }}</span>
+            </button>
           </div>
 
           <div class="page-card">
@@ -53,34 +80,34 @@
             </div>
             <el-descriptions :column="3" border>
               <el-descriptions-item label="证券代码">{{
-                company.stockCode
+                overview.stockCode
               }}</el-descriptions-item>
               <el-descriptions-item label="交易所">{{
-                company.exchange
+                overview.exchange
               }}</el-descriptions-item>
               <el-descriptions-item label="报表类型">{{
-                company.fsTableType
+                overview.fsTableType
               }}</el-descriptions-item>
               <el-descriptions-item label="IPO 时间">{{
-                company.ipoDate
+                overview.ipoDate
               }}</el-descriptions-item>
               <el-descriptions-item label="省份">{{
-                company.province
+                overview.province
               }}</el-descriptions-item>
               <el-descriptions-item label="实控人">{{
-                company.actualControllerTypes
+                overview.actualControllerTypes
               }}</el-descriptions-item>
               <el-descriptions-item label="一级行业">{{
-                company.firstIndustry
+                overview.firstIndustry
               }}</el-descriptions-item>
               <el-descriptions-item label="二级行业">{{
-                company.secondIndustry
+                overview.secondIndustry
               }}</el-descriptions-item>
               <el-descriptions-item label="三级行业">{{
-                company.thirdIndustry
+                overview.thirdIndustry
               }}</el-descriptions-item>
               <el-descriptions-item :span="3" label="主营业务">{{
-                company.mainBusiness
+                overview.mainBusiness
               }}</el-descriptions-item>
             </el-descriptions>
           </div>
@@ -95,28 +122,28 @@
           <AssumptionStrip :items="profitAssumptions" />
           <el-descriptions :column="4" border class="section-block">
             <el-descriptions-item label="利润贴现估值">{{
-              safeRound(valuation.valuation)
+              safeRound(profitValuation.valuation)
             }}</el-descriptions-item>
             <el-descriptions-item label="价值偏离">{{
-              formatPercent(valuation.deviation)
+              formatPercent(profitValuation.deviation)
             }}</el-descriptions-item>
             <el-descriptions-item label="高增长年数">{{
-              valuationData.growthYears
+              profitValuation.growthYears
             }}</el-descriptions-item>
             <el-descriptions-item label="折现率">{{
-              valuationData.discountRate
+              profitValuation.discountRate
             }}</el-descriptions-item>
             <el-descriptions-item label="高增长期估值">{{
-              valuationData.highGrowthValuation
+              profitValuation.highGrowthValuation
             }}</el-descriptions-item>
             <el-descriptions-item label="永续期增速">{{
-              formatPercent(valuationData.perpetualGrowthRate)
+              formatPercent(profitValuation.perpetualGrowthRate)
             }}</el-descriptions-item>
             <el-descriptions-item label="永续期估值">{{
-              valuationData.perpetualValuation
+              profitValuation.perpetualValuation
             }}</el-descriptions-item>
             <el-descriptions-item label="最终估值">{{
-              totalValuation
+              safeRound(profitValuation.finalValuation)
             }}</el-descriptions-item>
           </el-descriptions>
         </div>
@@ -131,13 +158,17 @@
             <ValuationMetric
               label="DCF 每股估值"
               value="-"
-              hint="第 10 步上线"
+              :hint="dcfValuation.message"
             />
-            <ValuationMetric label="终值占比" value="-" hint="第 10 步上线" />
+            <ValuationMetric
+              label="终值占比"
+              value="-"
+              :hint="dcfValuation.status"
+            />
             <ValuationMetric
               label="与利润贴现差异"
               value="-"
-              hint="第 10 步上线"
+              :hint="dcfValuation.message"
             />
           </div>
         </div>
@@ -150,46 +181,46 @@
           </div>
           <el-descriptions :column="4" border>
             <el-descriptions-item label="报告日期">{{
-              financialReport.date
+              latestReport.date
             }}</el-descriptions-item>
             <el-descriptions-item label="加权 ROE">{{
-              formatPercent(financialReport.wroe)
+              formatPercent(latestReport.wroe)
             }}</el-descriptions-item>
             <el-descriptions-item label="加权扣非 ROE">{{
-              formatPercent(financialReport.wdroe)
+              formatPercent(latestReport.wdroe)
             }}</el-descriptions-item>
             <el-descriptions-item label="每股净资产">{{
-              safeRound(financialReport.netAssetValuePer)
+              safeRound(latestReport.netAssetValuePer)
             }}</el-descriptions-item>
             <el-descriptions-item label="每股扣非净利润">{{
-              safeRound(financialReport.npadnrpatoshaopcPer)
+              safeRound(latestReport.npadnrpatoshaopcPer)
             }}</el-descriptions-item>
             <el-descriptions-item label="每股经营现金流">{{
-              safeRound(financialReport.operatingCashFlowPer)
+              safeRound(latestReport.operatingCashFlowPer)
             }}</el-descriptions-item>
             <el-descriptions-item label="每股自由现金流">{{
-              safeRound(financialReport.freeCashFlowPer)
+              safeRound(latestReport.freeCashFlowPer)
             }}</el-descriptions-item>
             <el-descriptions-item label="毛利率">{{
-              formatPercent(financialReport.grossMargin)
+              formatPercent(latestReport.grossMargin)
             }}</el-descriptions-item>
             <el-descriptions-item label="资产负债率">{{
-              formatPercent(financialReport.assetLiabilityRatio)
+              formatPercent(latestReport.assetLiabilityRatio)
             }}</el-descriptions-item>
             <el-descriptions-item label="有息负债率">{{
-              formatPercent(financialReport.interestLiabilityRatio)
+              formatPercent(latestReport.interestLiabilityRatio)
             }}</el-descriptions-item>
             <el-descriptions-item label="营业收入本季度增长率">{{
-              formatPercent(financialReport.incomeGrowthRateCurrent)
+              formatPercent(latestReport.incomeGrowthRateCurrent)
             }}</el-descriptions-item>
             <el-descriptions-item label="扣非利润本季度增长率">{{
-              formatPercent(financialReport.profitGrowthRateCurrent)
+              formatPercent(latestReport.profitGrowthRateCurrent)
             }}</el-descriptions-item>
             <el-descriptions-item label="营业收入累积增长率">{{
-              formatPercent(financialReport.incomeGrowthRateTotal)
+              formatPercent(latestReport.incomeGrowthRateTotal)
             }}</el-descriptions-item>
             <el-descriptions-item label="扣非利润累积增长率">{{
-              formatPercent(financialReport.profitGrowthRateTotal)
+              formatPercent(latestReport.profitGrowthRateTotal)
             }}</el-descriptions-item>
           </el-descriptions>
 
@@ -222,10 +253,18 @@
           <div class="metric-grid">
             <ValuationMetric
               label="大V评分"
-              :value="valuation.recommendationScore"
+              :value="recommendationSummary.score"
             />
-            <ValuationMetric label="推荐人数" value="-" hint="后续接入明细" />
-            <ValuationMetric label="最近推荐日" value="-" hint="后续接入明细" />
+            <ValuationMetric
+              label="推荐人数"
+              value="-"
+              :hint="recommendationSummary.message"
+            />
+            <ValuationMetric
+              label="最近推荐日"
+              value="-"
+              :hint="recommendationSummary.status"
+            />
           </div>
         </div>
       </el-tab-pane>
@@ -248,41 +287,52 @@ const companyId = route.params.id
 
 const activeTab = ref('overview')
 const loading = ref(false)
-const company = reactive({})
-const valuation = reactive({})
-const financialReport = reactive({})
-const valuationData = reactive({})
+const overview = reactive({})
+const profitValuation = reactive({})
+const dcfValuation = reactive({})
+const latestReport = reactive({})
+const recommendationSummary = reactive({})
 const dividendList = ref([])
 
 loadDetail()
 
-const totalValuation = computed(() => {
-  const total =
-    (valuationData.netAssetValuation || 0) +
-    (valuationData.highGrowthValuation || 0) +
-    (valuationData.perpetualValuation || 0)
-  return roundToDecimal(
-    total * (valuationData.marketRisk || 0) * (valuationData.industryRisk || 0),
-    2
-  )
-})
+const researchNavItems = computed(() => [
+  {
+    name: 'profit',
+    label: '利润贴现',
+    summary: `估值 ${safeRound(profitValuation.valuation) || '-'}`
+  },
+  {
+    name: 'dcf',
+    label: 'DCF',
+    summary: dcfValuation.message || '后续接入'
+  },
+  {
+    name: 'financial',
+    label: '财务评价',
+    summary: latestReport.date || '等待财报'
+  },
+  {
+    name: 'recommend',
+    label: '大V推荐',
+    summary: `评分 ${recommendationSummary.score ?? '-'}`
+  }
+])
 
 const profitAssumptions = computed(() => [
   {
     label: '系统增长率',
-    value: formatPercent(valuation.growthRatePrediction),
+    value: formatPercentRatePoint(profitValuation.growthRatePrediction),
     source: '模型预测'
   },
   {
     label: '手动增长率',
-    value: formatPercent(valuation.growthRateAssumption),
+    value: formatPercentRatePoint(profitValuation.growthRateAssumption),
     source: '研究覆盖'
   },
   {
     label: '采用增长率',
-    value: formatPercent(
-      valuation.growthRateAssumption ?? valuation.growthRatePrediction
-    ),
+    value: formatPercentRatePoint(profitValuation.growthRateApplied),
     source: '当前计算'
   }
 ])
@@ -291,11 +341,12 @@ async function loadDetail() {
   loading.value = true
   try {
     const { data } = await getCompanyOverview(companyId)
-    Object.assign(company, data.company || {})
-    Object.assign(valuation, data.valuation || {})
-    Object.assign(financialReport, data.financialReport || {})
-    Object.assign(valuationData, data.valuationData || {})
-    dividendList.value = data.dividendList || []
+    Object.assign(overview, data.overview || {})
+    Object.assign(profitValuation, data.profitValuation || {})
+    Object.assign(dcfValuation, data.dcfValuation || {})
+    Object.assign(latestReport, data.financialReview?.latestReport || {})
+    Object.assign(recommendationSummary, data.recommendationSummary || {})
+    dividendList.value = data.financialReview?.dividendList || []
   } finally {
     loading.value = false
   }
@@ -303,6 +354,26 @@ async function loadDetail() {
 
 function safeRound(value) {
   return value === null || value === undefined ? '' : roundToDecimal(value, 2)
+}
+
+function formatPercentRatePoint(value) {
+  if (value === null || value === undefined || value === '') {
+    return ''
+  }
+  return `${Number(value).toFixed(2)}%`
+}
+
+function conclusionType(conclusion) {
+  if (conclusion === '重点关注') {
+    return 'success'
+  }
+  if (conclusion === '偏贵') {
+    return 'warning'
+  }
+  if (conclusion === '待补数据') {
+    return 'info'
+  }
+  return ''
 }
 </script>
 
@@ -337,5 +408,47 @@ function safeRound(value) {
 .placeholder-panel {
   display: grid;
   gap: 12px;
+}
+
+.overview-focus {
+  display: grid;
+  gap: 12px;
+}
+
+.highlight-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--app-text);
+}
+
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.nav-card {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid rgba(16, 34, 53, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--app-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.nav-card strong,
+.nav-card span {
+  overflow-wrap: anywhere;
+}
+
+.nav-card span {
+  color: var(--app-text-muted);
+  font-size: 12px;
 }
 </style>

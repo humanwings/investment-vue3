@@ -49,12 +49,14 @@ describe('companydetail page', () => {
 
     await flushPromises()
 
-    expect(wrapper.vm.company.name).toBe('贵州茅台')
-    expect(wrapper.vm.company.stockCode).toBe('600519')
+    expect(wrapper.vm.overview.name).toBe('贵州茅台')
+    expect(wrapper.vm.overview.stockCode).toBe('600519')
     expect(wrapper.vm.dividendList).toHaveLength(1)
-    expect(wrapper.vm.totalValuation).toBe(1111.5)
+    expect(wrapper.vm.profitValuation.finalValuation).toBe(1111.5)
+    expect(wrapper.vm.recommendationSummary.score).toBe(88)
     expect(wrapper.vm.activeTab).toBe('overview')
     expect(wrapper.vm.profitAssumptions[0].label).toBe('系统增长率')
+    expect(wrapper.vm.researchNavItems).toHaveLength(4)
   })
 
   it('navigates back to the company list', async () => {
