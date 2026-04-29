@@ -95,20 +95,24 @@ describe('company api', () => {
     mock.onGet('/valuation/profit-discount').reply(ok({ list: [] }))
     mock.onGet('/valuation/dcf').reply(ok({ list: [] }))
     mock
-      .onPost('/company/updateGrowthRate')
-      .reply(ok({ companyInfo: { companyId: 1 } }))
+      .onPatch('/valuation/profit-discount/1/growth-rate')
+      .reply(ok({ item: { companyId: 1 } }))
 
-    await getProfitValuationList({ industry: '白酒' })
+    await getProfitValuationList({ industryName: '白酒' })
     await getDcfValuationList({ industry: '白酒' })
-    await updateProfitGrowthRate({
-      companyId: 1,
-      growthRateAssumption: 0.12
+    await updateProfitGrowthRate(1, {
+      growthRateManual: 12
     })
 
     expect(mock.history.get[0].url).toBe('/valuation/profit-discount')
-    expect(mock.history.get[0].params).toEqual({ industry: '白酒' })
+    expect(mock.history.get[0].params).toEqual({ industryName: '白酒' })
     expect(mock.history.get[1].url).toBe('/valuation/dcf')
     expect(mock.history.get[1].params).toEqual({ industry: '白酒' })
-    expect(mock.history.post[0].url).toBe('/company/updateGrowthRate')
+    expect(mock.history.patch[0].url).toBe(
+      '/valuation/profit-discount/1/growth-rate'
+    )
+    expect(JSON.parse(mock.history.patch[0].data)).toEqual({
+      growthRateManual: 12
+    })
   })
 })

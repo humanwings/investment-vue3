@@ -285,7 +285,7 @@ const route = useRoute()
 const router = useRouter()
 const companyId = route.params.id
 
-const activeTab = ref('overview')
+const activeTab = ref(resolveInitialTab(route.query?.tab))
 const loading = ref(false)
 const overview = reactive({})
 const profitValuation = reactive({})
@@ -336,6 +336,12 @@ const profitAssumptions = computed(() => [
     source: '当前计算'
   }
 ])
+
+function resolveInitialTab(tab) {
+  return ['overview', 'profit', 'dcf', 'financial', 'recommend'].includes(tab)
+    ? tab
+    : 'overview'
+}
 
 async function loadDetail() {
   loading.value = true

@@ -6,8 +6,14 @@ import { createHttpMock, ok } from '@/test/mocks/http'
 import { elementPlusStubs } from '@/test/stubs/element-plus'
 import CompanyDetail from './companydetail.vue'
 
-const { push } = vi.hoisted(() => ({
-  push: vi.fn()
+const { push, routeMock } = vi.hoisted(() => ({
+  push: vi.fn(),
+  routeMock: {
+    params: {
+      id: '1'
+    },
+    query: {}
+  }
 }))
 
 vi.mock('vue-router', async () => {
@@ -15,11 +21,7 @@ vi.mock('vue-router', async () => {
 
   return {
     ...actual,
-    useRoute: () => ({
-      params: {
-        id: '1'
-      }
-    }),
+    useRoute: () => routeMock,
     useRouter: () => ({ push })
   }
 })
@@ -29,6 +31,10 @@ describe('companydetail page', () => {
 
   beforeEach(() => {
     push.mockReset()
+    routeMock.params = {
+      id: '1'
+    }
+    routeMock.query = {}
   })
 
   afterEach(() => {
@@ -57,6 +63,27 @@ describe('companydetail page', () => {
     expect(wrapper.vm.activeTab).toBe('overview')
     expect(wrapper.vm.profitAssumptions[0].label).toBe('系统增长率')
     expect(wrapper.vm.researchNavItems).toHaveLength(4)
+  })
+
+  it('opens the profit valuation tab when entered from profit discount', async () => {
+    routeMock.query = {
+      tab: 'profit',
+      from: 'profit-discount'
+    }
+    mock.onGet('/company/1').reply(ok(companyDetailPayload))
+
+    const wrapper = shallowMount(CompanyDetail, {
+      global: {
+        stubs: elementPlusStubs,
+        directives: {
+          loading: {}
+        }
+      }
+    })
+
+    await flushPromises()
+
+    expect(wrapper.vm.activeTab).toBe('profit')
   })
 
   it('navigates back to the company list', async () => {

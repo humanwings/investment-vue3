@@ -17,8 +17,8 @@ import { useRoute } from 'vue-router'
 
 const route = useRoute()
 
-const breadcrumbItems = computed(() =>
-  route.matched
+const breadcrumbItems = computed(() => {
+  const visibleItems = route.matched
     .filter(
       (record) =>
         record.meta?.title && !record.meta?.hidden && record.path !== '/'
@@ -31,6 +31,35 @@ const breadcrumbItems = computed(() =>
       title: record.meta.title,
       isCurrent: index === matched.length - 1
     }))
+
+  if (isCompanyOverview.value) {
+    return [
+      ...visibleItems.map((item) => ({ ...item, isCurrent: false })),
+      companyOverviewSource.value,
+      {
+        path: route.fullPath,
+        title: '公司总览',
+        isCurrent: true
+      }
+    ]
+  }
+
+  return visibleItems
+})
+
+const isCompanyOverview = computed(() => route.name === 'CompanyDetail')
+const companyOverviewSource = computed(() =>
+  route.query?.from === 'profit-discount'
+    ? {
+        path: '/companyvaluation/valuation/profit-discount',
+        title: '利润贴现一览',
+        isCurrent: false
+      }
+    : {
+        path: '/companyvaluation/valuation/company',
+        title: '公司列表',
+        isCurrent: false
+      }
 )
 
 function resolveRecordPath(path) {

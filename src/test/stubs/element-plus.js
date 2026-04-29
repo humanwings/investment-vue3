@@ -56,6 +56,27 @@ export const elementPlusStubs = {
         })
     }
   }),
+  ElInputNumber: defineComponent({
+    name: 'ElInputNumber',
+    props: {
+      modelValue: {
+        type: [String, Number],
+        default: undefined
+      }
+    },
+    emits: ['update:modelValue', 'change'],
+    setup(props, { emit, attrs }) {
+      return () =>
+        h('input', {
+          ...attrs,
+          type: 'number',
+          value: props.modelValue,
+          onInput: (event) =>
+            emit('update:modelValue', Number(event.target.value)),
+          onChange: (event) => emit('change', Number(event.target.value))
+        })
+    }
+  }),
   ElSelect: defineComponent({
     name: 'ElSelect',
     props: {

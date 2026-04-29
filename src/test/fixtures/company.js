@@ -100,3 +100,25 @@ export const companyDetailPayload = {
     message: '推荐明细将在公司总览后续步骤接入'
   }
 }
+
+export const profitValuationPayload = {
+  sum: 1,
+  list: [
+    {
+      companyId: 1,
+      stockCode: '600519',
+      name: '贵州茅台',
+      industryName: '白酒',
+      price: 1234,
+      growthRatePrediction: 18,
+      growthRateManual: 15,
+      growthRateApplied: 15,
+      valuation: 1500,
+      deviation: 0.22,
+      financialScore: 90,
+      recommendationScore: 88,
+      signal: '低估',
+      updatedAt: '2026-04-28 10:00:00'
+    }
+  ]
+}

@@ -111,7 +111,16 @@ const appStore = useAppStore()
 const sidebarRoutes = computed(() =>
   appRoutes.filter((item) => !item.meta?.hidden && item.children?.length)
 )
-const activeMenu = computed(() => route.meta?.activeMenu || route.path)
+const activeMenu = computed(() => {
+  if (isCompanyOverviewFromProfitDiscount.value) {
+    return '/companyvaluation/valuation/profit-discount'
+  }
+  return route.meta?.activeMenu || route.path
+})
+const isCompanyOverviewFromProfitDiscount = computed(
+  () =>
+    route.name === 'CompanyDetail' && route.query?.from === 'profit-discount'
+)
 const collapseIcon = computed(() => {
   if (appStore.isMobile) {
     return appStore.showMobileSidebar ? Fold : Expand

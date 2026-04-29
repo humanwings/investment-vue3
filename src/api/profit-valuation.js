@@ -1,4 +1,5 @@
 import request from '@/utils/request'
+import { restfulFormat } from '@/utils'
 
 export function getProfitValuationList(query) {
   return request({
@@ -8,10 +9,20 @@ export function getProfitValuationList(query) {
   })
 }
 
-export function updateProfitGrowthRate(data) {
+export function updateProfitGrowthRate(companyId, data) {
+  if (typeof companyId === 'object') {
+    return request({
+      url: '/company/updateGrowthRate',
+      method: 'post',
+      data: companyId
+    })
+  }
+
   return request({
-    url: '/company/updateGrowthRate',
-    method: 'post',
+    url: restfulFormat('/valuation/profit-discount/{id}/growth-rate', {
+      id: companyId
+    }),
+    method: 'patch',
     data
   })
 }
