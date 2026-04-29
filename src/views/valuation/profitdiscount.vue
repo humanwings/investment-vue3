@@ -13,6 +13,32 @@
 
     <div class="page-card">
       <AssumptionStrip :items="assumptionItems" />
+      <div class="batch-toolbar">
+        <div class="batch-copy">
+          <strong>行业批量假设</strong>
+          <span>{{ industryFilter || '全部行业' }}</span>
+        </div>
+        <div class="batch-controls">
+          <el-input-number
+            v-model="batchGrowthRate"
+            class="batch-input"
+            :step="1"
+            :min="-100"
+            :max="100"
+            size="small"
+            controls-position="right"
+          />
+          <el-button
+            type="primary"
+            :disabled="!canApplyBatch"
+            :loading="batchLoading"
+            @click="applyIndustryGrowthRate"
+          >
+            <el-icon><Check /></el-icon>
+            <span>应用到行业</span>
+          </el-button>
+        </div>
+      </div>
     </div>
 
     <div class="table-card list-card">
@@ -59,6 +85,13 @@
               {{ formatRatePoint(row.growthRateApplied) }}
             </template>
           </el-table-column>
+          <el-table-column label="覆盖状态" width="110">
+            <template #default="{ row }">
+              <el-tag :type="hasManualOverride(row) ? 'warning' : 'info'">
+                {{ hasManualOverride(row) ? '人工覆盖' : '系统预测' }}
+              </el-tag>
+            </template>
+          </el-table-column>
           <el-table-column label="利润贴现估值" width="140">
             <template #default="{ row }">
               {{ safeRound(row.valuation) }}
@@ -78,7 +111,7 @@
             width="100"
           />
           <el-table-column prop="signal" label="辅助判断" min-width="110" />
-          <el-table-column fixed="right" label="处理" width="170">
+          <el-table-column fixed="right" label="处理" width="240">
             <template #default="{ row }">
               <div class="row-actions">
                 <el-button text type="primary" @click="goOverview(row)">
@@ -94,6 +127,16 @@
                   <el-icon><Check /></el-icon>
                   <span>保存</span>
                 </el-button>
+                <el-button
+                  text
+                  type="warning"
+                  :disabled="!hasManualOverride(row)"
+                  :loading="savingCompanyId === row.companyId"
+                  @click="resetGrowthRate(row)"
+                >
+                  <el-icon><RefreshRight /></el-icon>
+                  <span>恢复</span>
+                </el-button>
               </div>
             </template>
           </el-table-column>
@@ -106,11 +149,13 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElNotification } from 'element-plus'
-import { Check, View } from '@element-plus/icons-vue'
+import { ElMessageBox, ElNotification } from 'element-plus'
+import { Check, RefreshRight, View } from '@element-plus/icons-vue'
 
 import {
+  clearProfitGrowthRate,
   getProfitValuationList,
+  updateIndustryProfitGrowthRate,
   updateProfitGrowthRate
 } from '@/api/profit-valuation'
 import { formatPercent, roundToDecimal } from '@/utils'
@@ -121,6 +166,8 @@ const router = useRouter()
 const industryFilter = ref('')
 const loading = ref(false)
 const savingCompanyId = ref()
+const batchLoading = ref(false)
+const batchGrowthRate = ref()
 const rows = ref([])
 const draftGrowthRates = reactive({})
 
@@ -156,11 +203,15 @@ const assumptionItems = computed(() => [
 ])
 
 const manualOverrideCount = computed(
+  () => rows.value.filter((row) => hasManualOverride(row)).length
+)
+
+const canApplyBatch = computed(
   () =>
-    rows.value.filter(
-      (row) =>
-        row.growthRateManual !== null && row.growthRateManual !== undefined
-    ).length
+    Boolean(industryFilter.value) &&
+    batchGrowthRate.value !== null &&
+    batchGrowthRate.value !== undefined &&
+    batchGrowthRate.value !== ''
 )
 
 const averageDeviation = computed(() => {
@@ -207,6 +258,50 @@ async function saveGrowthRate(row) {
   }
 }
 
+async function resetGrowthRate(row) {
+  savingCompanyId.value = row.companyId
+  try {
+    const response = await clearProfitGrowthRate(row.companyId)
+    replaceRow(response.data.item)
+    ElNotification.success({
+      title: 'Success',
+      message: '已恢复系统预测值'
+    })
+  } finally {
+    savingCompanyId.value = undefined
+  }
+}
+
+async function applyIndustryGrowthRate() {
+  if (!canApplyBatch.value) {
+    return
+  }
+
+  await ElMessageBox.confirm(
+    `将 ${industryFilter.value} 行业的手动增长率统一设置为 ${batchGrowthRate.value}%，是否继续？`,
+    '提示',
+    {
+      type: 'warning'
+    }
+  )
+
+  batchLoading.value = true
+  try {
+    const response = await updateIndustryProfitGrowthRate({
+      industryName: industryFilter.value,
+      growthRateManual: batchGrowthRate.value,
+      changeReason: 'industry batch profit growth override'
+    })
+    replaceRows(response.data.list || [])
+    ElNotification.success({
+      title: 'Success',
+      message: '行业增长率已更新'
+    })
+  } finally {
+    batchLoading.value = false
+  }
+}
+
 function replaceRow(item) {
   const index = rows.value.findIndex((row) => row.companyId === item.companyId)
   if (index >= 0) {
@@ -214,6 +309,10 @@ function replaceRow(item) {
   }
   draftGrowthRates[item.companyId] =
     item.growthRateManual ?? item.growthRateApplied ?? item.growthRatePrediction
+}
+
+function replaceRows(items) {
+  items.forEach((item) => replaceRow(item))
 }
 
 function goOverview(row) {
@@ -224,6 +323,13 @@ function goOverview(row) {
       from: 'profit-discount'
     }
   })
+}
+
+function hasManualOverride(row) {
+  return (
+    Boolean(row.manualOverrideFlag) ||
+    (row.growthRateManual !== null && row.growthRateManual !== undefined)
+  )
 }
 
 function safeRound(value) {
@@ -273,6 +379,41 @@ function deviationClass(value) {
 .company-cell span {
   color: var(--app-text-muted);
   font-size: 12px;
+}
+
+.batch-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.batch-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.batch-copy strong {
+  color: var(--app-text);
+  font-size: 14px;
+}
+
+.batch-copy span {
+  color: var(--app-text-muted);
+  font-size: 12px;
+}
+
+.batch-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.batch-input {
+  width: 150px;
 }
 
 .deviation-high {

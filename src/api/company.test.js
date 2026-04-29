@@ -13,7 +13,9 @@ import {
 } from './company'
 import { getDcfValuationList } from './dcf-valuation'
 import {
+  clearProfitGrowthRate,
   getProfitValuationList,
+  updateIndustryProfitGrowthRate,
   updateProfitGrowthRate
 } from './profit-valuation'
 import { getCompanyOverview } from './valuation-query'
@@ -97,11 +99,22 @@ describe('company api', () => {
     mock
       .onPatch('/valuation/profit-discount/1/growth-rate')
       .reply(ok({ item: { companyId: 1 } }))
+    mock
+      .onDelete('/valuation/profit-discount/1/growth-rate')
+      .reply(ok({ item: { companyId: 1 } }))
+    mock
+      .onPost('/valuation/profit-discount/industry-growth-rate')
+      .reply(ok({ list: [], sum: 0 }))
 
     await getProfitValuationList({ industryName: '白酒' })
     await getDcfValuationList({ industry: '白酒' })
     await updateProfitGrowthRate(1, {
       growthRateManual: 12
+    })
+    await clearProfitGrowthRate(1)
+    await updateIndustryProfitGrowthRate({
+      industryName: '白酒',
+      growthRateManual: 11
     })
 
     expect(mock.history.get[0].url).toBe('/valuation/profit-discount')
@@ -113,6 +126,16 @@ describe('company api', () => {
     )
     expect(JSON.parse(mock.history.patch[0].data)).toEqual({
       growthRateManual: 12
+    })
+    expect(mock.history.delete[0].url).toBe(
+      '/valuation/profit-discount/1/growth-rate'
+    )
+    expect(mock.history.post[0].url).toBe(
+      '/valuation/profit-discount/industry-growth-rate'
+    )
+    expect(JSON.parse(mock.history.post[0].data)).toEqual({
+      industryName: '白酒',
+      growthRateManual: 11
     })
   })
 })

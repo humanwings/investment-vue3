@@ -113,6 +113,7 @@ export const profitValuationPayload = {
       growthRatePrediction: 18,
       growthRateManual: 15,
       growthRateApplied: 15,
+      manualOverrideFlag: true,
       valuation: 1500,
       deviation: 0.22,
       financialScore: 90,

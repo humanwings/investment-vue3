@@ -26,3 +26,21 @@ export function updateProfitGrowthRate(companyId, data) {
     data
   })
 }
+
+export function clearProfitGrowthRate(companyId, data = {}) {
+  return request({
+    url: restfulFormat('/valuation/profit-discount/{id}/growth-rate', {
+      id: companyId
+    }),
+    method: 'delete',
+    data
+  })
+}
+
+export function updateIndustryProfitGrowthRate(data) {
+  return request({
+    url: '/valuation/profit-discount/industry-growth-rate',
+    method: 'post',
+    data
+  })
+}
