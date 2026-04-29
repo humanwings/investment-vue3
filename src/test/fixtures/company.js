@@ -92,7 +92,48 @@ export const companyDetailPayload = {
         freeCashFlow: 25000000000
       }
     ],
-    highlights: ['加权 ROE: 0.31']
+    profitability: [
+      {
+        label: '加权 ROE',
+        value: '31.00%',
+        status: 'good',
+        description: '股东权益创造利润的能力'
+      }
+    ],
+    cashFlowQuality: [
+      {
+        label: '经营现金流/扣非利润',
+        value: '1.12x',
+        status: 'good',
+        description: '利润现金含量'
+      }
+    ],
+    dividendStability: [
+      {
+        label: '连续分红年数',
+        value: '5 年',
+        status: 'good',
+        description: '最近连续分红记录'
+      }
+    ],
+    solvency: [
+      {
+        label: '资产负债率',
+        value: '18.00%',
+        status: 'good',
+        description: '总负债相对总资产的比例'
+      }
+    ],
+    assetStructure: [
+      {
+        label: 'PB',
+        value: '4.20',
+        status: 'neutral',
+        description: '价格相对净资产的估值水平'
+      }
+    ],
+    riskWarnings: ['暂无突出财务风险，继续跟踪财报变化'],
+    highlights: ['ROE 表现较强', '自由现金流为正']
   },
   recommendationSummary: {
     score: 88,

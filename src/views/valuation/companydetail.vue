@@ -177,7 +177,51 @@
       <el-tab-pane label="财务评价" name="financial">
         <div class="page-card">
           <div class="section-head">
-            <h3>最新财务信息</h3>
+            <h3>财务评价</h3>
+          </div>
+
+          <AssumptionStrip :items="financialHighlightItems" />
+
+          <div class="financial-layout section-block">
+            <section
+              v-for="group in financialMetricGroups"
+              :key="group.title"
+              class="financial-section"
+            >
+              <div class="section-head">
+                <h3>{{ group.title }}</h3>
+              </div>
+              <div class="financial-metric-grid">
+                <div
+                  v-for="item in group.items"
+                  :key="`${group.title}-${item.label}`"
+                  class="financial-metric"
+                  :class="`financial-metric--${item.status || 'neutral'}`"
+                >
+                  <span>{{ item.label }}</span>
+                  <strong>{{ item.value || '-' }}</strong>
+                  <small>{{ item.description }}</small>
+                </div>
+              </div>
+            </section>
+
+            <section class="financial-section">
+              <div class="section-head">
+                <h3>风险提示</h3>
+              </div>
+              <ul class="risk-list">
+                <li
+                  v-for="item in financialReview.riskWarnings || []"
+                  :key="item"
+                >
+                  {{ item }}
+                </li>
+              </ul>
+            </section>
+          </div>
+
+          <div class="section-head section-block">
+            <h3>最新财务快照</h3>
           </div>
           <el-descriptions :column="4" border>
             <el-descriptions-item label="报告日期">{{
@@ -186,41 +230,11 @@
             <el-descriptions-item label="加权 ROE">{{
               formatPercent(latestReport.wroe)
             }}</el-descriptions-item>
-            <el-descriptions-item label="加权扣非 ROE">{{
-              formatPercent(latestReport.wdroe)
-            }}</el-descriptions-item>
-            <el-descriptions-item label="每股净资产">{{
-              safeRound(latestReport.netAssetValuePer)
-            }}</el-descriptions-item>
-            <el-descriptions-item label="每股扣非净利润">{{
-              safeRound(latestReport.npadnrpatoshaopcPer)
-            }}</el-descriptions-item>
             <el-descriptions-item label="每股经营现金流">{{
               safeRound(latestReport.operatingCashFlowPer)
             }}</el-descriptions-item>
-            <el-descriptions-item label="每股自由现金流">{{
-              safeRound(latestReport.freeCashFlowPer)
-            }}</el-descriptions-item>
-            <el-descriptions-item label="毛利率">{{
-              formatPercent(latestReport.grossMargin)
-            }}</el-descriptions-item>
             <el-descriptions-item label="资产负债率">{{
               formatPercent(latestReport.assetLiabilityRatio)
-            }}</el-descriptions-item>
-            <el-descriptions-item label="有息负债率">{{
-              formatPercent(latestReport.interestLiabilityRatio)
-            }}</el-descriptions-item>
-            <el-descriptions-item label="营业收入本季度增长率">{{
-              formatPercent(latestReport.incomeGrowthRateCurrent)
-            }}</el-descriptions-item>
-            <el-descriptions-item label="扣非利润本季度增长率">{{
-              formatPercent(latestReport.profitGrowthRateCurrent)
-            }}</el-descriptions-item>
-            <el-descriptions-item label="营业收入累积增长率">{{
-              formatPercent(latestReport.incomeGrowthRateTotal)
-            }}</el-descriptions-item>
-            <el-descriptions-item label="扣非利润累积增长率">{{
-              formatPercent(latestReport.profitGrowthRateTotal)
             }}</el-descriptions-item>
           </el-descriptions>
 
@@ -290,6 +304,7 @@ const loading = ref(false)
 const overview = reactive({})
 const profitValuation = reactive({})
 const dcfValuation = reactive({})
+const financialReview = reactive({})
 const latestReport = reactive({})
 const recommendationSummary = reactive({})
 const dividendList = ref([])
@@ -337,6 +352,47 @@ const profitAssumptions = computed(() => [
   }
 ])
 
+const financialMetricGroups = computed(() => [
+  {
+    title: '盈利能力',
+    items: financialReview.profitability || []
+  },
+  {
+    title: '现金流质量',
+    items: financialReview.cashFlowQuality || []
+  },
+  {
+    title: '分红稳定性',
+    items: financialReview.dividendStability || []
+  },
+  {
+    title: '偿债能力',
+    items: financialReview.solvency || []
+  },
+  {
+    title: '资产结构',
+    items: financialReview.assetStructure || []
+  }
+])
+
+const financialHighlightItems = computed(() => {
+  const highlights = financialReview.highlights || []
+  if (!highlights.length) {
+    return [
+      {
+        label: '财务亮点',
+        value: '-',
+        source: '等待数据'
+      }
+    ]
+  }
+  return highlights.slice(0, 3).map((item, index) => ({
+    label: `财务亮点 ${index + 1}`,
+    value: item,
+    source: latestReport.date || '最新财报'
+  }))
+})
+
 function resolveInitialTab(tab) {
   return ['overview', 'profit', 'dcf', 'financial', 'recommend'].includes(tab)
     ? tab
@@ -350,9 +406,10 @@ async function loadDetail() {
     Object.assign(overview, data.overview || {})
     Object.assign(profitValuation, data.profitValuation || {})
     Object.assign(dcfValuation, data.dcfValuation || {})
-    Object.assign(latestReport, data.financialReview?.latestReport || {})
+    Object.assign(financialReview, data.financialReview || {})
+    Object.assign(latestReport, financialReview.latestReport || {})
     Object.assign(recommendationSummary, data.recommendationSummary || {})
-    dividendList.value = data.financialReview?.dividendList || []
+    dividendList.value = financialReview.dividendList || []
   } finally {
     loading.value = false
   }
@@ -456,5 +513,59 @@ function conclusionType(conclusion) {
 .nav-card span {
   color: var(--app-text-muted);
   font-size: 12px;
+}
+
+.financial-layout {
+  display: grid;
+  gap: 18px;
+}
+
+.financial-section {
+  min-width: 0;
+}
+
+.financial-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.financial-metric {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 12px 14px;
+  border-left: 3px solid rgba(25, 58, 84, 0.18);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.financial-metric--good {
+  border-left-color: #1d7f58;
+}
+
+.financial-metric--warn {
+  border-left-color: #c43c2d;
+}
+
+.financial-metric span,
+.financial-metric small {
+  overflow-wrap: anywhere;
+  color: var(--app-text-muted);
+  font-size: 12px;
+}
+
+.financial-metric strong {
+  overflow-wrap: anywhere;
+  color: var(--app-text);
+  font-size: 17px;
+  line-height: 1.25;
+}
+
+.risk-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--app-text);
 }
 </style>
