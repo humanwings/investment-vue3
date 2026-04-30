@@ -172,10 +172,42 @@ export const appRoutes = [
           },
           {
             path: 'dcf',
-            name: 'DcfValuationList',
-            component: () => import('@/views/valuation/dcfvaluation.vue'),
+            redirect: '/companyvaluation/valuation/dcf-v1',
             meta: {
-              title: 'DCF一览'
+              hidden: true,
+              title: 'DCF v1一览'
+            }
+          },
+          {
+            path: 'dcf-v1',
+            name: 'DcfValuationV1List',
+            component: () => import('@/views/valuation/dcfvaluation.vue'),
+            props: {
+              pageTitle: 'DCF v1一览',
+              modelVersion: 'DCF_V1_SIMPLE_FCFF',
+              scenarioKey: 'BASE',
+              versionKey: 'v1',
+              pendingStatusLabel: '等待 DCF v1',
+              overviewSource: 'dcf-v1'
+            },
+            meta: {
+              title: 'DCF v1一览'
+            }
+          },
+          {
+            path: 'dcf-v2',
+            name: 'DcfValuationV2List',
+            component: () => import('@/views/valuation/dcfvaluation.vue'),
+            props: {
+              pageTitle: 'DCF v2一览',
+              modelVersion: 'DCF_V2_STANDARD_FCFF',
+              scenarioKey: 'BASE',
+              versionKey: 'v2',
+              pendingStatusLabel: '等待 DCF v2',
+              overviewSource: 'dcf-v2'
+            },
+            meta: {
+              title: 'DCF v2一览'
             }
           },
           {

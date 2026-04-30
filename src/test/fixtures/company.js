@@ -65,25 +65,32 @@ export const companyDetailPayload = {
     finalValuation: 1111.5
   },
   dcfValuation: {
+    valuationId: 101,
+    modelVersion: 'DCF_V1_SIMPLE_FCFF',
+    scenarioKey: 'BASE',
+    isPrimary: true,
     formulaVersion: 'DCF_V1_SIMPLE_FCFF',
     cashFlowBasis:
       'FCFF proxy: latest free cash flow per share * capitalization',
-    defaultParameterSource: 'financial review + industry defaults',
+    defaultParameterSource: 'financial review + macro defaults',
     revenueGrowthRatePrediction: 0.08,
-    revenueGrowthRateApplied: null,
+    revenueGrowthRateApplied: 0.08,
     discountRatePrediction: 0.09,
-    discountRateApplied: null,
+    discountRateApplied: 0.09,
     terminalGrowthRatePrediction: 0.025,
-    terminalGrowthRateApplied: null,
-    equityValue: null,
-    perShareValue: null,
-    deviation: null,
-    terminalValueRatio: null,
+    terminalGrowthRateApplied: 0.025,
+    enterpriseValue: 90000,
+    netDebt: 0,
+    baseFreeCashFlow: 5880,
+    equityValue: 90000,
+    perShareValue: 900,
+    deviation: -0.27,
+    terminalValueRatio: 0.72,
     profitValuation: 1500,
-    profitDcfGap: null,
-    status: 'pending',
-    message: 'DCF table is ready; step 10 will write valuation results.',
-    updatedAt: null
+    profitDcfGap: -600,
+    status: 'ready',
+    message: 'DCF valuation result is available.',
+    updatedAt: '2026-04-30 10:00:00'
   },
   financialReview: {
     latestReport: {
@@ -159,6 +166,33 @@ export const companyDetailPayload = {
   }
 }
 
+companyDetailPayload.dcfValuationV1 = { ...companyDetailPayload.dcfValuation }
+companyDetailPayload.dcfValuationV2 = {
+  modelVersion: 'DCF_V2_STANDARD_FCFF',
+  scenarioKey: 'BASE',
+  formulaVersion: 'DCF_V2_STANDARD_FCFF',
+  cashFlowBasis: 'Standard FCFF model pending step 12',
+  defaultParameterSource: 'pending standard DCF assumptions',
+  revenueGrowthRatePrediction: null,
+  revenueGrowthRateApplied: null,
+  discountRatePrediction: null,
+  discountRateApplied: null,
+  terminalGrowthRatePrediction: null,
+  terminalGrowthRateApplied: null,
+  enterpriseValue: null,
+  netDebt: null,
+  baseFreeCashFlow: null,
+  equityValue: null,
+  perShareValue: null,
+  deviation: null,
+  terminalValueRatio: null,
+  profitValuation: 1500,
+  profitDcfGap: null,
+  status: 'pending',
+  message: 'DCF v2 skeleton is ready; step 12 will write standard valuation results.',
+  updatedAt: null
+}
+
 export const profitValuationPayload = {
   sum: 1,
   list: [
@@ -190,25 +224,69 @@ export const dcfValuationPayload = {
       stockCode: '600519',
       name: '贵州茅台',
       industryName: '白酒',
+      valuationId: 101,
+      modelVersion: 'DCF_V1_SIMPLE_FCFF',
+      scenarioKey: 'BASE',
+      isPrimary: true,
       price: 1234,
       revenueGrowthRatePrediction: 0.08,
-      revenueGrowthRateApplied: null,
+      revenueGrowthRateApplied: 0.08,
       discountRatePrediction: 0.09,
-      discountRateApplied: null,
+      discountRateApplied: 0.09,
       terminalGrowthRatePrediction: 0.025,
+      terminalGrowthRateApplied: 0.025,
+      enterpriseValue: 90000,
+      netDebt: 0,
+      baseFreeCashFlow: 5880,
+      equityValue: 90000,
+      perShareValue: 900,
+      deviation: -0.27,
+      terminalValueRatio: 0.72,
+      profitValuation: 1500,
+      profitDcfGap: -600,
+      formulaVersion: 'DCF_V1_SIMPLE_FCFF',
+      cashFlowBasis:
+        'FCFF proxy: latest free cash flow per share * capitalization',
+      defaultParameterSource: 'financial review + macro defaults',
+      status: 'ready',
+      message: 'DCF valuation result is available.',
+      updatedAt: '2026-04-30 10:00:00'
+    }
+  ]
+}
+
+export const dcfV2ValuationPayload = {
+  sum: 1,
+  list: [
+    {
+      companyId: 1,
+      stockCode: '600519',
+      name: '贵州茅台',
+      industryName: '白酒',
+      modelVersion: 'DCF_V2_STANDARD_FCFF',
+      scenarioKey: 'BASE',
+      price: 1234,
+      revenueGrowthRatePrediction: null,
+      revenueGrowthRateApplied: null,
+      discountRatePrediction: null,
+      discountRateApplied: null,
+      terminalGrowthRatePrediction: null,
       terminalGrowthRateApplied: null,
+      enterpriseValue: null,
+      netDebt: null,
+      baseFreeCashFlow: null,
       equityValue: null,
       perShareValue: null,
       deviation: null,
       terminalValueRatio: null,
       profitValuation: 1500,
       profitDcfGap: null,
-      formulaVersion: 'DCF_V1_SIMPLE_FCFF',
-      cashFlowBasis:
-        'FCFF proxy: latest free cash flow per share * capitalization',
-      defaultParameterSource: 'financial review + industry defaults',
+      formulaVersion: 'DCF_V2_STANDARD_FCFF',
+      cashFlowBasis: 'Standard FCFF model pending step 12',
+      defaultParameterSource: 'pending standard DCF assumptions',
       status: 'pending',
-      message: 'DCF table is ready; step 10 will write valuation results.',
+      message:
+        'DCF v2 skeleton is ready; step 12 will write standard valuation results.',
       updatedAt: null
     }
   ]

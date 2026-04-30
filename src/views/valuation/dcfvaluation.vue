@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <div class="eyebrow">Discounted Cash Flow</div>
-        <h2>DCF一览</h2>
+        <h2>{{ pageTitle }}</h2>
       </div>
       <div class="header-actions">
         <IndustryFilter v-model="industryFilter" :industries="industries" />
@@ -13,7 +13,7 @@
 
     <div class="page-card metric-grid">
       <ValuationMetric
-        label="DCF 每股估值"
+        :label="`${versionLabel} 每股估值`"
         :value="safeRound(averagePerShareValue) || '-'"
         hint="平均值"
       />
@@ -45,6 +45,11 @@
               </div>
             </template>
           </el-table-column>
+          <el-table-column label="模型版本" width="170">
+            <template #default="{ row }">
+              {{ row.modelVersion || modelVersion }}
+            </template>
+          </el-table-column>
           <el-table-column prop="industryName" label="行业" min-width="120" />
           <el-table-column label="当前价" width="100">
             <template #default="{ row }">
@@ -71,7 +76,7 @@
               {{ formatPercent(row.terminalGrowthRateApplied) || '-' }}
             </template>
           </el-table-column>
-          <el-table-column label="DCF 每股估值" width="140">
+          <el-table-column :label="`${versionLabel} 每股估值`" width="140">
             <template #default="{ row }">
               {{ safeRound(row.perShareValue) || '-' }}
             </template>
@@ -125,11 +130,41 @@ import IndustryFilter from './components/IndustryFilter.vue'
 import ValuationMetric from './components/ValuationMetric.vue'
 
 const router = useRouter()
+const props = defineProps({
+  pageTitle: {
+    type: String,
+    default: 'DCF v1一览'
+  },
+  modelVersion: {
+    type: String,
+    default: 'DCF_V1_SIMPLE_FCFF'
+  },
+  scenarioKey: {
+    type: String,
+    default: 'BASE'
+  },
+  versionKey: {
+    type: String,
+    default: 'v1'
+  },
+  pendingStatusLabel: {
+    type: String,
+    default: '等待 DCF v1'
+  },
+  overviewSource: {
+    type: String,
+    default: 'dcf-v1'
+  }
+})
 const industryFilter = ref('')
 const loading = ref(false)
 const rows = ref([])
 
 loadDcfValuations()
+
+const versionLabel = computed(() =>
+  props.versionKey === 'v2' ? 'DCF v2' : 'DCF v1'
+)
 
 const industries = computed(() => [
   ...new Set(rows.value.map((item) => item.industryName).filter(Boolean))
@@ -153,7 +188,10 @@ const averageProfitDcfGap = computed(() => averageOf('profitDcfGap'))
 async function loadDcfValuations() {
   loading.value = true
   try {
-    const { data } = await getDcfValuationList()
+    const { data } = await getDcfValuationList({
+      modelVersion: props.modelVersion,
+      scenarioKey: props.scenarioKey
+    })
     rows.value = data.list || []
   } finally {
     loading.value = false
@@ -175,7 +213,8 @@ function goOverview(row) {
     path: `/companyvaluation/valuation/company/${row.companyId}`,
     query: {
       tab: 'dcf',
-      from: 'dcf'
+      dcfVersion: props.versionKey,
+      from: props.overviewSource
     }
   })
 }
@@ -191,7 +230,7 @@ function statusLabel(status) {
   if (status === 'parameter_ready') {
     return '参数待计算'
   }
-  return '等待 DCF v1'
+  return props.pendingStatusLabel
 }
 
 function statusType(status) {

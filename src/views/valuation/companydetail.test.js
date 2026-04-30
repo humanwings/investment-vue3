@@ -65,8 +65,13 @@ describe('companydetail page', () => {
     expect(wrapper.vm.recommendationSummary.score).toBe(88)
     expect(wrapper.vm.activeTab).toBe('overview')
     expect(wrapper.vm.profitAssumptions[0].label).toBe('系统增长率')
-    expect(wrapper.vm.dcfAssumptions[0].label).toBe('营收增长率')
+    expect(wrapper.vm.dcfV1Assumptions[0].label).toBe('营收增长率')
     expect(wrapper.vm.dcfValuation.formulaVersion).toBe('DCF_V1_SIMPLE_FCFF')
+    expect(wrapper.vm.dcfValuationV1.modelVersion).toBe('DCF_V1_SIMPLE_FCFF')
+    expect(wrapper.vm.dcfValuationV2.modelVersion).toBe(
+      'DCF_V2_STANDARD_FCFF'
+    )
+    expect(wrapper.vm.activeDcfVersion).toBe('v1')
     expect(wrapper.vm.researchNavItems).toHaveLength(4)
   })
 
@@ -89,6 +94,29 @@ describe('companydetail page', () => {
     await flushPromises()
 
     expect(wrapper.vm.activeTab).toBe('profit')
+  })
+
+  it('opens the DCF v2 child tab when entered from the DCF v2 list', async () => {
+    routeMock.query = {
+      tab: 'dcf',
+      dcfVersion: 'v2',
+      from: 'dcf-v2'
+    }
+    mock.onGet('/company/1').reply(ok(companyDetailPayload))
+
+    const wrapper = shallowMount(CompanyDetail, {
+      global: {
+        stubs: elementPlusStubs,
+        directives: {
+          loading: {}
+        }
+      }
+    })
+
+    await flushPromises()
+
+    expect(wrapper.vm.activeTab).toBe('dcf')
+    expect(wrapper.vm.activeDcfVersion).toBe('v2')
   })
 
   it('navigates back to the company list', async () => {
