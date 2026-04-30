@@ -65,8 +65,25 @@ export const companyDetailPayload = {
     finalValuation: 1111.5
   },
   dcfValuation: {
+    formulaVersion: 'DCF_V1_SIMPLE_FCFF',
+    cashFlowBasis:
+      'FCFF proxy: latest free cash flow per share * capitalization',
+    defaultParameterSource: 'financial review + industry defaults',
+    revenueGrowthRatePrediction: 0.08,
+    revenueGrowthRateApplied: null,
+    discountRatePrediction: 0.09,
+    discountRateApplied: null,
+    terminalGrowthRatePrediction: 0.025,
+    terminalGrowthRateApplied: null,
+    equityValue: null,
+    perShareValue: null,
+    deviation: null,
+    terminalValueRatio: null,
+    profitValuation: 1500,
+    profitDcfGap: null,
     status: 'pending',
-    message: 'DCF 模型将在后续步骤接入'
+    message: 'DCF table is ready; step 10 will write valuation results.',
+    updatedAt: null
   },
   financialReview: {
     latestReport: {
@@ -161,6 +178,38 @@ export const profitValuationPayload = {
       recommendationScore: 88,
       signal: '低估',
       updatedAt: '2026-04-28 10:00:00'
+    }
+  ]
+}
+
+export const dcfValuationPayload = {
+  sum: 1,
+  list: [
+    {
+      companyId: 1,
+      stockCode: '600519',
+      name: '贵州茅台',
+      industryName: '白酒',
+      price: 1234,
+      revenueGrowthRatePrediction: 0.08,
+      revenueGrowthRateApplied: null,
+      discountRatePrediction: 0.09,
+      discountRateApplied: null,
+      terminalGrowthRatePrediction: 0.025,
+      terminalGrowthRateApplied: null,
+      equityValue: null,
+      perShareValue: null,
+      deviation: null,
+      terminalValueRatio: null,
+      profitValuation: 1500,
+      profitDcfGap: null,
+      formulaVersion: 'DCF_V1_SIMPLE_FCFF',
+      cashFlowBasis:
+        'FCFF proxy: latest free cash flow per share * capitalization',
+      defaultParameterSource: 'financial review + industry defaults',
+      status: 'pending',
+      message: 'DCF table is ready; step 10 will write valuation results.',
+      updatedAt: null
     }
   ]
 }

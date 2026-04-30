@@ -65,6 +65,8 @@ describe('companydetail page', () => {
     expect(wrapper.vm.recommendationSummary.score).toBe(88)
     expect(wrapper.vm.activeTab).toBe('overview')
     expect(wrapper.vm.profitAssumptions[0].label).toBe('系统增长率')
+    expect(wrapper.vm.dcfAssumptions[0].label).toBe('营收增长率')
+    expect(wrapper.vm.dcfValuation.formulaVersion).toBe('DCF_V1_SIMPLE_FCFF')
     expect(wrapper.vm.researchNavItems).toHaveLength(4)
   })
 

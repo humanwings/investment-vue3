@@ -154,23 +154,44 @@
           <div class="section-head">
             <h3>DCF模型</h3>
           </div>
+          <AssumptionStrip :items="dcfAssumptions" />
           <div class="metric-grid">
             <ValuationMetric
               label="DCF 每股估值"
-              value="-"
+              :value="safeRound(dcfValuation.perShareValue) || '-'"
               :hint="dcfValuation.message"
             />
             <ValuationMetric
               label="终值占比"
-              value="-"
+              :value="formatPercent(dcfValuation.terminalValueRatio) || '-'"
               :hint="dcfValuation.status"
             />
             <ValuationMetric
               label="与利润贴现差异"
-              value="-"
-              :hint="dcfValuation.message"
+              :value="safeRound(dcfValuation.profitDcfGap) || '-'"
+              :hint="dcfValuation.formulaVersion"
             />
           </div>
+          <el-descriptions :column="3" border class="section-block">
+            <el-descriptions-item label="公式版本">{{
+              dcfValuation.formulaVersion || '-'
+            }}</el-descriptions-item>
+            <el-descriptions-item label="现金流口径">{{
+              dcfValuation.cashFlowBasis || '-'
+            }}</el-descriptions-item>
+            <el-descriptions-item label="参数来源">{{
+              dcfValuation.defaultParameterSource || '-'
+            }}</el-descriptions-item>
+            <el-descriptions-item label="DCF 股权价值">{{
+              safeRound(dcfValuation.equityValue) || '-'
+            }}</el-descriptions-item>
+            <el-descriptions-item label="偏离率">{{
+              formatPercent(dcfValuation.deviation) || '-'
+            }}</el-descriptions-item>
+            <el-descriptions-item label="更新时间">{{
+              dcfValuation.updatedAt || '-'
+            }}</el-descriptions-item>
+          </el-descriptions>
         </div>
       </el-tab-pane>
 
@@ -320,7 +341,10 @@ const researchNavItems = computed(() => [
   {
     name: 'dcf',
     label: 'DCF',
-    summary: dcfValuation.message || '后续接入'
+    summary:
+      safeRound(dcfValuation.perShareValue) ||
+      dcfValuation.message ||
+      '后续接入'
   },
   {
     name: 'financial',
@@ -349,6 +373,43 @@ const profitAssumptions = computed(() => [
     label: '采用增长率',
     value: formatPercentRatePoint(profitValuation.growthRateApplied),
     source: '当前计算'
+  }
+])
+
+const dcfAssumptions = computed(() => [
+  {
+    label: '营收增长率',
+    value: formatPercent(
+      appliedOrPrediction(
+        dcfValuation.revenueGrowthRateApplied,
+        dcfValuation.revenueGrowthRatePrediction
+      )
+    ),
+    source: hasValue(dcfValuation.revenueGrowthRateApplied)
+      ? '采用值'
+      : '系统预测'
+  },
+  {
+    label: '折现率',
+    value: formatPercent(
+      appliedOrPrediction(
+        dcfValuation.discountRateApplied,
+        dcfValuation.discountRatePrediction
+      )
+    ),
+    source: hasValue(dcfValuation.discountRateApplied) ? '采用值' : '系统预测'
+  },
+  {
+    label: '永续增长率',
+    value: formatPercent(
+      appliedOrPrediction(
+        dcfValuation.terminalGrowthRateApplied,
+        dcfValuation.terminalGrowthRatePrediction
+      )
+    ),
+    source: hasValue(dcfValuation.terminalGrowthRateApplied)
+      ? '采用值'
+      : '系统预测'
   }
 ])
 
@@ -424,6 +485,14 @@ function formatPercentRatePoint(value) {
     return ''
   }
   return `${Number(value).toFixed(2)}%`
+}
+
+function appliedOrPrediction(applied, prediction) {
+  return applied ?? prediction
+}
+
+function hasValue(value) {
+  return value !== null && value !== undefined && value !== ''
 }
 
 function conclusionType(conclusion) {
