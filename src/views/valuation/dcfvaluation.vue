@@ -29,6 +29,51 @@
       />
     </div>
 
+    <div v-if="isV1" class="page-card batch-toolbar">
+      <div class="batch-copy">
+        <strong>行业批量假设</strong>
+        <span>{{ industryFilter || '请先选择行业' }}</span>
+      </div>
+      <div class="batch-controls">
+        <el-input-number
+          v-model="batchRevenueGrowthRate"
+          class="batch-input"
+          :step="0.5"
+          :min="-100"
+          :max="100"
+          size="small"
+          controls-position="right"
+        />
+        <el-input-number
+          v-model="batchDiscountRate"
+          class="batch-input"
+          :step="0.5"
+          :min="0"
+          :max="100"
+          size="small"
+          controls-position="right"
+        />
+        <el-input-number
+          v-model="batchTerminalGrowthRate"
+          class="batch-input"
+          :step="0.25"
+          :min="-100"
+          :max="100"
+          size="small"
+          controls-position="right"
+        />
+        <el-button
+          type="primary"
+          :disabled="!canApplyBatch"
+          :loading="batchLoading"
+          @click="applyIndustryManualAssumptions"
+        >
+          <el-icon><Check /></el-icon>
+          <span>应用到行业</span>
+        </el-button>
+      </div>
+    </div>
+
     <div class="table-card list-card">
       <div class="table-shell table-shell--fill">
         <el-table
@@ -61,9 +106,33 @@
               {{ formatPercent(row.revenueGrowthRatePrediction) || '-' }}
             </template>
           </el-table-column>
+          <el-table-column v-if="isV1" label="手动营收增长率" width="150">
+            <template #default="{ row }">
+              <el-input-number
+                v-model="draftRevenueGrowthRates[row.companyId]"
+                :step="0.5"
+                :min="-100"
+                :max="100"
+                size="small"
+                controls-position="right"
+              />
+            </template>
+          </el-table-column>
           <el-table-column label="采用营收增长率" width="130">
             <template #default="{ row }">
               {{ formatPercent(row.revenueGrowthRateApplied) || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column v-if="isV1" label="手动折现率" width="130">
+            <template #default="{ row }">
+              <el-input-number
+                v-model="draftDiscountRates[row.companyId]"
+                :step="0.5"
+                :min="0"
+                :max="100"
+                size="small"
+                controls-position="right"
+              />
             </template>
           </el-table-column>
           <el-table-column label="采用折现率" width="120">
@@ -71,9 +140,28 @@
               {{ formatPercent(row.discountRateApplied) || '-' }}
             </template>
           </el-table-column>
+          <el-table-column v-if="isV1" label="手动永续增长率" width="150">
+            <template #default="{ row }">
+              <el-input-number
+                v-model="draftTerminalGrowthRates[row.companyId]"
+                :step="0.25"
+                :min="-100"
+                :max="100"
+                size="small"
+                controls-position="right"
+              />
+            </template>
+          </el-table-column>
           <el-table-column label="永续增长率" width="120">
             <template #default="{ row }">
               {{ formatPercent(row.terminalGrowthRateApplied) || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column v-if="isV1" label="覆盖状态" width="110">
+            <template #default="{ row }">
+              <el-tag :type="hasManualOverride(row) ? 'warning' : 'info'">
+                {{ hasManualOverride(row) ? '人工覆盖' : '系统默认' }}
+              </el-tag>
             </template>
           </el-table-column>
           <el-table-column :label="`${versionLabel} 每股估值`" width="140">
@@ -105,12 +193,35 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column fixed="right" label="动作" width="100">
+          <el-table-column fixed="right" label="动作" :width="isV1 ? 250 : 100">
             <template #default="{ row }">
-              <el-button text type="primary" @click="goOverview(row)">
-                <el-icon><View /></el-icon>
-                <span>总览</span>
-              </el-button>
+              <div class="row-actions">
+                <el-button text type="primary" @click="goOverview(row)">
+                  <el-icon><View /></el-icon>
+                  <span>总览</span>
+                </el-button>
+                <el-button
+                  v-if="isV1"
+                  text
+                  type="success"
+                  :loading="savingCompanyId === row.companyId"
+                  @click="saveManualAssumptions(row)"
+                >
+                  <el-icon><Check /></el-icon>
+                  <span>保存</span>
+                </el-button>
+                <el-button
+                  v-if="isV1"
+                  text
+                  type="warning"
+                  :disabled="!hasManualOverride(row)"
+                  :loading="savingCompanyId === row.companyId"
+                  @click="resetManualAssumptions(row)"
+                >
+                  <el-icon><RefreshRight /></el-icon>
+                  <span>恢复</span>
+                </el-button>
+              </div>
             </template>
           </el-table-column>
         </el-table>
@@ -120,11 +231,17 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { View } from '@element-plus/icons-vue'
+import { ElMessageBox, ElNotification } from 'element-plus'
+import { Check, RefreshRight, View } from '@element-plus/icons-vue'
 
-import { getDcfValuationList } from '@/api/dcf-valuation'
+import {
+  clearDcfV1ManualAssumptions,
+  getDcfValuationList,
+  updateDcfV1ManualAssumptions,
+  updateIndustryDcfV1ManualAssumptions
+} from '@/api/dcf-valuation'
 import { formatPercent, roundToDecimal } from '@/utils'
 import IndustryFilter from './components/IndustryFilter.vue'
 import ValuationMetric from './components/ValuationMetric.vue'
@@ -158,9 +275,19 @@ const props = defineProps({
 })
 const industryFilter = ref('')
 const loading = ref(false)
+const savingCompanyId = ref()
+const batchLoading = ref(false)
+const batchRevenueGrowthRate = ref()
+const batchDiscountRate = ref()
+const batchTerminalGrowthRate = ref()
 const rows = ref([])
+const draftRevenueGrowthRates = reactive({})
+const draftDiscountRates = reactive({})
+const draftTerminalGrowthRates = reactive({})
 
 loadDcfValuations()
+
+const isV1 = computed(() => props.versionKey === 'v1')
 
 const versionLabel = computed(() =>
   props.versionKey === 'v2' ? 'DCF v2' : 'DCF v1'
@@ -185,6 +312,15 @@ const averageTerminalValueRatio = computed(() =>
 
 const averageProfitDcfGap = computed(() => averageOf('profitDcfGap'))
 
+const canApplyBatch = computed(
+  () =>
+    isV1.value &&
+    Boolean(industryFilter.value) &&
+    hasDraftValue(batchRevenueGrowthRate.value) &&
+    hasDraftValue(batchDiscountRate.value) &&
+    hasDraftValue(batchTerminalGrowthRate.value)
+)
+
 async function loadDcfValuations() {
   loading.value = true
   try {
@@ -193,9 +329,117 @@ async function loadDcfValuations() {
       scenarioKey: props.scenarioKey
     })
     rows.value = data.list || []
+    syncDraftAssumptions(rows.value)
   } finally {
     loading.value = false
   }
+}
+
+function syncDraftAssumptions(list) {
+  list.forEach((row) => syncDraftAssumption(row))
+}
+
+function syncDraftAssumption(row) {
+  draftRevenueGrowthRates[row.companyId] = rateToPoint(
+    row.revenueGrowthRateManual ??
+      row.revenueGrowthRateApplied ??
+      row.revenueGrowthRatePrediction
+  )
+  draftDiscountRates[row.companyId] = rateToPoint(
+    row.discountRateManual ??
+      row.discountRateApplied ??
+      row.discountRatePrediction
+  )
+  draftTerminalGrowthRates[row.companyId] = rateToPoint(
+    row.terminalGrowthRateManual ??
+      row.terminalGrowthRateApplied ??
+      row.terminalGrowthRatePrediction
+  )
+}
+
+async function saveManualAssumptions(row) {
+  if (!isV1.value) {
+    return
+  }
+  savingCompanyId.value = row.companyId
+  try {
+    const response = await updateDcfV1ManualAssumptions(row.companyId, {
+      revenueGrowthRateManual: draftRevenueGrowthRates[row.companyId],
+      discountRateManual: draftDiscountRates[row.companyId],
+      terminalGrowthRateManual: draftTerminalGrowthRates[row.companyId],
+      changeReason: 'company DCF v1 manual assumptions'
+    })
+    replaceRow(response.data.item)
+    ElNotification.success({
+      title: 'Success',
+      message: 'DCF v1 假设已更新'
+    })
+  } finally {
+    savingCompanyId.value = undefined
+  }
+}
+
+async function resetManualAssumptions(row) {
+  savingCompanyId.value = row.companyId
+  try {
+    const response = await clearDcfV1ManualAssumptions(row.companyId, {
+      changeReason: 'restore DCF v1 default assumptions'
+    })
+    replaceRow(response.data.item)
+    ElNotification.success({
+      title: 'Success',
+      message: '已恢复 DCF v1 默认假设'
+    })
+  } finally {
+    savingCompanyId.value = undefined
+  }
+}
+
+async function applyIndustryManualAssumptions() {
+  if (!canApplyBatch.value) {
+    return
+  }
+  await ElMessageBox.confirm(
+    `将 ${industryFilter.value} 行业的 DCF v1 假设统一设置为：营收增长率 ${formatRatePoint(
+      batchRevenueGrowthRate.value
+    )}，折现率 ${formatRatePoint(
+      batchDiscountRate.value
+    )}，永续增长率 ${formatRatePoint(batchTerminalGrowthRate.value)}，是否继续？`,
+    '提示',
+    {
+      type: 'warning'
+    }
+  )
+
+  batchLoading.value = true
+  try {
+    const response = await updateIndustryDcfV1ManualAssumptions({
+      industryName: industryFilter.value,
+      revenueGrowthRateManual: batchRevenueGrowthRate.value,
+      discountRateManual: batchDiscountRate.value,
+      terminalGrowthRateManual: batchTerminalGrowthRate.value,
+      changeReason: 'industry batch DCF v1 manual assumptions'
+    })
+    replaceRows(response.data.list || [])
+    ElNotification.success({
+      title: 'Success',
+      message: '行业 DCF v1 假设已更新'
+    })
+  } finally {
+    batchLoading.value = false
+  }
+}
+
+function replaceRow(item) {
+  const index = rows.value.findIndex((row) => row.companyId === item.companyId)
+  if (index >= 0) {
+    rows.value.splice(index, 1, item)
+  }
+  syncDraftAssumption(item)
+}
+
+function replaceRows(items) {
+  items.forEach((item) => replaceRow(item))
 }
 
 function averageOf(key) {
@@ -221,6 +465,36 @@ function goOverview(row) {
 
 function safeRound(value) {
   return value === null || value === undefined ? '' : roundToDecimal(value, 2)
+}
+
+function rateToPoint(value) {
+  if (value === null || value === undefined || value === '') {
+    return undefined
+  }
+  const numberValue = Number(value)
+  return Math.abs(numberValue) <= 1
+    ? roundToDecimal(numberValue * 100, 2)
+    : numberValue
+}
+
+function formatRatePoint(value) {
+  if (!hasDraftValue(value)) {
+    return '-'
+  }
+  return `${Number(value).toFixed(2)}%`
+}
+
+function hasDraftValue(value) {
+  return value !== null && value !== undefined && value !== ''
+}
+
+function hasManualOverride(row) {
+  return (
+    Boolean(row.manualOverrideFlag) ||
+    hasDraftValue(row.revenueGrowthRateManual) ||
+    hasDraftValue(row.discountRateManual) ||
+    hasDraftValue(row.terminalGrowthRateManual)
+  )
 }
 
 function statusLabel(status) {
@@ -285,6 +559,42 @@ function deviationClass(value) {
 .company-cell span {
   color: var(--app-text-muted);
   font-size: 12px;
+}
+
+.batch-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.batch-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.batch-copy strong {
+  color: var(--app-text);
+  font-size: 14px;
+}
+
+.batch-copy span {
+  color: var(--app-text-muted);
+  font-size: 12px;
+}
+
+.batch-controls,
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.batch-input {
+  width: 140px;
 }
 
 .deviation-high {

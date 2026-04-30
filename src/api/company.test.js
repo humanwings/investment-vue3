@@ -11,7 +11,12 @@ import {
   updatePriceAll,
   updateReport
 } from './company'
-import { getDcfValuationList } from './dcf-valuation'
+import {
+  clearDcfV1ManualAssumptions,
+  getDcfValuationList,
+  updateDcfV1ManualAssumptions,
+  updateIndustryDcfV1ManualAssumptions
+} from './dcf-valuation'
 import {
   clearProfitGrowthRate,
   getProfitValuationList,
@@ -105,6 +110,15 @@ describe('company api', () => {
     mock
       .onPost('/valuation/profit-discount/industry-growth-rate')
       .reply(ok({ list: [], sum: 0 }))
+    mock
+      .onPatch('/valuation/dcf/v1/1/manual-assumptions')
+      .reply(ok({ item: { companyId: 1 } }))
+    mock
+      .onDelete('/valuation/dcf/v1/1/manual-assumptions')
+      .reply(ok({ item: { companyId: 1 } }))
+    mock
+      .onPost('/valuation/dcf/v1/industry-manual-assumptions')
+      .reply(ok({ list: [], sum: 0 }))
 
     await getProfitValuationList({ industryName: '白酒' })
     await getDcfValuationList({ industry: '白酒' })
@@ -115,6 +129,20 @@ describe('company api', () => {
     await updateIndustryProfitGrowthRate({
       industryName: '白酒',
       growthRateManual: 11
+    })
+    await updateDcfV1ManualAssumptions(1, {
+      revenueGrowthRateManual: 12,
+      discountRateManual: 10,
+      terminalGrowthRateManual: 3
+    })
+    await clearDcfV1ManualAssumptions(1, {
+      changeReason: 'reset'
+    })
+    await updateIndustryDcfV1ManualAssumptions({
+      industryName: '白酒',
+      revenueGrowthRateManual: 11,
+      discountRateManual: 9,
+      terminalGrowthRateManual: 2.5
     })
 
     expect(mock.history.get[0].url).toBe('/valuation/profit-discount')
@@ -136,6 +164,29 @@ describe('company api', () => {
     expect(JSON.parse(mock.history.post[0].data)).toEqual({
       industryName: '白酒',
       growthRateManual: 11
+    })
+    expect(mock.history.patch[1].url).toBe(
+      '/valuation/dcf/v1/1/manual-assumptions'
+    )
+    expect(JSON.parse(mock.history.patch[1].data)).toEqual({
+      revenueGrowthRateManual: 12,
+      discountRateManual: 10,
+      terminalGrowthRateManual: 3
+    })
+    expect(mock.history.delete[1].url).toBe(
+      '/valuation/dcf/v1/1/manual-assumptions'
+    )
+    expect(JSON.parse(mock.history.delete[1].data)).toEqual({
+      changeReason: 'reset'
+    })
+    expect(mock.history.post[1].url).toBe(
+      '/valuation/dcf/v1/industry-manual-assumptions'
+    )
+    expect(JSON.parse(mock.history.post[1].data)).toEqual({
+      industryName: '白酒',
+      revenueGrowthRateManual: 11,
+      discountRateManual: 9,
+      terminalGrowthRateManual: 2.5
     })
   })
 })

@@ -66,8 +66,12 @@ describe('companydetail page', () => {
     expect(wrapper.vm.activeTab).toBe('overview')
     expect(wrapper.vm.profitAssumptions[0].label).toBe('系统增长率')
     expect(wrapper.vm.dcfV1Assumptions[0].label).toBe('营收增长率')
+    expect(wrapper.vm.dcfV1Assumptions[0].source).toBe('人工覆盖')
     expect(wrapper.vm.dcfValuation.formulaVersion).toBe('DCF_V1_SIMPLE_FCFF')
     expect(wrapper.vm.dcfValuationV1.modelVersion).toBe('DCF_V1_SIMPLE_FCFF')
+    expect(wrapper.vm.hasDcfManualOverride(wrapper.vm.dcfValuationV1)).toBe(
+      true
+    )
     expect(wrapper.vm.dcfValuationV2.modelVersion).toBe(
       'DCF_V2_STANDARD_FCFF'
     )

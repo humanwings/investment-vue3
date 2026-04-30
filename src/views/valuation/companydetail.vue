@@ -192,6 +192,26 @@
                 <el-descriptions-item label="参数来源">{{
                   dcfValuationV1.defaultParameterSource || '-'
                 }}</el-descriptions-item>
+                <el-descriptions-item label="覆盖状态">
+                  <el-tag
+                    :type="hasDcfManualOverride(dcfValuationV1) ? 'warning' : 'info'"
+                  >
+                    {{
+                      hasDcfManualOverride(dcfValuationV1)
+                        ? '人工覆盖'
+                        : '系统默认'
+                    }}
+                  </el-tag>
+                </el-descriptions-item>
+                <el-descriptions-item label="手动营收增长率">{{
+                  formatPercent(dcfValuationV1.revenueGrowthRateManual) || '-'
+                }}</el-descriptions-item>
+                <el-descriptions-item label="手动折现率">{{
+                  formatPercent(dcfValuationV1.discountRateManual) || '-'
+                }}</el-descriptions-item>
+                <el-descriptions-item label="手动永续增长率">{{
+                  formatPercent(dcfValuationV1.terminalGrowthRateManual) || '-'
+                }}</el-descriptions-item>
                 <el-descriptions-item label="基准自由现金流">{{
                   safeRound(dcfValuationV1.baseFreeCashFlow) || '-'
                 }}</el-descriptions-item>
@@ -569,6 +589,16 @@ function appliedOrPrediction(applied, prediction) {
   return applied ?? prediction
 }
 
+function assumptionSource(manual, applied) {
+  if (hasValue(manual)) {
+    return '人工覆盖'
+  }
+  if (hasValue(applied)) {
+    return '采用值'
+  }
+  return '系统预测'
+}
+
 function buildDcfAssumptions(valuation) {
   return [
     {
@@ -579,9 +609,10 @@ function buildDcfAssumptions(valuation) {
           valuation.revenueGrowthRatePrediction
         )
       ),
-      source: hasValue(valuation.revenueGrowthRateApplied)
-        ? '采用值'
-        : '系统预测'
+      source: assumptionSource(
+        valuation.revenueGrowthRateManual,
+        valuation.revenueGrowthRateApplied
+      )
     },
     {
       label: '折现率',
@@ -591,7 +622,10 @@ function buildDcfAssumptions(valuation) {
           valuation.discountRatePrediction
         )
       ),
-      source: hasValue(valuation.discountRateApplied) ? '采用值' : '系统预测'
+      source: assumptionSource(
+        valuation.discountRateManual,
+        valuation.discountRateApplied
+      )
     },
     {
       label: '永续增长率',
@@ -601,9 +635,10 @@ function buildDcfAssumptions(valuation) {
           valuation.terminalGrowthRatePrediction
         )
       ),
-      source: hasValue(valuation.terminalGrowthRateApplied)
-        ? '采用值'
-        : '系统预测'
+      source: assumptionSource(
+        valuation.terminalGrowthRateManual,
+        valuation.terminalGrowthRateApplied
+      )
     }
   ]
 }
@@ -617,6 +652,15 @@ function gap(current, baseline) {
 
 function hasNumber(value) {
   return typeof value === 'number' && !Number.isNaN(value)
+}
+
+function hasDcfManualOverride(valuation) {
+  return (
+    Boolean(valuation.manualOverrideFlag) ||
+    hasValue(valuation.revenueGrowthRateManual) ||
+    hasValue(valuation.discountRateManual) ||
+    hasValue(valuation.terminalGrowthRateManual)
+  )
 }
 
 function hasValue(value) {
