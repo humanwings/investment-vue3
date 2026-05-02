@@ -50,7 +50,7 @@ describe('companylist page', () => {
   })
 
   it('renders the company list returned by the backend', async () => {
-    mock.onGet('/company/all').reply(ok(companyListPayload))
+    mock.onGet('/valuation/companies').reply(ok(companyListPayload))
 
     const wrapper = shallowMount(CompanyList, {
       global: {
@@ -73,44 +73,8 @@ describe('companylist page', () => {
     expect(wrapper.text()).not.toContain('假定增速')
   })
 
-  it('normalizes legacy company info into list summary rows', async () => {
-    mock.onGet('/company/all').reply(
-      ok({
-        sum: 1,
-        list: [
-          {
-            companyId: 2,
-            stockCode: '000001',
-            name: '平安银行',
-            industryName: '银行',
-            valuation: 12,
-            deviation: -0.1,
-            financialScore: 70,
-            score: 65
-          }
-        ]
-      })
-    )
-
-    const wrapper = shallowMount(CompanyList, {
-      global: {
-        stubs: elementPlusStubs,
-        directives: {
-          loading: {}
-        }
-      }
-    })
-
-    await flushPromises()
-
-    expect(wrapper.vm.list[0].profitValuation).toBe(12)
-    expect(wrapper.vm.list[0].profitDeviation).toBe(-0.1)
-    expect(wrapper.vm.list[0].totalScore).toBe(65)
-    expect(wrapper.vm.list[0].conclusion).toBe('偏贵')
-  })
-
   it('filters companies by industry', async () => {
-    mock.onGet('/company/all').reply(ok(companyListPayload))
+    mock.onGet('/valuation/companies').reply(ok(companyListPayload))
 
     const wrapper = shallowMount(CompanyList, {
       global: {
@@ -131,7 +95,7 @@ describe('companylist page', () => {
   })
 
   it('navigates to the detail page when clicking the detail action', async () => {
-    mock.onGet('/company/all').reply(ok(companyListPayload))
+    mock.onGet('/valuation/companies').reply(ok(companyListPayload))
 
     const wrapper = shallowMount(CompanyList, {
       global: {
@@ -149,7 +113,7 @@ describe('companylist page', () => {
   })
 
   it('updates the list after deleting a company', async () => {
-    mock.onGet('/company/all').reply(ok(companyListPayload))
+    mock.onGet('/valuation/companies').reply(ok(companyListPayload))
     mock.onDelete('/company/1').reply(ok({}))
 
     const wrapper = shallowMount(CompanyList, {
@@ -169,5 +133,36 @@ describe('companylist page', () => {
     expect(notifySuccess).toHaveBeenCalled()
     expect(wrapper.vm.total).toBe(0)
     expect(wrapper.vm.list).toHaveLength(0)
+  })
+
+  it('uses company summary returned by refresh actions', async () => {
+    mock.onGet('/valuation/companies').reply(ok(companyListPayload))
+    mock.onPatch('/company/1').reply(
+      ok({
+        companySummary: {
+          ...companyListPayload.list[0],
+          price: 1300,
+          profitDeviation: 0.16,
+          conclusion: '可跟踪'
+        }
+      })
+    )
+
+    const wrapper = shallowMount(CompanyList, {
+      global: {
+        stubs: elementPlusStubs,
+        directives: {
+          loading: {}
+        }
+      }
+    })
+
+    await flushPromises()
+    await wrapper.vm.confirmUpdatePrice({ companyId: 1 })
+    await flushPromises()
+
+    expect(wrapper.vm.list[0].price).toBe(1300)
+    expect(wrapper.vm.list[0].profitDeviation).toBe(0.16)
+    expect(wrapper.vm.list[0].conclusion).toBe('可跟踪')
   })
 })

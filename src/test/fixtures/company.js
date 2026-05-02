@@ -5,25 +5,16 @@ export const companyListPayload = {
       companyId: 1,
       stockCode: '600519',
       name: '贵州茅台',
-      score: 92,
       totalScore: 92,
       price: 1234,
-      growthRateAssumption: 0.15,
-      growthRatePrediction: 0.18,
-      valuation: 1500,
       profitValuation: 1500,
-      deviation: 0.22,
       profitDeviation: 0.22,
       dcfValuationSummary: '-',
-      freeCashFlowPer: 180,
       recommendationScore: 88,
       financialScore: 90,
       industryName: '白酒',
       conclusion: '重点关注',
-      marketValue: 2500000000000,
-      cfDate: '2025-12-31',
-      cvUpdateTime: '2026-04-01',
-      cfUpdateTime: '2026-04-02'
+      marketValue: 2500000000000
     }
   ]
 }

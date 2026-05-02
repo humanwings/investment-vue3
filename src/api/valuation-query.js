@@ -3,7 +3,7 @@ import { restfulFormat } from '@/utils'
 
 export function getCompanyList(query) {
   return request({
-    url: '/company/all',
+    url: '/valuation/companies',
     method: 'get',
     params: query
   })

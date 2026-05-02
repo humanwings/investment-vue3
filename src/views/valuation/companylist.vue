@@ -277,7 +277,7 @@ async function doAddCompany() {
   submitting.value = true
   try {
     const response = await addCompany(temp)
-    list.value.unshift(normalizeSummary(response.data.companyInfo))
+    list.value.unshift(normalizeSummary(response.data.companySummary))
     total.value += 1
     addDialogVisible.value = false
     ElNotification.success({
@@ -342,7 +342,7 @@ async function confirmUpdatePrice(row) {
     }
   )
   const response = await updatePrice(row.companyId)
-  replaceSummary(row.companyId, normalizeSummary(response.data.companyInfo))
+  replaceSummary(row.companyId, normalizeSummary(response.data.companySummary))
   ElNotification.success({
     title: 'Success',
     message: '股价更新成功'
@@ -354,7 +354,7 @@ async function confirmUpdateReport(row) {
     type: 'warning'
   })
   const response = await updateReport({ companyId: row.companyId })
-  replaceSummary(row.companyId, normalizeSummary(response.data.companyInfo))
+  replaceSummary(row.companyId, normalizeSummary(response.data.companySummary))
   ElNotification.success({
     title: 'Success',
     message: '财报更新成功'
@@ -383,7 +383,7 @@ function normalizeSummaryList(rows = []) {
 }
 
 function normalizeSummary(row = {}) {
-  const profitDeviation = row.profitDeviation ?? row.deviation
+  const profitDeviation = row.profitDeviation
   const financialScore = row.financialScore
   return {
     companyId: row.companyId,
@@ -391,12 +391,12 @@ function normalizeSummary(row = {}) {
     name: row.name,
     industryName: row.industryName,
     price: row.price,
-    profitValuation: row.profitValuation ?? row.valuation ?? '',
+    profitValuation: row.profitValuation ?? '',
     profitDeviation,
     dcfValuationSummary: row.dcfValuationSummary || '-',
     financialScore,
     recommendationScore: row.recommendationScore,
-    totalScore: row.totalScore ?? row.score,
+    totalScore: row.totalScore,
     conclusion:
       row.conclusion || buildConclusion(profitDeviation, financialScore)
   }

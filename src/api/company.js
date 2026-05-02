@@ -6,7 +6,6 @@ export {
   updatePriceAll,
   updateReport
 } from './company-command'
-export { updateProfitGrowthRate as updateGrowthRate } from './profit-valuation'
 export {
   getCompanyList,
   getCompanyOverview as getCompany
