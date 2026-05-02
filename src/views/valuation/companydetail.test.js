@@ -72,8 +72,12 @@ describe('companydetail page', () => {
     expect(wrapper.vm.hasDcfManualOverride(wrapper.vm.dcfValuationV1)).toBe(
       true
     )
-    expect(wrapper.vm.dcfValuationV2.modelVersion).toBe(
-      'DCF_V2_STANDARD_FCFF'
+    expect(wrapper.vm.dcfValuationV2.modelVersion).toBe('DCF_V2_STANDARD_FCFF')
+    expect(wrapper.vm.dcfValuationV2.status).toBe('ready')
+    expect(wrapper.vm.dcfV2StageDetails).toHaveLength(2)
+    expect(wrapper.vm.dcfV2SensitivitySnapshots).toHaveLength(3)
+    expect(wrapper.vm.formatSensitivityRange(wrapper.vm.dcfValuationV2)).toBe(
+      '980 / 1280'
     )
     expect(wrapper.vm.activeDcfVersion).toBe('v1')
     expect(wrapper.vm.researchNavItems).toHaveLength(4)

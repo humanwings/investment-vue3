@@ -14,6 +14,8 @@ import {
 import {
   clearDcfV1ManualAssumptions,
   getDcfValuationList,
+  refreshAllDcfV2,
+  refreshDcfV2,
   updateDcfV1ManualAssumptions,
   updateIndustryDcfV1ManualAssumptions
 } from './dcf-valuation'
@@ -119,6 +121,15 @@ describe('company api', () => {
     mock
       .onPost('/valuation/dcf/v1/industry-manual-assumptions')
       .reply(ok({ list: [], sum: 0 }))
+    mock.onPost('/valuation/dcf/v2/1/refresh').reply(
+      ok({
+        item: {
+          companyId: 1,
+          modelVersion: 'DCF_V2_STANDARD_FCFF'
+        }
+      })
+    )
+    mock.onPost('/valuation/dcf/v2/refresh-all').reply(ok({ list: [], sum: 0 }))
 
     await getProfitValuationList({ industryName: '白酒' })
     await getDcfValuationList({ industry: '白酒' })
@@ -144,6 +155,8 @@ describe('company api', () => {
       discountRateManual: 9,
       terminalGrowthRateManual: 2.5
     })
+    await refreshDcfV2(1)
+    await refreshAllDcfV2()
 
     expect(mock.history.get[0].url).toBe('/valuation/profit-discount')
     expect(mock.history.get[0].params).toEqual({ industryName: '白酒' })
@@ -188,5 +201,7 @@ describe('company api', () => {
       discountRateManual: 9,
       terminalGrowthRateManual: 2.5
     })
+    expect(mock.history.post[2].url).toBe('/valuation/dcf/v2/1/refresh')
+    expect(mock.history.post[3].url).toBe('/valuation/dcf/v2/refresh-all')
   })
 })

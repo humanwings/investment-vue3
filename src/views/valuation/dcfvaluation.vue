@@ -29,6 +29,24 @@
       />
     </div>
 
+    <div v-if="isV2" class="page-card metric-grid">
+      <ValuationMetric
+        label="阶段营收增长率"
+        :value="formatPercent(averageStageRevenueGrowthRate) || '-'"
+        hint="平均值"
+      />
+      <ValuationMetric
+        label="经营利润率"
+        :value="formatPercent(averageOperatingMargin) || '-'"
+        hint="平均值"
+      />
+      <ValuationMetric
+        label="敏感性区间"
+        :value="averageSensitivityRange"
+        hint="每股估值"
+      />
+    </div>
+
     <div v-if="isV1" class="page-card batch-toolbar">
       <div class="batch-copy">
         <strong>行业批量假设</strong>
@@ -164,9 +182,44 @@
               </el-tag>
             </template>
           </el-table-column>
+          <el-table-column v-if="isV2" label="利润率" width="110">
+            <template #default="{ row }">
+              {{ formatPercent(row.averageOperatingMargin) || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column v-if="isV2" label="税率" width="100">
+            <template #default="{ row }">
+              {{ formatPercent(row.averageTaxRate) || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column v-if="isV2" label="再投资率" width="110">
+            <template #default="{ row }">
+              {{ formatPercent(row.averageReinvestmentRatio) || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column v-if="isV2" label="净债务" width="120">
+            <template #default="{ row }">
+              {{ safeRound(row.netDebt) || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column v-if="isV2" label="EV / 股权价值" width="150">
+            <template #default="{ row }">
+              {{ formatBridge(row) }}
+            </template>
+          </el-table-column>
           <el-table-column :label="`${versionLabel} 每股估值`" width="140">
             <template #default="{ row }">
               {{ safeRound(row.perShareValue) || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column v-if="isV2" label="敏感性区间" width="150">
+            <template #default="{ row }">
+              {{ formatSensitivityRange(row) }}
+            </template>
+          </el-table-column>
+          <el-table-column v-if="isV2" label="v2 - v1" width="110">
+            <template #default="{ row }">
+              {{ safeRound(row.v1V2PerShareGap) || '-' }}
             </template>
           </el-table-column>
           <el-table-column label="偏离率" width="110">
@@ -289,9 +342,9 @@ loadDcfValuations()
 
 const isV1 = computed(() => props.versionKey === 'v1')
 
-const versionLabel = computed(() =>
-  props.versionKey === 'v2' ? 'DCF v2' : 'DCF v1'
-)
+const isV2 = computed(() => props.versionKey === 'v2')
+
+const versionLabel = computed(() => (isV2.value ? 'DCF v2' : 'DCF v1'))
 
 const industries = computed(() => [
   ...new Set(rows.value.map((item) => item.industryName).filter(Boolean))
@@ -311,6 +364,23 @@ const averageTerminalValueRatio = computed(() =>
 )
 
 const averageProfitDcfGap = computed(() => averageOf('profitDcfGap'))
+
+const averageStageRevenueGrowthRate = computed(() =>
+  averageOf('averageRevenueGrowthRate')
+)
+
+const averageOperatingMargin = computed(() =>
+  averageOf('averageOperatingMargin')
+)
+
+const averageSensitivityRange = computed(() => {
+  const low = averageOf('sensitivityLowPerShareValue')
+  const high = averageOf('sensitivityHighPerShareValue')
+  if (low === null || high === null) {
+    return '-'
+  }
+  return `${safeRound(low)} / ${safeRound(high)}`
+})
 
 const canApplyBatch = computed(
   () =>
@@ -465,6 +535,25 @@ function goOverview(row) {
 
 function safeRound(value) {
   return value === null || value === undefined ? '' : roundToDecimal(value, 2)
+}
+
+function formatBridge(row) {
+  if (!hasDraftValue(row.enterpriseValue) || !hasDraftValue(row.equityValue)) {
+    return '-'
+  }
+  return `${safeRound(row.enterpriseValue)} / ${safeRound(row.equityValue)}`
+}
+
+function formatSensitivityRange(row) {
+  if (
+    !hasDraftValue(row.sensitivityLowPerShareValue) ||
+    !hasDraftValue(row.sensitivityHighPerShareValue)
+  ) {
+    return '-'
+  }
+  return `${safeRound(row.sensitivityLowPerShareValue)} / ${safeRound(
+    row.sensitivityHighPerShareValue
+  )}`
 }
 
 function rateToPoint(value) {

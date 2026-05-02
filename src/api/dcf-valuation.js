@@ -9,6 +9,22 @@ export function getDcfValuationList(query) {
   })
 }
 
+export function refreshDcfV2(companyId) {
+  return request({
+    url: restfulFormat('/valuation/dcf/v2/{id}/refresh', {
+      id: companyId
+    }),
+    method: 'post'
+  })
+}
+
+export function refreshAllDcfV2() {
+  return request({
+    url: '/valuation/dcf/v2/refresh-all',
+    method: 'post'
+  })
+}
+
 export function updateDcfV1ManualAssumptions(companyId, data) {
   return request({
     url: restfulFormat('/valuation/dcf/v1/{id}/manual-assumptions', {

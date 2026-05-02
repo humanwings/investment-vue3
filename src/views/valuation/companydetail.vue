@@ -194,7 +194,9 @@
                 }}</el-descriptions-item>
                 <el-descriptions-item label="覆盖状态">
                   <el-tag
-                    :type="hasDcfManualOverride(dcfValuationV1) ? 'warning' : 'info'"
+                    :type="
+                      hasDcfManualOverride(dcfValuationV1) ? 'warning' : 'info'
+                    "
                   >
                     {{
                       hasDcfManualOverride(dcfValuationV1)
@@ -270,11 +272,35 @@
                 <el-descriptions-item label="参数来源">{{
                   dcfValuationV2.defaultParameterSource || '-'
                 }}</el-descriptions-item>
+                <el-descriptions-item label="阶段营收增长率">{{
+                  formatPercent(dcfValuationV2.averageRevenueGrowthRate) || '-'
+                }}</el-descriptions-item>
+                <el-descriptions-item label="经营利润率">{{
+                  formatPercent(dcfValuationV2.averageOperatingMargin) || '-'
+                }}</el-descriptions-item>
+                <el-descriptions-item label="税率">{{
+                  formatPercent(dcfValuationV2.averageTaxRate) || '-'
+                }}</el-descriptions-item>
+                <el-descriptions-item label="再投资率">{{
+                  formatPercent(dcfValuationV2.averageReinvestmentRatio) || '-'
+                }}</el-descriptions-item>
+                <el-descriptions-item label="敏感性区间">{{
+                  formatSensitivityRange(dcfValuationV2)
+                }}</el-descriptions-item>
+                <el-descriptions-item label="v2 - v1">{{
+                  safeRound(dcfValuationV2.v1V2PerShareGap) || '-'
+                }}</el-descriptions-item>
+                <el-descriptions-item label="基础自由现金流">{{
+                  safeRound(dcfValuationV2.baseFreeCashFlow) || '-'
+                }}</el-descriptions-item>
                 <el-descriptions-item label="DCF 企业价值">{{
                   safeRound(dcfValuationV2.enterpriseValue) || '-'
                 }}</el-descriptions-item>
                 <el-descriptions-item label="DCF 股权价值">{{
                   safeRound(dcfValuationV2.equityValue) || '-'
+                }}</el-descriptions-item>
+                <el-descriptions-item label="净债务">{{
+                  safeRound(dcfValuationV2.netDebt) || '-'
                 }}</el-descriptions-item>
                 <el-descriptions-item label="偏离率">{{
                   formatPercent(dcfValuationV2.deviation) || '-'
@@ -283,6 +309,73 @@
                   dcfValuationV2.updatedAt || '-'
                 }}</el-descriptions-item>
               </el-descriptions>
+
+              <div class="section-head section-block">
+                <h3>阶段预测</h3>
+              </div>
+              <div class="table-shell">
+                <el-table :data="dcfV2StageDetails" size="small">
+                  <el-table-column prop="yearOffset" label="年度" width="80" />
+                  <el-table-column label="营收增长率">
+                    <template #default="{ row }">
+                      {{ formatPercent(row.revenueGrowthRate) || '-' }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="经营利润率">
+                    <template #default="{ row }">
+                      {{ formatPercent(row.operatingMargin) || '-' }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="再投资率">
+                    <template #default="{ row }">
+                      {{ formatPercent(row.reinvestmentRatio) || '-' }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="FCFF">
+                    <template #default="{ row }">
+                      {{ safeRound(row.freeCashFlow) || '-' }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="现值">
+                    <template #default="{ row }">
+                      {{ safeRound(row.presentValue) || '-' }}
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+
+              <div class="section-head section-block">
+                <h3>敏感性分析</h3>
+              </div>
+              <div class="table-shell">
+                <el-table :data="dcfV2SensitivitySnapshots" size="small">
+                  <el-table-column
+                    prop="scenarioKey"
+                    label="场景"
+                    width="130"
+                  />
+                  <el-table-column label="折现率">
+                    <template #default="{ row }">
+                      {{ formatPercent(row.discountRate) || '-' }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="永续增长率">
+                    <template #default="{ row }">
+                      {{ formatPercent(row.terminalGrowthRate) || '-' }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="每股估值">
+                    <template #default="{ row }">
+                      {{ safeRound(row.perShareValue) || '-' }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="终值占比">
+                    <template #default="{ row }">
+                      {{ formatPercent(row.terminalValueRatio) || '-' }}
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
             </el-tab-pane>
 
             <el-tab-pane label="v1/v2差异" name="compare">
@@ -493,6 +586,12 @@ const dcfV1Assumptions = computed(() => buildDcfAssumptions(dcfValuationV1))
 
 const dcfV2Assumptions = computed(() => buildDcfAssumptions(dcfValuationV2))
 
+const dcfV2StageDetails = computed(() => dcfValuationV2.assumptionDetails || [])
+
+const dcfV2SensitivitySnapshots = computed(
+  () => dcfValuationV2.sensitivitySnapshots || []
+)
+
 const dcfComparison = computed(() => ({
   perShareGap: gap(dcfValuationV2.perShareValue, dcfValuationV1.perShareValue),
   deviationGap: gap(dcfValuationV2.deviation, dcfValuationV1.deviation),
@@ -576,6 +675,18 @@ async function loadDetail() {
 
 function safeRound(value) {
   return value === null || value === undefined ? '' : roundToDecimal(value, 2)
+}
+
+function formatSensitivityRange(valuation) {
+  if (
+    !hasValue(valuation.sensitivityLowPerShareValue) ||
+    !hasValue(valuation.sensitivityHighPerShareValue)
+  ) {
+    return '-'
+  }
+  return `${safeRound(valuation.sensitivityLowPerShareValue)} / ${safeRound(
+    valuation.sensitivityHighPerShareValue
+  )}`
 }
 
 function formatPercentRatePoint(value) {

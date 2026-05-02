@@ -105,9 +105,14 @@ describe('dcf valuation workbench', () => {
     expect(wrapper.text()).toContain('DCF v2一览')
     expect(wrapper.vm.rows[0].modelVersion).toBe('DCF_V2_STANDARD_FCFF')
     expect(wrapper.vm.isV1).toBe(false)
+    expect(wrapper.vm.isV2).toBe(true)
     expect(wrapper.vm.canApplyBatch).toBe(false)
-    expect(wrapper.vm.statusLabel(wrapper.vm.rows[0].status)).toBe(
-      '等待 DCF v2'
+    expect(wrapper.vm.statusLabel(wrapper.vm.rows[0].status)).toBe('已计算')
+    expect(wrapper.vm.rows[0].averageOperatingMargin).toBe(0.28)
+    expect(wrapper.vm.averageSensitivityRange).toBe('980 / 1280')
+    expect(wrapper.vm.formatBridge(wrapper.vm.rows[0])).toBe('112500 / 110000')
+    expect(wrapper.vm.formatSensitivityRange(wrapper.vm.rows[0])).toBe(
+      '980 / 1280'
     )
     expect(mock.history.get[0].params).toEqual({
       modelVersion: 'DCF_V2_STANDARD_FCFF',
