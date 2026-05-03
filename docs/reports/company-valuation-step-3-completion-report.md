@@ -13,8 +13,8 @@
 
 参考设计文档：
 
-- [company-valuation-ui-refactor-step-plan.md](/mnt/d/develop/source/investment-server/docs/company-valuation-ui-refactor-step-plan.md)
-- [company-valuation-extension-design.md](/mnt/d/develop/source/investment-server/docs/company-valuation-extension-design.md)
+- [company-valuation-ui-refactor-step-plan.md](/mnt/d/develop/source/investment-server/docs/valuation/design/company-valuation-ui-refactor-step-plan.md)
+- [company-valuation-extension-design.md](/mnt/d/develop/source/investment-server/docs/valuation/design/company-valuation-extension-design.md)
 
 ## 2. 实际完成内容
 

@@ -64,11 +64,40 @@ describe('profit discount workbench', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('利润贴现一览')
+    expect(wrapper.text()).toContain(
+      '集中查看利润贴现估值、增长率假设与偏离信号，支持按行业批量调整。'
+    )
+    expect(wrapper.find('.title-row').text()).toContain('数据总计 1')
+    expect(wrapper.find('.header-actions').text()).not.toContain('数据总计')
     expect(wrapper.vm.rows).toHaveLength(1)
     expect(wrapper.vm.rows[0].name).toBe('贵州茅台')
     expect(wrapper.vm.filteredRows).toHaveLength(1)
     expect(wrapper.vm.draftGrowthRates[1]).toBe(15)
     expect(wrapper.vm.hasManualOverride(wrapper.vm.rows[0])).toBe(true)
+  })
+
+  it('opens the profit valuation help dialog from the title row', async () => {
+    mock.onGet('/valuation/profit-discount').reply(ok(profitValuationPayload))
+
+    const wrapper = shallowMount(ProfitDiscount, {
+      global: {
+        stubs: elementPlusStubs,
+        directives: {
+          loading: {}
+        }
+      }
+    })
+
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('估算说明')
+    expect(wrapper.text()).toContain('最终估值 =')
+    expect(wrapper.text()).toContain('偏离率 = 利润贴现估值 ÷ 当前价 - 1')
+    expect(wrapper.vm.helpDialogVisible).toBe(false)
+
+    await wrapper.find('.help-button').trigger('click')
+
+    expect(wrapper.vm.helpDialogVisible).toBe(true)
   })
 
   it('filters rows by industry', async () => {

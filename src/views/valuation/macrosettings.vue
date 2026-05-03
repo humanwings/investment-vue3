@@ -4,7 +4,7 @@
       <div class="page-head">
         <div>
           <div class="eyebrow">Settings</div>
-          <h2>宏观参数</h2>
+          <h2>宏观参数<el-tag type="info">参数总计 {{ total }}</el-tag></h2>
         </div>
         <div class="actions">
           <el-button type="primary" @click="saveAll">
@@ -15,7 +15,7 @@
             <el-icon><RefreshLeft /></el-icon>
             <span>重置</span>
           </el-button>
-          <el-tag type="info">参数总计 {{ total }}</el-tag>
+          
         </div>
       </div>
 

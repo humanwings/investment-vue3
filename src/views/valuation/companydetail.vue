@@ -4,14 +4,17 @@
       <div>
         <el-button
           text
-          @click="router.push('/companyvaluation/valuation/company')"
-          >返回列表</el-button
+          @click="router.push(parentRoute)"
+          >返回上一级</el-button
         >
         <div class="eyebrow">Company Overview</div>
-        <h2>{{ overview.name || `公司 #${companyId}` }}</h2>
+        <h2>{{ overview.name || '公司总览' }}</h2>
       </div>
       <div class="header-actions">
-        <el-tag type="success">companyId {{ companyId }}</el-tag>
+        <el-button type="danger" @click="confirmDeleteCompany">
+          <el-icon><Delete /></el-icon>
+          <span>删除本公司</span>
+        </el-button>
       </div>
     </div>
 
@@ -513,7 +516,10 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ElMessageBox, ElNotification } from 'element-plus'
+import { Delete } from '@element-plus/icons-vue'
 
+import { deleteCompany } from '@/api/company-command'
 import { getCompanyOverview } from '@/api/valuation-query'
 import { formatPercent, formatYi, roundToDecimal } from '@/utils'
 import AssumptionStrip from './components/AssumptionStrip.vue'
@@ -522,6 +528,7 @@ import ValuationMetric from './components/ValuationMetric.vue'
 const route = useRoute()
 const router = useRouter()
 const companyId = route.params.id
+const parentRoute = resolveParentRoute(route.query?.from)
 
 const activeTab = ref(resolveInitialTab(route.query?.tab))
 const activeDcfVersion = ref(resolveInitialDcfVersion(route.query?.dcfVersion))
@@ -671,6 +678,31 @@ async function loadDetail() {
   } finally {
     loading.value = false
   }
+}
+
+async function confirmDeleteCompany() {
+  await ElMessageBox.confirm('此操作将删除本公司，是否继续？', '提示', {
+    type: 'warning'
+  })
+  await deleteCompany(companyId)
+  ElNotification.success({
+    title: 'Success',
+    message: '删除成功'
+  })
+  router.push(parentRoute)
+}
+
+function resolveParentRoute(source) {
+  if (source === 'profit-discount') {
+    return '/companyvaluation/valuation/profit-discount'
+  }
+  if (source === 'dcf-v1') {
+    return '/companyvaluation/valuation/dcf-v1'
+  }
+  if (source === 'dcf-v2') {
+    return '/companyvaluation/valuation/dcf-v2'
+  }
+  return '/companyvaluation/valuation/company'
 }
 
 function safeRound(value) {

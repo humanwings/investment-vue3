@@ -78,11 +78,15 @@ investment-vue3/
 
 ## 文档导航
 
-`docs/` 目录下当前有两份主要文档：
+`docs/` 已按主题归类，完整入口见：
+
+[docs/README.md](/mnt/d/develop/source/investment-vue3/docs/README.md)
+
+下面是最常用的两份文档：
 
 ### 1. 分步实施方案
 
-[investment-vue3-migration-plan.md](/mnt/d/develop/source/investment-vue3/docs/investment-vue3-migration-plan.md)
+[investment-vue3-migration-plan.md](/mnt/d/develop/source/investment-vue3/docs/migration/investment-vue3-migration-plan.md)
 
 这份文档主要回答“这个项目最初准备怎么迁移、为什么这样迁移、分几步做”。
 
@@ -97,7 +101,7 @@ investment-vue3/
 
 ### 2. 技术架构入门说明
 
-[investment-vue3-architecture-intro.md](/mnt/d/develop/source/investment-vue3/docs/investment-vue3-architecture-intro.md)
+[investment-vue3-architecture-intro.md](/mnt/d/develop/source/investment-vue3/docs/architecture/investment-vue3-architecture-intro.md)
 
 这份文档主要回答“这个前端项目现在是怎么组织起来的、初学者应该从哪里看起”。
 
@@ -115,8 +119,8 @@ investment-vue3/
 如果你是第一次接触这个仓库，建议按下面顺序看：
 
 1. 先看本 README，了解项目定位和文档入口
-2. 再看 [investment-vue3-architecture-intro.md](/mnt/d/develop/source/investment-vue3/docs/investment-vue3-architecture-intro.md)，建立整体心智模型
-3. 如需了解迁移背景和阶段规划，再看 [investment-vue3-migration-plan.md](/mnt/d/develop/source/investment-vue3/docs/investment-vue3-migration-plan.md)
+2. 再看 [investment-vue3-architecture-intro.md](/mnt/d/develop/source/investment-vue3/docs/architecture/investment-vue3-architecture-intro.md)，建立整体心智模型
+3. 如需了解迁移背景和阶段规划，再看 [investment-vue3-migration-plan.md](/mnt/d/develop/source/investment-vue3/docs/migration/investment-vue3-migration-plan.md)
 4. 最后进入 `src/` 阅读实际代码
 
 ## 当前说明

@@ -65,15 +65,20 @@ describe('companylist page', () => {
 
     expect(wrapper.text()).toContain('公司列表')
     expect(wrapper.vm.list).toHaveLength(1)
-    expect(wrapper.vm.filteredList).toHaveLength(1)
     expect(wrapper.vm.list[0].name).toBe('贵州茅台')
     expect(wrapper.vm.list[0].profitValuation).toBe(1500)
+    expect(wrapper.vm.list[0].dcfV1Valuation).toBe(900)
+    expect(wrapper.vm.list[0].dcfV1Deviation).toBe(-0.27)
+    expect(wrapper.vm.list[0].dcfV2Valuation).toBe(1100)
+    expect(wrapper.vm.list[0].dcfV2Deviation).toBe(-0.11)
     expect(wrapper.vm.list[0].conclusion).toBe('重点关注')
     expect(wrapper.vm.total).toBe(1)
+    expect(wrapper.find('.title-row').text()).toContain('数据总计 1')
+    expect(wrapper.find('.header-actions').text()).not.toContain('数据总计')
     expect(wrapper.text()).not.toContain('假定增速')
   })
 
-  it('filters companies by industry', async () => {
+  it('configures industry filtering on the table column', async () => {
     mock.onGet('/valuation/companies').reply(ok(companyListPayload))
 
     const wrapper = shallowMount(CompanyList, {
@@ -87,11 +92,50 @@ describe('companylist page', () => {
 
     await flushPromises()
 
-    wrapper.vm.industryFilter = '白酒'
-    expect(wrapper.vm.filteredList).toHaveLength(1)
+    expect(wrapper.findComponent({ name: 'IndustryFilter' }).exists()).toBe(
+      false
+    )
+    expect(wrapper.vm.industryColumnFilters).toEqual([
+      { text: '白酒', value: '白酒' }
+    ])
+    expect(wrapper.vm.filterIndustry('白酒', companyListPayload.list[0])).toBe(
+      true
+    )
+    expect(wrapper.vm.filterIndustry('银行', companyListPayload.list[0])).toBe(
+      false
+    )
+  })
 
-    wrapper.vm.industryFilter = '银行'
-    expect(wrapper.vm.filteredList).toHaveLength(0)
+  it('sorts by industry and renders DCF valuation columns with compact widths', async () => {
+    mock.onGet('/valuation/companies').reply(ok(companyListPayload))
+
+    const wrapper = shallowMount(CompanyList, {
+      global: {
+        stubs: elementPlusStubs,
+        directives: {
+          loading: {}
+        }
+      }
+    })
+
+    await flushPromises()
+
+    const columns = wrapper.findAllComponents({ name: 'ElTableColumn' })
+    const findColumn = (label) =>
+      columns.find((column) => column.vm.$attrs.label === label)
+
+    expect(findColumn('行业').vm.$attrs).toHaveProperty('sortable')
+    expect(findColumn('当前价').vm.$attrs).not.toHaveProperty('sortable')
+    expect(findColumn('利润贴现').vm.$attrs).not.toHaveProperty('sortable')
+    expect(findColumn('DCF摘要')).toBeUndefined()
+    expect(findColumn('DCF v1估值').vm.$attrs.width).toBe('110')
+    expect(findColumn('v1偏离率').vm.$attrs.width).toBe('105')
+    expect(findColumn('DCF v2估值').vm.$attrs.width).toBe('110')
+    expect(findColumn('v2偏离率').vm.$attrs.width).toBe('105')
+    expect(findColumn('处理').vm.$attrs.width).toBe('280')
+    expect(wrapper.vm.formatValuation(900.126)).toBe(900.13)
+    expect(wrapper.vm.formatDeviation(-0.27)).toBe('-27.00%')
+    expect(wrapper.vm.formatValuation(null)).toBe('-')
   })
 
   it('navigates to the detail page when clicking the detail action', async () => {
@@ -130,6 +174,7 @@ describe('companylist page', () => {
     await wrapper.vm.confirmDelete({ companyId: 1 }, 0)
 
     expect(confirm).toHaveBeenCalled()
+    expect(mock.history.delete[0].url).toBe('/company/1')
     expect(notifySuccess).toHaveBeenCalled()
     expect(wrapper.vm.total).toBe(0)
     expect(wrapper.vm.list).toHaveLength(0)

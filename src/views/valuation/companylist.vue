@@ -3,12 +3,13 @@
     <div class="page-header">
       <div>
         <div class="eyebrow">Company Valuation</div>
-        <h2>公司列表</h2>
+        <div class="title-row">
+          <h2>公司列表</h2>
+          <el-tag class="total-tag" type="info">数据总计 {{ total }}</el-tag>
+        </div>
         <p>公司池摘要入口，聚合估值、财务和推荐信号，支持进入公司总览。</p>
       </div>
       <div class="header-actions">
-        <IndustryFilter v-model="industryFilter" :industries="industries" />
-        <el-tag type="info">数据总计 {{ total }}</el-tag>
         <el-button type="primary" @click="openAddDialog">
           <el-icon><Plus /></el-icon>
           <span>加入公司</span>
@@ -28,18 +29,18 @@
       <div class="table-shell table-shell--fill">
         <el-table
           v-loading="listLoading"
-          :data="filteredList"
+          :data="list"
           row-key="companyId"
           :default-sort="{ prop: 'deviation', order: 'descending' }"
           height="100%"
           @row-dblclick="goDetail"
         >
-          <el-table-column fixed align="center" label="序号" width="70">
+          <el-table-column fixed align="center" label="序号" width="64">
             <template #default="{ $index }">
               {{ $index + 1 }}
             </template>
           </el-table-column>
-          <el-table-column fixed label="公司" min-width="150">
+          <el-table-column fixed label="公司" min-width="80">
             <template #default="{ row }">
               <div class="company-cell">
                 <strong>{{ row.name }}</strong>
@@ -50,21 +51,29 @@
           <el-table-column
             prop="industryName"
             label="行业"
-            min-width="120"
+            min-width="100"
+            sortable
             :filters="industryColumnFilters"
             :filter-method="filterIndustry"
           />
-          <el-table-column prop="price" label="当前价" width="100" sortable />
+          <el-table-column
+            prop="totalScore"
+            label="综合评分"
+            width="110"
+            align="center"
+            sortable
+          />
+          <el-table-column prop="price" label="当前价" width="80" align="right" />
           <el-table-column
             prop="profitValuation"
             label="利润贴现"
-            width="120"
-            sortable
+            width="100"
+            align="right"
           />
           <el-table-column
             align="center"
             label="贴现偏离"
-            width="120"
+            width="100"
             :filters="deviationFilter"
             :filter-method="filterDeviationByProfit"
           >
@@ -74,31 +83,50 @@
               }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="DCF摘要" width="120">
+          <el-table-column label="DCF v1估值" width="110" align="right">
             <template #default="{ row }">
-              {{ row.dcfValuationSummary }}
+              {{ formatValuation(row.dcfV1Valuation) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="v1偏离率" width="105" align="center">
+            <template #default="{ row }">
+              <span :class="deviationClass(row.dcfV1Deviation)">
+                {{ formatDeviation(row.dcfV1Deviation) }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column label="DCF v2估值" width="110" align="right">
+            <template #default="{ row }">
+              {{ formatValuation(row.dcfV2Valuation) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="v2偏离率" width="105" align="center">
+            <template #default="{ row }">
+              <span :class="deviationClass(row.dcfV2Deviation)">
+                {{ formatDeviation(row.dcfV2Deviation) }}
+              </span>
             </template>
           </el-table-column>
           <el-table-column
-            prop="totalScore"
-            label="综合评分"
-            width="100"
-            sortable
+            prop="financialScore"
+            label="财务评分"
+            width="92"
+            align="center"
           />
-          <el-table-column prop="financialScore" label="财务评分" width="100" />
           <el-table-column
             prop="recommendationScore"
             label="大V评分"
-            width="100"
+            width="90"
+            align="center"
           />
-          <el-table-column label="结论" min-width="110">
+          <el-table-column label="结论" width="100">
             <template #default="{ row }">
               <el-tag :type="conclusionType(row.conclusion)">
                 {{ row.conclusion }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column fixed="right" label="处理" width="260">
+          <el-table-column fixed="right" label="处理" width="280">
             <template #default="{ row }">
               <div class="row-actions">
                 <el-button text type="primary" @click="goDetail(row)">
@@ -119,7 +147,7 @@
                 </el-button>
                 <el-button text type="danger" @click="confirmDelete(row)">
                   <el-icon><Delete /></el-icon>
-                  <span>删除</span>
+                  <span>删除公司</span>
                 </el-button>
               </div>
             </template>
@@ -166,8 +194,7 @@ import {
   updateReport
 } from '@/api/company-command'
 import { getCompanyList } from '@/api/valuation-query'
-import { formatPercent } from '@/utils'
-import IndustryFilter from './components/IndustryFilter.vue'
+import { formatPercent, roundToDecimal } from '@/utils'
 
 const router = useRouter()
 
@@ -179,7 +206,6 @@ const deviationFilter = [
 
 const total = ref(0)
 const list = ref([])
-const industryFilter = ref('')
 const listLoading = ref(false)
 const addDialogVisible = ref(false)
 const submitting = ref(false)
@@ -208,13 +234,6 @@ const industryColumnFilters = computed(() =>
   }))
 )
 
-const filteredList = computed(() => {
-  if (!industryFilter.value) {
-    return list.value
-  }
-  return list.value.filter((item) => item.industryName === industryFilter.value)
-})
-
 async function getList() {
   listLoading.value = true
   try {
@@ -242,6 +261,24 @@ function deviationClass(value) {
     return 'deviation-mid'
   }
   return ''
+}
+
+function normalizeNumber(value) {
+  if (value === null || value === undefined || value === '') {
+    return null
+  }
+  const numberValue = Number(value)
+  return Number.isNaN(numberValue) ? null : numberValue
+}
+
+function formatValuation(value) {
+  const numberValue = normalizeNumber(value)
+  return numberValue === null ? '-' : roundToDecimal(numberValue, 2)
+}
+
+function formatDeviation(value) {
+  const numberValue = normalizeNumber(value)
+  return numberValue === null ? '-' : formatPercent(numberValue)
 }
 
 function passesDeviationFilter(value, deviation) {
@@ -393,7 +430,10 @@ function normalizeSummary(row = {}) {
     price: row.price,
     profitValuation: row.profitValuation ?? '',
     profitDeviation,
-    dcfValuationSummary: row.dcfValuationSummary || '-',
+    dcfV1Valuation: normalizeNumber(row.dcfV1Valuation),
+    dcfV1Deviation: normalizeNumber(row.dcfV1Deviation),
+    dcfV2Valuation: normalizeNumber(row.dcfV2Valuation),
+    dcfV2Deviation: normalizeNumber(row.dcfV2Deviation),
     financialScore,
     recommendationScore: row.recommendationScore,
     totalScore: row.totalScore,
@@ -444,13 +484,37 @@ function conclusionType(conclusion) {
 </script>
 
 <style scoped lang="scss">
+.list-page {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.page-header {
+  align-self: start;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+
+.total-tag {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
 p {
   margin: 0;
   color: #5d748b;
 }
 
 .deviation-high {
-  color: #c43c2d;
+  color: #c42d2d;
   font-weight: 700;
 }
 

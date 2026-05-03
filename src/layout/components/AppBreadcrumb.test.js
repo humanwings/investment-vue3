@@ -106,4 +106,34 @@ describe('AppBreadcrumb', () => {
       '公司总览'
     ])
   })
+
+  it('keeps DCF v2 in the breadcrumb when entering company overview from DCF v2', () => {
+    routeMock.fullPath =
+      '/companyvaluation/valuation/company/1?tab=dcf&dcfVersion=v2&from=dcf-v2'
+    routeMock.query = {
+      tab: 'dcf',
+      dcfVersion: 'v2',
+      from: 'dcf-v2'
+    }
+
+    const wrapper = mount(AppBreadcrumb, {
+      global: {
+        stubs: {
+          'router-link': {
+            props: ['to'],
+            template: '<a><slot /></a>'
+          }
+        }
+      }
+    })
+
+    const crumbs = wrapper.findAll('.crumb').map((item) => item.text())
+
+    expect(crumbs).toEqual([
+      'Company Valuation',
+      '公司估值',
+      'DCF v2一览',
+      '公司总览'
+    ])
+  })
 })

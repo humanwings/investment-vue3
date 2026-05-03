@@ -6,7 +6,9 @@ import { createHttpMock, ok } from '@/test/mocks/http'
 import { elementPlusStubs } from '@/test/stubs/element-plus'
 import CompanyDetail from './companydetail.vue'
 
-const { push, routeMock } = vi.hoisted(() => ({
+const { confirm, notifySuccess, push, routeMock } = vi.hoisted(() => ({
+  confirm: vi.fn(),
+  notifySuccess: vi.fn(),
   push: vi.fn(),
   routeMock: {
     params: {
@@ -26,10 +28,27 @@ vi.mock('vue-router', async () => {
   }
 })
 
+vi.mock('element-plus', async () => {
+  const actual = await vi.importActual('element-plus')
+
+  return {
+    ...actual,
+    ElMessageBox: {
+      confirm
+    },
+    ElNotification: {
+      success: notifySuccess
+    }
+  }
+})
+
 describe('companydetail page', () => {
   const mock = createHttpMock()
 
   beforeEach(() => {
+    confirm.mockReset()
+    confirm.mockResolvedValue(undefined)
+    notifySuccess.mockReset()
     push.mockReset()
     routeMock.params = {
       id: '1'
@@ -56,6 +75,8 @@ describe('companydetail page', () => {
     await flushPromises()
 
     expect(wrapper.vm.overview.name).toBe('贵州茅台')
+    expect(wrapper.text()).not.toContain('companyId')
+    expect(wrapper.text()).toContain('删除本公司')
     expect(wrapper.vm.overview.stockCode).toBe('600519')
     expect(wrapper.vm.dividendList).toHaveLength(1)
     expect(wrapper.vm.profitValuation.finalValuation).toBe(1111.5)
@@ -127,7 +148,12 @@ describe('companydetail page', () => {
     expect(wrapper.vm.activeDcfVersion).toBe('v2')
   })
 
-  it('navigates back to the company list', async () => {
+  it('navigates back to the breadcrumb parent', async () => {
+    routeMock.query = {
+      tab: 'dcf',
+      dcfVersion: 'v2',
+      from: 'dcf-v2'
+    }
     mock.onGet('/company/1').reply(ok(companyDetailPayload))
 
     const wrapper = shallowMount(CompanyDetail, {
@@ -143,10 +169,39 @@ describe('companydetail page', () => {
 
     const backButton = wrapper
       .findAll('button')
-      .find((button) => button.text().includes('返回列表'))
+      .find((button) => button.text().includes('返回上一级'))
 
     await backButton.trigger('click')
 
-    expect(push).toHaveBeenCalledWith('/companyvaluation/valuation/company')
+    expect(push).toHaveBeenCalledWith('/companyvaluation/valuation/dcf-v2')
+  })
+
+  it('deletes the company and returns to the breadcrumb parent', async () => {
+    routeMock.query = {
+      tab: 'profit',
+      from: 'profit-discount'
+    }
+    mock.onGet('/company/1').reply(ok(companyDetailPayload))
+    mock.onDelete('/company/1').reply(ok({}))
+
+    const wrapper = shallowMount(CompanyDetail, {
+      global: {
+        stubs: elementPlusStubs,
+        directives: {
+          loading: {}
+        }
+      }
+    })
+
+    await flushPromises()
+    await wrapper.vm.confirmDeleteCompany()
+    await flushPromises()
+
+    expect(confirm).toHaveBeenCalledWith('此操作将删除本公司，是否继续？', '提示', {
+      type: 'warning'
+    })
+    expect(mock.history.delete[0].url).toBe('/company/1')
+    expect(notifySuccess).toHaveBeenCalled()
+    expect(push).toHaveBeenCalledWith('/companyvaluation/valuation/profit-discount')
   })
 })

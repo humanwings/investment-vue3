@@ -3,11 +3,25 @@
     <div class="page-header">
       <div>
         <div class="eyebrow">Profit Discount</div>
-        <h2>利润贴现一览</h2>
+        <div class="title-row">
+          <h2>利润贴现一览</h2>
+          <el-tag class="total-tag" type="info"
+            >数据总计 {{ filteredRows.length }}</el-tag
+          >
+          <el-button
+            class="help-button"
+            text
+            type="primary"
+            @click="helpDialogVisible = true"
+          >
+            <el-icon><QuestionFilled /></el-icon>
+            <span>估算说明</span>
+          </el-button>
+        </div>
+        <p>集中查看利润贴现估值、增长率假设与偏离信号，支持按行业批量调整。</p>
       </div>
       <div class="header-actions">
         <IndustryFilter v-model="industryFilter" :industries="industries" />
-        <el-tag type="info">数据总计 {{ filteredRows.length }}</el-tag>
       </div>
     </div>
 
@@ -143,6 +157,60 @@
         </el-table>
       </div>
     </div>
+
+    <el-dialog
+      v-model="helpDialogVisible"
+      title="利润贴现估值说明"
+      width="720px"
+      class="profit-help-dialog"
+    >
+      <div class="help-content">
+        <section>
+          <h3>总体口径</h3>
+          <p>
+            利润贴现估值是一个每股估值，先估算净资产、高增长期利润和稳定期利润的现值，
+            再乘以市场风险系数和行业风险系数。
+          </p>
+          <p class="formula">
+            最终估值 = (净资产估值 + 高增长期估值 + 稳定期估值) × 市场风险系数 × 行业风险系数
+          </p>
+        </section>
+
+        <section>
+          <h3>增长率怎么来</h3>
+          <p>
+            采用增长率优先使用手动增长率；没有手动值时使用系统增长率。系统增长率由营收增速和扣非利润增速推算，
+            并对乐观增速做上限约束。
+          </p>
+          <ul>
+            <li>页面里的增长率是百分数点，例如 15 表示 15%。</li>
+            <li>高增长期目前按 3 年计算。</li>
+            <li>系统推算时，营收下降会保守处理利润增速；营收和利润增速上限按 30% 截断。</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>三段估值</h3>
+          <ul>
+            <li>净资产估值 = 每股净资产 × 净资产折算率。</li>
+            <li>高增长期估值 = 每股扣非净利润 × 未来 3 年利润增长后的折现系数合计 × 分红/留存折算系数。</li>
+            <li>稳定期估值 = 第 3 年后的永续利润价值 × 分红/留存折算系数。</li>
+          </ul>
+          <p>
+            分红/留存折算系数会综合预期分红率和净资产折算率；预期分红率会参考上年度分红率、分红年数和分红连续性，
+            且长期分红率上限按 70% 处理。
+          </p>
+        </section>
+
+        <section>
+          <h3>偏离率</h3>
+          <p class="formula">偏离率 = 利润贴现估值 ÷ 当前价 - 1</p>
+          <p>
+            偏离率为正，表示模型估值高于当前价；偏离率为负，表示模型估值低于当前价。
+          </p>
+        </section>
+      </div>
+    </el-dialog>
   </section>
 </template>
 
@@ -150,7 +218,12 @@
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox, ElNotification } from 'element-plus'
-import { Check, RefreshRight, View } from '@element-plus/icons-vue'
+import {
+  Check,
+  QuestionFilled,
+  RefreshRight,
+  View
+} from '@element-plus/icons-vue'
 
 import {
   clearProfitGrowthRate,
@@ -168,6 +241,7 @@ const loading = ref(false)
 const savingCompanyId = ref()
 const batchLoading = ref(false)
 const batchGrowthRate = ref()
+const helpDialogVisible = ref(false)
 const rows = ref([])
 const draftGrowthRates = reactive({})
 
@@ -359,9 +433,43 @@ function deviationClass(value) {
 
 <style scoped lang="scss">
 .valuation-workbench {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-page-gap);
   flex: 1;
   min-height: 0;
   overflow: hidden;
+}
+
+.valuation-workbench > .list-card {
+  flex: 1;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+
+.total-tag {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.help-button {
+  height: 32px;
+  padding: 0 8px;
+  font-weight: 600;
+}
+
+p {
+  margin: 0;
+  color: #5d748b;
 }
 
 .company-cell {
@@ -414,6 +522,43 @@ function deviationClass(value) {
 
 .batch-input {
   width: 150px;
+}
+
+.help-content {
+  display: grid;
+  gap: 18px;
+  color: var(--app-text);
+}
+
+.help-content section {
+  display: grid;
+  gap: 8px;
+}
+
+.help-content h3 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.help-content p {
+  color: #43566b;
+  line-height: 1.75;
+}
+
+.help-content ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #43566b;
+  line-height: 1.75;
+}
+
+.formula {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f4f7fb;
+  color: #22384f;
+  font-weight: 700;
 }
 
 .deviation-high {

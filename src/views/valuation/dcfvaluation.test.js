@@ -67,6 +67,11 @@ describe('dcf valuation workbench', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('DCF v1一览')
+    expect(wrapper.text()).toContain(
+      '跟踪 DCF 模型估值、关键假设与模型差异，支持按行业统一手动假设。'
+    )
+    expect(wrapper.find('.title-row').text()).toContain('数据总计 1')
+    expect(wrapper.find('.header-actions').text()).not.toContain('数据总计')
     expect(wrapper.vm.rows).toHaveLength(1)
     expect(wrapper.vm.rows[0].name).toBe('贵州茅台')
     expect(wrapper.vm.filteredRows).toHaveLength(1)
@@ -79,6 +84,32 @@ describe('dcf valuation workbench', () => {
       modelVersion: 'DCF_V1_SIMPLE_FCFF',
       scenarioKey: 'BASE'
     })
+  })
+
+  it('opens the DCF v1 valuation help dialog from the title row', async () => {
+    mock.onGet('/valuation/dcf').reply(ok(dcfValuationPayload))
+
+    const wrapper = shallowMount(DcfValuation, {
+      global: {
+        stubs: elementPlusStubs,
+        directives: {
+          loading: {}
+        }
+      }
+    })
+
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('估值说明')
+    expect(wrapper.text()).toContain('DCF v1：简化 FCFF')
+    expect(wrapper.text()).toContain(
+      '每股估值 = (未来现金流现值 + 终值现值 - 净债务) ÷ 总股本'
+    )
+    expect(wrapper.vm.helpDialogVisible).toBe(false)
+
+    await wrapper.find('.help-button').trigger('click')
+
+    expect(wrapper.vm.helpDialogVisible).toBe(true)
   })
 
   it('renders the DCF v2 skeleton entrance with v2 query params', async () => {
@@ -103,6 +134,10 @@ describe('dcf valuation workbench', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('DCF v2一览')
+    expect(wrapper.text()).toContain(
+      '跟踪标准 DCF 估值、阶段假设、敏感性区间与模型差异。'
+    )
+    expect(wrapper.find('.title-row').text()).toContain('数据总计 1')
     expect(wrapper.vm.rows[0].modelVersion).toBe('DCF_V2_STANDARD_FCFF')
     expect(wrapper.vm.isV1).toBe(false)
     expect(wrapper.vm.isV2).toBe(true)
@@ -118,6 +153,39 @@ describe('dcf valuation workbench', () => {
       modelVersion: 'DCF_V2_STANDARD_FCFF',
       scenarioKey: 'BASE'
     })
+  })
+
+  it('opens the DCF v2 valuation help dialog with standard FCFF guidance', async () => {
+    mock.onGet('/valuation/dcf').reply(ok(dcfV2ValuationPayload))
+
+    const wrapper = shallowMount(DcfValuation, {
+      props: {
+        pageTitle: 'DCF v2一览',
+        modelVersion: 'DCF_V2_STANDARD_FCFF',
+        versionKey: 'v2',
+        pendingStatusLabel: '等待 DCF v2',
+        overviewSource: 'dcf-v2'
+      },
+      global: {
+        stubs: elementPlusStubs,
+        directives: {
+          loading: {}
+        }
+      }
+    })
+
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('DCF v2：标准 FCFF')
+    expect(wrapper.text()).toContain(
+      'FCFF = NOPAT + 折旧摊销 - 资本开支 - 营运资本增加'
+    )
+    expect(wrapper.text()).toContain('敏感性区间')
+    expect(wrapper.vm.helpDialogVisible).toBe(false)
+
+    await wrapper.find('.help-button').trigger('click')
+
+    expect(wrapper.vm.helpDialogVisible).toBe(true)
   })
 
   it('filters rows by industry', async () => {

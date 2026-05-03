@@ -48,19 +48,34 @@ const breadcrumbItems = computed(() => {
 })
 
 const isCompanyOverview = computed(() => route.name === 'CompanyDetail')
-const companyOverviewSource = computed(() =>
-  route.query?.from === 'profit-discount'
-    ? {
-        path: '/companyvaluation/valuation/profit-discount',
-        title: '利润贴现一览',
-        isCurrent: false
-      }
-    : {
-        path: '/companyvaluation/valuation/company',
-        title: '公司列表',
-        isCurrent: false
-      }
-)
+const companyOverviewSource = computed(() => {
+  if (route.query?.from === 'profit-discount') {
+    return {
+      path: '/companyvaluation/valuation/profit-discount',
+      title: '利润贴现一览',
+      isCurrent: false
+    }
+  }
+  if (route.query?.from === 'dcf-v1') {
+    return {
+      path: '/companyvaluation/valuation/dcf-v1',
+      title: 'DCF v1一览',
+      isCurrent: false
+    }
+  }
+  if (route.query?.from === 'dcf-v2') {
+    return {
+      path: '/companyvaluation/valuation/dcf-v2',
+      title: 'DCF v2一览',
+      isCurrent: false
+    }
+  }
+  return {
+    path: '/companyvaluation/valuation/company',
+    title: '公司列表',
+    isCurrent: false
+  }
+})
 
 function resolveRecordPath(path) {
   return path.replace(/:([A-Za-z0-9_]+)/g, (_, key) => route.params[key] ?? '')

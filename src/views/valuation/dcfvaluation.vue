@@ -3,11 +3,25 @@
     <div class="page-header">
       <div>
         <div class="eyebrow">Discounted Cash Flow</div>
-        <h2>{{ pageTitle }}</h2>
+        <div class="title-row">
+          <h2>{{ pageTitle }}</h2>
+          <el-tag class="total-tag" type="info"
+            >数据总计 {{ filteredRows.length }}</el-tag
+          >
+          <el-button
+            class="help-button"
+            text
+            type="primary"
+            @click="helpDialogVisible = true"
+          >
+            <el-icon><QuestionFilled /></el-icon>
+            <span>估值说明</span>
+          </el-button>
+        </div>
+        <p>{{ pageDescription }}</p>
       </div>
       <div class="header-actions">
         <IndustryFilter v-model="industryFilter" :industries="industries" />
-        <el-tag type="info">数据总数 {{ filteredRows.length }}</el-tag>
       </div>
     </div>
 
@@ -280,6 +294,85 @@
         </el-table>
       </div>
     </div>
+
+    <el-dialog
+      v-model="helpDialogVisible"
+      :title="`${versionLabel}估值说明`"
+      width="740px"
+      class="dcf-help-dialog"
+    >
+      <div class="help-content">
+        <section>
+          <h3>共同口径</h3>
+          <p>
+            DCF 会先估算未来自由现金流现值和永续终值现值，得到企业价值；
+            再扣除净债务得到股权价值，最后除以总股本得到每股估值。
+          </p>
+          <p class="formula">
+            每股估值 = (未来现金流现值 + 终值现值 - 净债务) ÷ 总股本
+          </p>
+          <p class="formula">偏离率 = DCF 每股估值 ÷ 当前价 - 1</p>
+        </section>
+
+        <template v-if="isV1">
+          <section>
+            <h3>DCF v1：简化 FCFF</h3>
+            <p>
+              v1 使用最近一期每股自由现金流乘以总股本，得到基础自由现金流。
+              然后用采用营收增长率连续预测 5 年现金流，并按采用折现率折现。
+            </p>
+            <ul>
+              <li>基础现金流 = 最近一期每股自由现金流 × 总股本。</li>
+              <li>未来 5 年现金流每年按采用营收增长率增长。</li>
+              <li>第 5 年之后用永续增长率计算终值。</li>
+              <li>v1 暂不使用净债务，净债务按 0 处理。</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3>参数来源</h3>
+            <p>
+              营收增长率、折现率、永续增长率都有系统默认值；页面上的手动参数优先级更高。
+              保存手动假设后，会重新计算该公司的 v1 每股估值、偏离率和终值占比。
+            </p>
+          </section>
+        </template>
+
+        <template v-else>
+          <section>
+            <h3>DCF v2：标准 FCFF</h3>
+            <p>
+              v2 使用标准 FCFF 口径，从历史财务数据推导基础收入、经营利润率、税率、折旧摊销、
+              资本开支、营运资本变化和净债务，并生成 10 年阶段假设。
+            </p>
+            <p class="formula">FCFF = NOPAT + 折旧摊销 - 资本开支 - 营运资本增加</p>
+            <ul>
+              <li>10 年营收增长率会从当前增长率逐步收敛到永续增长率。</li>
+              <li>每年 FCFF = 当年收入 × 自由现金流率。</li>
+              <li>企业价值 = 10 年 FCFF 现值合计 + 终值现值。</li>
+              <li>股权价值 = 企业价值 - 净债务。</li>
+            </ul>
+          </section>
+
+          <section>
+            <h3>敏感性区间</h3>
+            <p>
+              v2 会围绕基准折现率上下浮动 1 个百分点、永续增长率上下浮动 0.5 个百分点，
+              计算一组情景估值。列表里的敏感性区间展示这些情景下的每股估值低点和高点。
+            </p>
+          </section>
+        </template>
+
+        <section>
+          <h3>列表字段</h3>
+          <ul>
+            <li>终值占比 = 终值现值 ÷ 企业价值，用来观察估值对远期假设的依赖程度。</li>
+            <li>模型差异 = DCF 每股估值 - 利润贴现估值。</li>
+            <li>状态为“已计算”时，说明当前行已有可用估值结果。</li>
+          </ul>
+        </section>
+      </div>
+    </el-dialog>
   </section>
 </template>
 
@@ -287,7 +380,12 @@
 import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox, ElNotification } from 'element-plus'
-import { Check, RefreshRight, View } from '@element-plus/icons-vue'
+import {
+  Check,
+  QuestionFilled,
+  RefreshRight,
+  View
+} from '@element-plus/icons-vue'
 
 import {
   clearDcfV1ManualAssumptions,
@@ -333,6 +431,7 @@ const batchLoading = ref(false)
 const batchRevenueGrowthRate = ref()
 const batchDiscountRate = ref()
 const batchTerminalGrowthRate = ref()
+const helpDialogVisible = ref(false)
 const rows = ref([])
 const draftRevenueGrowthRates = reactive({})
 const draftDiscountRates = reactive({})
@@ -345,6 +444,12 @@ const isV1 = computed(() => props.versionKey === 'v1')
 const isV2 = computed(() => props.versionKey === 'v2')
 
 const versionLabel = computed(() => (isV2.value ? 'DCF v2' : 'DCF v1'))
+
+const pageDescription = computed(() =>
+  isV2.value
+    ? '跟踪标准 DCF 估值、阶段假设、敏感性区间与模型差异。'
+    : '跟踪 DCF 模型估值、关键假设与模型差异，支持按行业统一手动假设。'
+)
 
 const industries = computed(() => [
   ...new Set(rows.value.map((item) => item.industryName).filter(Boolean))
@@ -622,9 +727,43 @@ function deviationClass(value) {
 
 <style scoped lang="scss">
 .valuation-workbench {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-page-gap);
   flex: 1;
   min-height: 0;
   overflow: hidden;
+}
+
+.valuation-workbench > .list-card {
+  flex: 1;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+
+.total-tag {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.help-button {
+  height: 32px;
+  padding: 0 8px;
+  font-weight: 600;
+}
+
+p {
+  margin: 0;
+  color: #5d748b;
 }
 
 .metric-grid {
@@ -684,6 +823,43 @@ function deviationClass(value) {
 
 .batch-input {
   width: 140px;
+}
+
+.help-content {
+  display: grid;
+  gap: 18px;
+  color: var(--app-text);
+}
+
+.help-content section {
+  display: grid;
+  gap: 8px;
+}
+
+.help-content h3 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.help-content p {
+  color: #43566b;
+  line-height: 1.75;
+}
+
+.help-content ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #43566b;
+  line-height: 1.75;
+}
+
+.formula {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f4f7fb;
+  color: #22384f;
+  font-weight: 700;
 }
 
 .deviation-high {

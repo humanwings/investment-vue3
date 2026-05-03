@@ -57,4 +57,16 @@ describe('AppSidebar', () => {
       '/companyvaluation/valuation/profit-discount'
     )
   })
+
+  it('keeps DCF v2 active when entering company overview from DCF v2', () => {
+    routeMock.query = {
+      tab: 'dcf',
+      dcfVersion: 'v2',
+      from: 'dcf-v2'
+    }
+
+    const wrapper = shallowMount(AppSidebar)
+
+    expect(wrapper.vm.activeMenu).toBe('/companyvaluation/valuation/dcf-v2')
+  })
 })

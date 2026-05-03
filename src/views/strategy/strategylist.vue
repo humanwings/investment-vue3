@@ -4,7 +4,13 @@
       <div class="page-head">
         <div>
           <div class="eyebrow">Strategy</div>
-          <h2>策略一览</h2>
+          <div class="title-row">
+            <h2>策略一览</h2>
+            <el-tag class="total-tag" type="info"
+              >数据总计 {{ list.length }}</el-tag
+            >
+          </div>
+          <p>查看策略回测结果、交易表现与处理动作，支持新建、比较和批量删除。</p>
         </div>
         <div class="actions">
           <el-button
@@ -287,4 +293,29 @@ function compareSelected() {
 }
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.page-head {
+  flex: 0 0 auto;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+
+.total-tag {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+p {
+  margin: 0;
+  color: #5d748b;
+}
+</style>

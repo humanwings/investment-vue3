@@ -112,15 +112,23 @@ const sidebarRoutes = computed(() =>
   appRoutes.filter((item) => !item.meta?.hidden && item.children?.length)
 )
 const activeMenu = computed(() => {
-  if (isCompanyOverviewFromProfitDiscount.value) {
-    return '/companyvaluation/valuation/profit-discount'
+  if (route.name === 'CompanyDetail') {
+    return companyOverviewSourceMenu.value
   }
   return route.meta?.activeMenu || route.path
 })
-const isCompanyOverviewFromProfitDiscount = computed(
-  () =>
-    route.name === 'CompanyDetail' && route.query?.from === 'profit-discount'
-)
+const companyOverviewSourceMenu = computed(() => {
+  if (route.query?.from === 'profit-discount') {
+    return '/companyvaluation/valuation/profit-discount'
+  }
+  if (route.query?.from === 'dcf-v1') {
+    return '/companyvaluation/valuation/dcf-v1'
+  }
+  if (route.query?.from === 'dcf-v2') {
+    return '/companyvaluation/valuation/dcf-v2'
+  }
+  return route.meta?.activeMenu || route.path
+})
 const collapseIcon = computed(() => {
   if (appStore.isMobile) {
     return appStore.showMobileSidebar ? Fold : Expand
