@@ -156,10 +156,15 @@
       </div>
     </div>
 
-    <el-dialog v-model="addDialogVisible" title="加入公司" width="420px">
-      <el-form ref="formRef" :model="temp" :rules="rules" label-position="top">
-        <el-form-item label="Stock Code" prop="stockCode">
-          <el-input v-model="temp.stockCode" placeholder="例如 600519" />
+    <el-dialog v-model="addDialogVisible" title="加入公司" width="420px" @opened="onDialogOpened">
+      <el-form label-position="top" @submit.prevent>
+        <el-form-item label="Stock Code">
+          <el-input
+            ref="stockCodeInputRef"
+            v-model="temp.stockCode"
+            placeholder="输入6位股票代码，例如 600519"
+            @keyup.enter="handleEnter"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -209,17 +214,11 @@ const list = ref([])
 const listLoading = ref(false)
 const addDialogVisible = ref(false)
 const submitting = ref(false)
-const formRef = ref()
+const stockCodeInputRef = ref()
 const temp = reactive({
   companyId: undefined,
   stockCode: ''
 })
-
-const rules = {
-  stockCode: [
-    { required: true, message: 'stockCode is required', trigger: 'blur' }
-  ]
-}
 
 getList()
 
@@ -248,6 +247,10 @@ async function getList() {
 function openAddDialog() {
   temp.stockCode = ''
   addDialogVisible.value = true
+}
+
+function onDialogOpened() {
+  stockCodeInputRef.value?.focus()
 }
 
 function deviationClass(value) {
@@ -305,9 +308,32 @@ function filterIndustry(value, row) {
   return row.industryName === value
 }
 
+function handleEnter() {
+  const code = temp.stockCode.trim()
+  if (/^\d{6}$/.test(code)) {
+    doAddCompany()
+  } else {
+    ElNotification.warning({
+      title: '输入错误',
+      message: '请输入6位数字股票代码'
+    })
+  }
+}
+
 async function doAddCompany() {
-  const valid = await formRef.value.validate().catch(() => false)
-  if (!valid) {
+  const code = temp.stockCode.trim()
+  if (!code) {
+    ElNotification.warning({
+      title: '输入错误',
+      message: '请输入股票代码'
+    })
+    return
+  }
+  if (!/^\d{6}$/.test(code)) {
+    ElNotification.warning({
+      title: '输入错误',
+      message: '股票代码需为6位数字'
+    })
     return
   }
 

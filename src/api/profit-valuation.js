@@ -36,3 +36,10 @@ export function updateIndustryProfitGrowthRate(data) {
     data
   })
 }
+
+export function getProfitValuationDetail(companyId) {
+  return request({
+    url: restfulFormat('/company/{id}/profit-discount-detail', { id: companyId }),
+    method: 'get'
+  })
+}

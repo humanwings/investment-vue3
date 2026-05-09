@@ -631,8 +631,7 @@ function goOverview(row) {
   router.push({
     path: `/companyvaluation/valuation/company/${row.companyId}`,
     query: {
-      tab: 'dcf',
-      dcfVersion: props.versionKey,
+      tab: `dcf-${props.versionKey}`,
       from: props.overviewSource
     }
   })

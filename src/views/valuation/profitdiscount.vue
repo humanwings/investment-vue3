@@ -20,9 +20,6 @@
         </div>
         <p>集中查看利润贴现估值、增长率假设与偏离信号，支持按行业批量调整。</p>
       </div>
-      <div class="header-actions">
-        <IndustryFilter v-model="industryFilter" :industries="industries" />
-      </div>
     </div>
 
     <div class="page-card">
@@ -33,6 +30,7 @@
           <span>{{ industryFilter || '全部行业' }}</span>
         </div>
         <div class="batch-controls">
+          <IndustryFilter v-model="industryFilter" :industries="industries" />
           <el-input-number
             v-model="batchGrowthRate"
             class="batch-input"
@@ -118,12 +116,6 @@
               </span>
             </template>
           </el-table-column>
-          <el-table-column prop="financialScore" label="财务评分" width="100" />
-          <el-table-column
-            prop="recommendationScore"
-            label="大V评分"
-            width="100"
-          />
           <el-table-column prop="signal" label="辅助判断" min-width="110" />
           <el-table-column fixed="right" label="处理" width="240">
             <template #default="{ row }">
@@ -311,17 +303,20 @@ async function loadProfitValuations() {
 
 function syncDraftGrowthRates(list) {
   list.forEach((row) => {
-    draftGrowthRates[row.companyId] =
-      row.growthRateManual ?? row.growthRateApplied ?? row.growthRatePrediction
+    draftGrowthRates[row.companyId] = row.growthRateManual ?? null
   })
 }
 
 async function saveGrowthRate(row) {
   savingCompanyId.value = row.companyId
   try {
-    const response = await updateProfitGrowthRate(row.companyId, {
-      growthRateManual: draftGrowthRates[row.companyId]
-    })
+    const manualValue = draftGrowthRates[row.companyId]
+    const response =
+      manualValue != null
+        ? await updateProfitGrowthRate(row.companyId, {
+            growthRateManual: manualValue
+          })
+        : await clearProfitGrowthRate(row.companyId)
     replaceRow(response.data.item)
     ElNotification.success({
       title: 'Success',
@@ -381,8 +376,7 @@ function replaceRow(item) {
   if (index >= 0) {
     rows.value.splice(index, 1, item)
   }
-  draftGrowthRates[item.companyId] =
-    item.growthRateManual ?? item.growthRateApplied ?? item.growthRatePrediction
+  draftGrowthRates[item.companyId] = item.growthRateManual ?? null
 }
 
 function replaceRows(items) {
