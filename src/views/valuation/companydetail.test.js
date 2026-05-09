@@ -83,11 +83,7 @@ describe('companydetail page', () => {
     expect(wrapper.vm.financialReview.profitability[0].label).toBe('加权 ROE')
     expect(wrapper.vm.financialMetricGroups).toHaveLength(5)
     expect(wrapper.vm.financialHighlightItems[0].value).toBe('ROE 表现较强')
-    expect(wrapper.vm.recommendationSummary.score).toBe(88)
     expect(wrapper.vm.activeTab).toBe('overview')
-    expect(wrapper.vm.profitAssumptions[0].label).toBe('系统增长率')
-    expect(wrapper.vm.dcfV1Assumptions[0].label).toBe('营收增长率')
-    expect(wrapper.vm.dcfV1Assumptions[0].source).toBe('人工覆盖')
     expect(wrapper.vm.dcfValuation.formulaVersion).toBe('DCF_V1_SIMPLE_FCFF')
     expect(wrapper.vm.dcfValuationV1.modelVersion).toBe('DCF_V1_SIMPLE_FCFF')
     expect(wrapper.vm.hasDcfManualOverride(wrapper.vm.dcfValuationV1)).toBe(
@@ -100,7 +96,6 @@ describe('companydetail page', () => {
     expect(wrapper.vm.formatSensitivityRange(wrapper.vm.dcfValuationV2)).toBe(
       '980 / 1280'
     )
-    expect(wrapper.vm.activeDcfVersion).toBe('v1')
     expect(wrapper.vm.researchNavItems).toHaveLength(4)
   })
 
@@ -127,7 +122,7 @@ describe('companydetail page', () => {
 
   it('opens the DCF v2 child tab when entered from the DCF v2 list', async () => {
     routeMock.query = {
-      tab: 'dcf',
+      tab: 'dcf-v2',
       dcfVersion: 'v2',
       from: 'dcf-v2'
     }
@@ -144,8 +139,7 @@ describe('companydetail page', () => {
 
     await flushPromises()
 
-    expect(wrapper.vm.activeTab).toBe('dcf')
-    expect(wrapper.vm.activeDcfVersion).toBe('v2')
+    expect(wrapper.vm.activeTab).toBe('dcf-v2')
   })
 
   it('navigates back to the breadcrumb parent', async () => {

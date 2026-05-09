@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section v-loading="loading" class="page-shell company-overview">
     <div class="page-header">
       <div>
@@ -42,10 +42,6 @@
               <ValuationMetric
                 label="财务评分"
                 :value="overview.financialScore"
-              />
-              <ValuationMetric
-                label="大V评分"
-                :value="overview.recommendationScore"
               />
             </div>
           </div>
@@ -1106,29 +1102,6 @@
         </div>
       </el-tab-pane>
 
-      <el-tab-pane label="大V推荐" name="recommend">
-        <div class="page-card placeholder-panel">
-          <div class="section-head">
-            <h3>大V推荐摘要</h3>
-          </div>
-          <div class="metric-grid">
-            <ValuationMetric
-              label="大V评分"
-              :value="recommendationSummary.score"
-            />
-            <ValuationMetric
-              label="推荐人数"
-              value="-"
-              :hint="recommendationSummary.message"
-            />
-            <ValuationMetric
-              label="最近推荐日"
-              value="-"
-              :hint="recommendationSummary.status"
-            />
-          </div>
-        </div>
-      </el-tab-pane>
     </el-tabs>
     <el-dialog
       v-model="helpDialogVisible"
@@ -1365,7 +1338,6 @@ const dcfValuationV1 = reactive({})
 const dcfValuationV2 = reactive({})
 const financialReview = reactive({})
 const latestReport = reactive({})
-const recommendationSummary = reactive({})
 const dividendList = ref([])
 const profitDetail = ref(null)
 const helpDialogVisible = ref(false)
@@ -1399,11 +1371,6 @@ const researchNavItems = computed(() => [
     label: '财务评价',
     summary: latestReport.date || '等待财报'
   },
-  {
-    name: 'recommend',
-    label: '大V推荐',
-    summary: `评分 ${recommendationSummary.score ?? '-'}`
-  }
 ])
 
 const profitDetailYearlyRows = computed(() => {
@@ -1515,7 +1482,7 @@ const financialHighlightItems = computed(() => {
 })
 
 function resolveInitialTab(tab) {
-  return ['overview', 'profit', 'dcf-v1', 'dcf-v2', 'financial', 'recommend'].includes(tab)
+  return ['overview', 'profit', 'dcf-v1', 'dcf-v2', 'financial'].includes(tab)
     ? tab
     : 'overview'
 }
@@ -1533,7 +1500,6 @@ async function loadDetail() {
     Object.assign(dcfValuationV2, dcfV2)
     Object.assign(financialReview, data.financialReview || {})
     Object.assign(latestReport, financialReview.latestReport || {})
-    Object.assign(recommendationSummary, data.recommendationSummary || {})
     dividendList.value = financialReview.dividendList || []
   } finally {
     loading.value = false

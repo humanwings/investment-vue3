@@ -269,7 +269,6 @@ investment-vue3/
 - `company.js`：公司估值相关接口
 - `strategy.js`：策略相关接口
 - `analyte.js`：数据分析相关接口
-- `recommend.js`：推荐榜、大 V、推荐规则接口
 - `verification.js`：验证结果相关接口
 - `user.js`：登录、用户信息、退出登录
 
@@ -345,8 +344,7 @@ await createStrategy(data)
 - `dashboard/`：首页概览
 - `login/`：登录页
 - `valuation/`：公司估值、宏观参数、行业参数
-- `recommend/`：推荐榜和推荐详情
-- `settings/`：大 V 管理、推荐规则
+- `settings/`：系统参数相关页面
 - `strategy/`：策略列表、策略编辑
 - `analyte/`：新数据、历史数据、验证
 - `error/`：404 页面
@@ -486,7 +484,6 @@ await createStrategy(data)
 代表文件：
 
 - `valuation/companydetail.vue`
-- `recommend/detail.vue`
 - [src/views/strategy/strategyedit.vue](/mnt/d/develop/source/investment-vue3/src/views/strategy/strategyedit.vue)
 
 特点：

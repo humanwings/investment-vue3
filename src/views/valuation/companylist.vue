@@ -113,12 +113,6 @@
             width="92"
             align="center"
           />
-          <el-table-column
-            prop="recommendationScore"
-            label="大V评分"
-            width="90"
-            align="center"
-          />
           <el-table-column label="结论" width="100">
             <template #default="{ row }">
               <el-tag :type="conclusionType(row.conclusion)">
@@ -461,7 +455,6 @@ function normalizeSummary(row = {}) {
     dcfV2Valuation: normalizeNumber(row.dcfV2Valuation),
     dcfV2Deviation: normalizeNumber(row.dcfV2Deviation),
     financialScore,
-    recommendationScore: row.recommendationScore,
     totalScore: row.totalScore,
     conclusion:
       row.conclusion || buildConclusion(profitDeviation, financialScore)

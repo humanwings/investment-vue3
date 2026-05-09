@@ -373,8 +373,7 @@ describe('dcf valuation workbench', () => {
     expect(push).toHaveBeenCalledWith({
       path: '/companyvaluation/valuation/company/1',
       query: {
-        tab: 'dcf',
-        dcfVersion: 'v1',
+        tab: 'dcf-v1',
         from: 'dcf-v1'
       }
     })

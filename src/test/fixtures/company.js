@@ -13,7 +13,6 @@ export const companyListPayload = {
       dcfV1Deviation: -0.27,
       dcfV2Valuation: 1100,
       dcfV2Deviation: -0.11,
-      recommendationScore: 88,
       financialScore: 90,
       industryName: '白酒',
       conclusion: '重点关注',
@@ -31,19 +30,18 @@ export const companyDetailPayload = {
     fsTableType: 'A股',
     ipoDate: '2001-08-27',
     province: '贵州',
-    actualControllerTypes: '国资',
-    firstIndustry: '消费',
+    actualControllerTypes: '国有',
+    firstIndustry: '食品饮料',
     secondIndustry: '白酒',
     thirdIndustry: '高端白酒',
-    mainBusiness: '高端白酒生产和销售',
+    mainBusiness: '高端白酒生产与销售',
     price: 1234,
     profitValuation: 1500,
     profitDeviation: 0.22,
     totalScore: 92,
-    recommendationScore: 88,
     financialScore: 90,
     conclusion: '重点关注',
-    highlights: ['利润贴现估值高于当前价格', 'ROE 表现较强']
+    highlights: ['盈利能力稳健，现金流质量优秀', 'ROE 表现较强']
   },
   profitValuation: {
     growthRatePrediction: 18,
@@ -119,15 +117,15 @@ export const companyDetailPayload = {
         label: '加权 ROE',
         value: '31.00%',
         status: 'good',
-        description: '股东权益创造利润的能力'
+        description: '公司盈利能力较强，ROE 保持在高位。'
       }
     ],
     cashFlowQuality: [
       {
-        label: '经营现金流/扣非利润',
+        label: '经营现金流 / 净利润',
         value: '1.12x',
         status: 'good',
-        description: '利润现金含量'
+        description: '现金流质量较好，利润兑现能力强。'
       }
     ],
     dividendStability: [
@@ -135,7 +133,7 @@ export const companyDetailPayload = {
         label: '连续分红年数',
         value: '5 年',
         status: 'good',
-        description: '最近连续分红记录'
+        description: '最近几年持续分红，股东回报稳定。'
       }
     ],
     solvency: [
@@ -143,7 +141,7 @@ export const companyDetailPayload = {
         label: '资产负债率',
         value: '18.00%',
         status: 'good',
-        description: '总负债相对总资产的比例'
+        description: '整体杠杆水平不高，偿债压力较小。'
       }
     ],
     assetStructure: [
@@ -151,16 +149,11 @@ export const companyDetailPayload = {
         label: 'PB',
         value: '4.20',
         status: 'neutral',
-        description: '价格相对净资产的估值水平'
+        description: '估值相对稳定，处于历史中枢附近。'
       }
     ],
-    riskWarnings: ['暂无突出财务风险，继续跟踪财报变化'],
-    highlights: ['ROE 表现较强', '自由现金流为正']
-  },
-  recommendationSummary: {
-    score: 88,
-    status: 'summary',
-    message: '推荐明细将在公司总览后续步骤接入'
+    riskWarnings: ['需关注消费景气波动、渠道调整与税费政策变化。'],
+    highlights: ['ROE 表现较强', '自由现金流充足']
   }
 }
 
@@ -264,8 +257,7 @@ export const profitValuationPayload = {
       valuation: 1500,
       deviation: 0.22,
       financialScore: 90,
-      recommendationScore: 88,
-      signal: '低估',
+      signal: '偏高估',
       updatedAt: '2026-04-28 10:00:00'
     }
   ]

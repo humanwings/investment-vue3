@@ -9,7 +9,7 @@ export const appRoutes = [
     component: () => import('@/views/login/index.vue'),
     meta: {
       hidden: true,
-      title: '登录'
+      title: 'Login'
     }
   },
   {
@@ -17,7 +17,7 @@ export const appRoutes = [
     component: Layout,
     redirect: '/dashboard',
     meta: {
-      title: '首页'
+      title: 'Dashboard'
     },
     children: [
       {
@@ -45,7 +45,7 @@ export const appRoutes = [
         component: () => import('@/views/placeholder/section.vue'),
         redirect: '/barginhunting/analyte/waitlist',
         meta: {
-          title: '数据分析'
+          title: 'Analyte'
         },
         children: [
           {
@@ -53,7 +53,7 @@ export const appRoutes = [
             name: 'AnalyteWaitList',
             component: () => import('@/views/analyte/waitlist.vue'),
             meta: {
-              title: '新数据'
+              title: 'Wait List'
             }
           },
           {
@@ -61,7 +61,7 @@ export const appRoutes = [
             name: 'AnalyteDoneList',
             component: () => import('@/views/analyte/donelist.vue'),
             meta: {
-              title: '历史数据'
+              title: 'Done List'
             }
           },
           {
@@ -70,7 +70,7 @@ export const appRoutes = [
             component: () => import('@/views/analyte/verification.vue'),
             meta: {
               hidden: true,
-              title: '数据验证',
+              title: 'Verification Detail',
               activeMenu: '/barginhunting/analyte/waitlist'
             }
           },
@@ -81,7 +81,7 @@ export const appRoutes = [
               import('@/views/analyte/verificationcomparison.vue'),
             meta: {
               hidden: true,
-              title: '验证结果比较',
+              title: 'Verification Compare',
               activeMenu: '/barginhunting/analyte/waitlist'
             }
           }
@@ -93,7 +93,7 @@ export const appRoutes = [
         component: () => import('@/views/placeholder/section.vue'),
         redirect: '/barginhunting/strategy/strategylist',
         meta: {
-          title: '策略设置'
+          title: 'Strategy'
         },
         children: [
           {
@@ -101,7 +101,7 @@ export const appRoutes = [
             name: 'StrategyList',
             component: () => import('@/views/strategy/strategylist.vue'),
             meta: {
-              title: '策略一览'
+              title: 'Strategy List'
             }
           },
           {
@@ -109,7 +109,7 @@ export const appRoutes = [
             name: 'StrategyAdd',
             component: () => import('@/views/strategy/strategyedit.vue'),
             meta: {
-              title: '策略建立'
+              title: 'Add Strategy'
             }
           },
           {
@@ -118,7 +118,7 @@ export const appRoutes = [
             component: () => import('@/views/strategy/strategyedit.vue'),
             meta: {
               hidden: true,
-              title: '策略编辑',
+              title: 'Edit Strategy',
               activeMenu: '/barginhunting/strategy/strategylist'
             }
           }
@@ -141,7 +141,7 @@ export const appRoutes = [
         component: () => import('@/views/placeholder/section.vue'),
         redirect: '/companyvaluation/valuation/company',
         meta: {
-          title: '公司估值'
+          title: 'Valuation'
         },
         children: [
           {
@@ -149,7 +149,7 @@ export const appRoutes = [
             name: 'CompanyList',
             component: () => import('@/views/valuation/companylist.vue'),
             meta: {
-              title: '公司列表'
+              title: 'Company List'
             }
           },
           {
@@ -158,7 +158,7 @@ export const appRoutes = [
             component: () => import('@/views/valuation/companydetail.vue'),
             meta: {
               hidden: true,
-              title: '公司总览',
+              title: 'Company Detail',
               activeMenu: '/companyvaluation/valuation/company'
             }
           },
@@ -167,7 +167,7 @@ export const appRoutes = [
             name: 'ProfitDiscountList',
             component: () => import('@/views/valuation/profitdiscount.vue'),
             meta: {
-              title: '利润贴现一览'
+              title: 'Profit Discount'
             }
           },
           {
@@ -175,7 +175,7 @@ export const appRoutes = [
             redirect: '/companyvaluation/valuation/dcf-v1',
             meta: {
               hidden: true,
-              title: 'DCF v1一览'
+              title: 'DCF'
             }
           },
           {
@@ -183,15 +183,15 @@ export const appRoutes = [
             name: 'DcfValuationV1List',
             component: () => import('@/views/valuation/dcfvaluation.vue'),
             props: {
-              pageTitle: 'DCF v1一览',
+              pageTitle: 'DCF v1',
               modelVersion: 'DCF_V1_SIMPLE_FCFF',
               scenarioKey: 'BASE',
               versionKey: 'v1',
-              pendingStatusLabel: '等待 DCF v1',
+              pendingStatusLabel: 'Pending DCF v1',
               overviewSource: 'dcf-v1'
             },
             meta: {
-              title: 'DCF v1一览'
+              title: 'DCF v1'
             }
           },
           {
@@ -199,33 +199,15 @@ export const appRoutes = [
             name: 'DcfValuationV2List',
             component: () => import('@/views/valuation/dcfvaluation.vue'),
             props: {
-              pageTitle: 'DCF v2一览',
+              pageTitle: 'DCF v2',
               modelVersion: 'DCF_V2_STANDARD_FCFF',
               scenarioKey: 'BASE',
               versionKey: 'v2',
-              pendingStatusLabel: '等待 DCF v2',
+              pendingStatusLabel: 'Pending DCF v2',
               overviewSource: 'dcf-v2'
             },
             meta: {
-              title: 'DCF v2一览'
-            }
-          },
-          {
-            path: 'recommend',
-            name: 'RecommendRank',
-            component: () => import('@/views/recommend/rank.vue'),
-            meta: {
-              title: '大V推荐排行'
-            }
-          },
-          {
-            path: 'recommend/:stockCode',
-            name: 'RecommendDetail',
-            component: () => import('@/views/recommend/detail.vue'),
-            meta: {
-              hidden: true,
-              title: '推荐详情',
-              activeMenu: '/companyvaluation/valuation/recommend'
+              title: 'DCF v2'
             }
           }
         ]
@@ -236,7 +218,7 @@ export const appRoutes = [
         component: () => import('@/views/placeholder/section.vue'),
         redirect: '/companyvaluation/settings/macrosettings',
         meta: {
-          title: '参数设置'
+          title: 'Settings'
         },
         children: [
           {
@@ -244,7 +226,7 @@ export const appRoutes = [
             name: 'MacroSettings',
             component: () => import('@/views/valuation/macrosettings.vue'),
             meta: {
-              title: '宏观参数'
+              title: 'Macro Settings'
             }
           },
           {
@@ -252,23 +234,7 @@ export const appRoutes = [
             name: 'IndustrySettings',
             component: () => import('@/views/valuation/industrysettings.vue'),
             meta: {
-              title: '行业参数'
-            }
-          },
-          {
-            path: 'recommendauthors',
-            name: 'RecommendAuthors',
-            component: () => import('@/views/settings/kvmanage.vue'),
-            meta: {
-              title: '推荐作者'
-            }
-          },
-          {
-            path: 'recommendrules',
-            name: 'RecommendRules',
-            component: () => import('@/views/settings/kvrules.vue'),
-            meta: {
-              title: '推荐规则'
+              title: 'Industry Settings'
             }
           }
         ]

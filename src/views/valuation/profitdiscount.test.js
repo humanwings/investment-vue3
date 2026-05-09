@@ -68,7 +68,7 @@ describe('profit discount workbench', () => {
       '集中查看利润贴现估值、增长率假设与偏离信号，支持按行业批量调整。'
     )
     expect(wrapper.find('.title-row').text()).toContain('数据总计 1')
-    expect(wrapper.find('.header-actions').text()).not.toContain('数据总计')
+    expect(wrapper.find('.header-actions').exists()).toBe(false)
     expect(wrapper.vm.rows).toHaveLength(1)
     expect(wrapper.vm.rows[0].name).toBe('贵州茅台')
     expect(wrapper.vm.filteredRows).toHaveLength(1)
