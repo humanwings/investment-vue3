@@ -25,4 +25,20 @@ describe('router smoke test', () => {
 
     expect(componentModule.default).toBeTruthy()
   })
+
+  it('wires DCF routes through the shared valuation model config', () => {
+    const dcfV1 = router.resolve('/companyvaluation/valuation/dcf-v1')
+    const dcfV2 = router.resolve('/companyvaluation/valuation/dcf-v2')
+
+    expect(dcfV1.matched.at(-1)?.props?.default).toMatchObject({
+      modelCode: 'DCF_V1',
+      modelVersion: 'DCF_V1_SIMPLE_FCFF',
+      versionKey: 'v1'
+    })
+    expect(dcfV2.matched.at(-1)?.props?.default).toMatchObject({
+      modelCode: 'DCF_V2',
+      modelVersion: 'DCF_V2_STANDARD_FCFF',
+      versionKey: 'v2'
+    })
+  })
 })

@@ -1,6 +1,7 @@
 import { Coin, TrendCharts } from '@element-plus/icons-vue'
 
 import Layout from '@/layout/index.vue'
+import { VALUATION_MODEL_CONFIGS } from '@/views/valuation/valuation-model-config'
 
 export const appRoutes = [
   {
@@ -182,14 +183,7 @@ export const appRoutes = [
             path: 'dcf-v1',
             name: 'DcfValuationV1List',
             component: () => import('@/views/valuation/dcfvaluation.vue'),
-            props: {
-              pageTitle: 'DCF v1',
-              modelVersion: 'DCF_V1_SIMPLE_FCFF',
-              scenarioKey: 'BASE',
-              versionKey: 'v1',
-              pendingStatusLabel: 'Pending DCF v1',
-              overviewSource: 'dcf-v1'
-            },
+            props: VALUATION_MODEL_CONFIGS.dcfV1,
             meta: {
               title: 'DCF v1'
             }
@@ -198,14 +192,7 @@ export const appRoutes = [
             path: 'dcf-v2',
             name: 'DcfValuationV2List',
             component: () => import('@/views/valuation/dcfvaluation.vue'),
-            props: {
-              pageTitle: 'DCF v2',
-              modelVersion: 'DCF_V2_STANDARD_FCFF',
-              scenarioKey: 'BASE',
-              versionKey: 'v2',
-              pendingStatusLabel: 'Pending DCF v2',
-              overviewSource: 'dcf-v2'
-            },
+            props: VALUATION_MODEL_CONFIGS.dcfV2,
             meta: {
               title: 'DCF v2'
             }

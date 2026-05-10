@@ -6,10 +6,11 @@ import { createHttpMock, ok } from '@/test/mocks/http'
 import { elementPlusStubs } from '@/test/stubs/element-plus'
 import CompanyList from './companylist.vue'
 
-const { push, confirm, notifySuccess } = vi.hoisted(() => ({
+const { push, confirm, notifySuccess, notifyWarning } = vi.hoisted(() => ({
   push: vi.fn(),
   confirm: vi.fn(),
-  notifySuccess: vi.fn()
+  notifySuccess: vi.fn(),
+  notifyWarning: vi.fn()
 }))
 
 vi.mock('vue-router', async () => {
@@ -30,7 +31,8 @@ vi.mock('element-plus', async () => {
       confirm
     },
     ElNotification: {
-      success: notifySuccess
+      success: notifySuccess,
+      warning: notifyWarning
     }
   }
 })
@@ -42,6 +44,7 @@ describe('companylist page', () => {
     push.mockReset()
     confirm.mockReset()
     notifySuccess.mockReset()
+    notifyWarning.mockReset()
     confirm.mockResolvedValue(undefined)
   })
 
@@ -209,5 +212,52 @@ describe('companylist page', () => {
     expect(wrapper.vm.list[0].price).toBe(1300)
     expect(wrapper.vm.list[0].profitDeviation).toBe(0.16)
     expect(wrapper.vm.list[0].conclusion).toBe('可跟踪')
+  })
+
+  it('uses the unified bulk rebuild endpoint and shows warning when some models fail', async () => {
+    mock.onGet('/valuation/companies').reply(ok(companyListPayload))
+    mock.onPost('/valuation/rebuild-all').reply(
+      ok({
+        list: companyListPayload.list,
+        sum: 1,
+        runResult: {
+          successCount: 2,
+          failureCount: 1,
+          items: [
+            {
+              companyId: 1,
+              modelCode: 'DCF_V2',
+              status: 'FAILED',
+              message: 'DCF v2 data missing'
+            }
+          ]
+        }
+      })
+    )
+
+    const wrapper = shallowMount(CompanyList, {
+      global: {
+        stubs: elementPlusStubs,
+        directives: {
+          loading: {}
+        }
+      }
+    })
+
+    await flushPromises()
+    await wrapper.vm.confirmReValuateAll()
+    await flushPromises()
+
+    expect(mock.history.post[0].url).toBe('/valuation/rebuild-all')
+    expect(JSON.parse(mock.history.post[0].data)).toEqual({
+      modelCodes: ['PROFIT_DISCOUNT', 'DCF_V1', 'DCF_V2'],
+      scenarioKey: 'BASE'
+    })
+    expect(wrapper.vm.list).toHaveLength(1)
+    expect(notifyWarning).toHaveBeenCalledWith({
+      title: '部分完成',
+      message: '全部重估完成，成功 2 项，失败 1 项',
+      duration: 2000
+    })
   })
 })

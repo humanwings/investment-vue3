@@ -56,7 +56,7 @@ export const companyDetailPayload = {
     perpetualValuation: 700,
     finalValuation: 1111.5
   },
-  dcfValuation: {
+  dcfValuationV1: {
     valuationId: 101,
     modelVersion: 'DCF_V1_SIMPLE_FCFF',
     scenarioKey: 'BASE',
@@ -157,7 +157,6 @@ export const companyDetailPayload = {
   }
 }
 
-companyDetailPayload.dcfValuationV1 = { ...companyDetailPayload.dcfValuation }
 companyDetailPayload.dcfValuationV2 = {
   valuationId: 202,
   modelVersion: 'DCF_V2_STANDARD_FCFF',

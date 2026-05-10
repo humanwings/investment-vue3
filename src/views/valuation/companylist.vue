@@ -214,6 +214,8 @@ const temp = reactive({
   stockCode: ''
 })
 
+const BULK_REBUILD_NOTIFICATION_DURATION = 2000
+
 getList()
 
 const industries = computed(() => [
@@ -357,12 +359,8 @@ async function confirmReValuateAll() {
   listLoading.value = true
   try {
     const response = await reValuateAll()
-    list.value = normalizeSummaryList(response.data.list)
-    total.value = response.data.sum || 0
-    ElNotification.success({
-      title: 'Success',
-      message: '全部重估完成'
-    })
+    await getList()
+    notifyRevaluationResult(response.data.runResult)
   } finally {
     listLoading.value = false
   }
@@ -499,6 +497,34 @@ function conclusionType(conclusion) {
     return 'info'
   }
   return ''
+}
+
+function notifyRevaluationResult(runResult) {
+  if (!runResult) {
+    ElNotification.success({
+      title: 'Success',
+      message: '全部重估完成',
+      duration: BULK_REBUILD_NOTIFICATION_DURATION
+    })
+    return
+  }
+
+  const successCount = Number(runResult.successCount || 0)
+  const failureCount = Number(runResult.failureCount || 0)
+  if (failureCount > 0) {
+    ElNotification.warning({
+      title: '部分完成',
+      message: `全部重估完成，成功 ${successCount} 项，失败 ${failureCount} 项`,
+      duration: BULK_REBUILD_NOTIFICATION_DURATION
+    })
+    return
+  }
+
+  ElNotification.success({
+    title: 'Success',
+    message: `全部重估完成，共执行 ${successCount} 项`,
+    duration: BULK_REBUILD_NOTIFICATION_DURATION
+  })
 }
 </script>
 

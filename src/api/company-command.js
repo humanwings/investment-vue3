@@ -1,5 +1,6 @@
 import request from '@/utils/request'
 import { restfulFormat } from '@/utils'
+import { rebuildAllValuations } from './valuation-command'
 
 export function addCompany(data) {
   return request({
@@ -24,9 +25,9 @@ export function updatePrice(id) {
 }
 
 export function reValuateAll() {
-  return request({
-    url: '/company/reValuateAll',
-    method: 'post'
+  return rebuildAllValuations({
+    modelCodes: ['PROFIT_DISCOUNT', 'DCF_V1', 'DCF_V2'],
+    scenarioKey: 'BASE'
   })
 }
 

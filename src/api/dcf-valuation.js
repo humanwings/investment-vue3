@@ -11,17 +11,24 @@ export function getDcfValuationList(query) {
 
 export function refreshDcfV2(companyId) {
   return request({
-    url: restfulFormat('/valuation/dcf/v2/{id}/refresh', {
-      id: companyId
-    }),
-    method: 'post'
+    url: '/valuation/rebuild',
+    method: 'post',
+    data: {
+      companyId,
+      modelCodes: ['DCF_V2'],
+      scenarioKey: 'BASE'
+    }
   })
 }
 
 export function refreshAllDcfV2() {
   return request({
-    url: '/valuation/dcf/v2/refresh-all',
-    method: 'post'
+    url: '/valuation/rebuild-all',
+    method: 'post',
+    data: {
+      modelCodes: ['DCF_V2'],
+      scenarioKey: 'BASE'
+    }
   })
 }
 

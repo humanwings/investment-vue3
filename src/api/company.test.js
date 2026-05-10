@@ -8,7 +8,9 @@ import {
   reValuateAll,
   updatePrice,
   updatePriceAll,
-  updateReport
+  updateReport,
+  rebuildAllValuations,
+  rebuildValuation
 } from './company'
 import {
   clearDcfV1ManualAssumptions,
@@ -66,11 +68,12 @@ describe('company api', () => {
     mock.onPost('/company/add').reply(ok({ companySummary: { companyId: 1 } }))
     mock.onDelete('/company/1').reply(ok({}))
     mock.onPatch('/company/1').reply(ok({ companySummary: { companyId: 1 } }))
-    mock.onPost('/company/reValuateAll').reply(ok({ list: [], sum: 0 }))
+    mock.onPost('/valuation/rebuild-all').reply(ok({ runResult: { items: [] } }))
     mock.onPost('/company/updatePriceAll').reply(ok({ list: [], sum: 0 }))
     mock
       .onPost('/company/updateReport')
       .reply(ok({ companySummary: { companyId: 1 } }))
+    mock.onPost('/valuation/rebuild').reply(ok({ runResult: { items: [] } }))
 
     await addCompany({ stockCode: '600519' })
     await deleteCompany(1)
@@ -78,6 +81,8 @@ describe('company api', () => {
     await reValuateAll()
     await updatePriceAll()
     await updateReport({ companyId: 1 })
+    await rebuildValuation({ companyId: 1, modelCodes: ['DCF_V2'] })
+    await rebuildAllValuations({ modelCodes: ['PROFIT_DISCOUNT'] })
 
     expect(mock.history.post[0].url).toBe('/company/add')
     expect(JSON.parse(mock.history.post[0].data)).toEqual({
@@ -85,10 +90,23 @@ describe('company api', () => {
     })
     expect(mock.history.delete[0].url).toBe('/company/1')
     expect(mock.history.patch[0].url).toBe('/company/1')
-    expect(mock.history.post[1].url).toBe('/company/reValuateAll')
+    expect(mock.history.post[1].url).toBe('/valuation/rebuild-all')
+    expect(JSON.parse(mock.history.post[1].data)).toEqual({
+      modelCodes: ['PROFIT_DISCOUNT', 'DCF_V1', 'DCF_V2'],
+      scenarioKey: 'BASE'
+    })
     expect(mock.history.post[2].url).toBe('/company/updatePriceAll')
     expect(mock.history.post[3].url).toBe('/company/updateReport')
     expect(JSON.parse(mock.history.post[3].data)).toEqual({ companyId: 1 })
+    expect(mock.history.post[4].url).toBe('/valuation/rebuild')
+    expect(JSON.parse(mock.history.post[4].data)).toEqual({
+      companyId: 1,
+      modelCodes: ['DCF_V2']
+    })
+    expect(mock.history.post[5].url).toBe('/valuation/rebuild-all')
+    expect(JSON.parse(mock.history.post[5].data)).toEqual({
+      modelCodes: ['PROFIT_DISCOUNT']
+    })
   })
 
   it('requests split valuation workbench endpoints', async () => {
@@ -112,15 +130,12 @@ describe('company api', () => {
     mock
       .onPost('/valuation/dcf/v1/industry-manual-assumptions')
       .reply(ok({ list: [], sum: 0 }))
-    mock.onPost('/valuation/dcf/v2/1/refresh').reply(
+    mock.onPost('/valuation/rebuild').reply(
       ok({
-        item: {
-          companyId: 1,
-          modelVersion: 'DCF_V2_STANDARD_FCFF'
-        }
+        runResult: { items: [{ companyId: 1, modelVersion: 'DCF_V2_STANDARD_FCFF' }] }
       })
     )
-    mock.onPost('/valuation/dcf/v2/refresh-all').reply(ok({ list: [], sum: 0 }))
+    mock.onPost('/valuation/rebuild-all').reply(ok({ runResult: { items: [] } }))
 
     await getProfitValuationList({ industryName: '白酒' })
     await getDcfValuationList({ industry: '白酒' })
@@ -192,7 +207,16 @@ describe('company api', () => {
       discountRateManual: 9,
       terminalGrowthRateManual: 2.5
     })
-    expect(mock.history.post[2].url).toBe('/valuation/dcf/v2/1/refresh')
-    expect(mock.history.post[3].url).toBe('/valuation/dcf/v2/refresh-all')
+    expect(mock.history.post[2].url).toBe('/valuation/rebuild')
+    expect(JSON.parse(mock.history.post[2].data)).toEqual({
+      companyId: 1,
+      modelCodes: ['DCF_V2'],
+      scenarioKey: 'BASE'
+    })
+    expect(mock.history.post[3].url).toBe('/valuation/rebuild-all')
+    expect(JSON.parse(mock.history.post[3].data)).toEqual({
+      modelCodes: ['DCF_V2'],
+      scenarioKey: 'BASE'
+    })
   })
 })
