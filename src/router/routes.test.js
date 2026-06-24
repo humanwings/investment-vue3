@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import router from './index'
+import { appRoutes } from './routes'
 
 describe('router smoke test', () => {
   it.each([
@@ -11,6 +12,7 @@ describe('router smoke test', () => {
     ['/companyvaluation/valuation/profit-discount', 'ProfitDiscountList'],
     ['/companyvaluation/valuation/dcf-v1', 'DcfValuationV1List'],
     ['/companyvaluation/valuation/dcf-v2', 'DcfValuationV2List'],
+    ['/system-settings/data-sources', 'DataSources'],
     ['/404', 'NotFound']
   ])('resolves %s to %s', async (path, expectedName) => {
     const resolved = router.resolve(path)
@@ -40,5 +42,17 @@ describe('router smoke test', () => {
       modelVersion: 'DCF_V2_STANDARD_FCFF',
       versionKey: 'v2'
     })
+  })
+
+  it('wires system settings data sources metadata', () => {
+    const systemSettings = appRoutes.find(
+      (route) => route.path === '/system-settings'
+    )
+    const dataSources = systemSettings?.children?.find(
+      (route) => route.path === 'data-sources'
+    )
+
+    expect(systemSettings?.meta.title).toBe('System Settings')
+    expect(dataSources?.meta.title).toBe('Data Sources')
   })
 })

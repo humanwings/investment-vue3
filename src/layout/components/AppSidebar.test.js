@@ -69,4 +69,17 @@ describe('AppSidebar', () => {
 
     expect(wrapper.vm.activeMenu).toBe('/companyvaluation/valuation/dcf-v2')
   })
+
+  it('includes the system settings data sources navigation item', () => {
+    const wrapper = shallowMount(AppSidebar)
+    const systemSettings = wrapper.vm.sidebarRoutes.find(
+      (route) => route.path === '/system-settings'
+    )
+    const dataSources = systemSettings?.children?.find(
+      (route) => route.path === 'data-sources'
+    )
+
+    expect(systemSettings?.meta.title).toBe('System Settings')
+    expect(dataSources?.meta.title).toBe('Data Sources')
+  })
 })

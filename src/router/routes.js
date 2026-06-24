@@ -1,4 +1,4 @@
-import { Coin, TrendCharts } from '@element-plus/icons-vue'
+import { Coin, Setting, TrendCharts } from '@element-plus/icons-vue'
 
 import Layout from '@/layout/index.vue'
 import { VALUATION_MODEL_CONFIGS } from '@/views/valuation/valuation-model-config'
@@ -225,6 +225,25 @@ export const appRoutes = [
             }
           }
         ]
+      }
+    ]
+  },
+  {
+    path: '/system-settings',
+    component: Layout,
+    redirect: '/system-settings/data-sources',
+    meta: {
+      title: 'System Settings',
+      icon: Setting
+    },
+    children: [
+      {
+        path: 'data-sources',
+        name: 'DataSources',
+        component: () => import('@/views/systemsettings/datasources.vue'),
+        meta: {
+          title: 'Data Sources'
+        }
       }
     ]
   },
