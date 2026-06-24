@@ -214,6 +214,51 @@ describe('companylist page', () => {
     expect(wrapper.vm.list[0].conclusion).toBe('可跟踪')
   })
 
+  it('shows partial-success warning and keeps returned list after bulk price refresh', async () => {
+    mock.onGet('/valuation/companies').reply(ok({ list: [], sum: 0 }))
+    mock.onPost('/company/updatePriceAll').reply(
+      ok({
+        list: companyListPayload.list,
+        sum: 1,
+        successCount: 2,
+        failureCount: 1,
+        items: [
+          {
+            companyId: 2,
+            stockCode: '000001',
+            status: 'FAILED',
+            message: 'TIMEOUT'
+          }
+        ]
+      })
+    )
+
+    const wrapper = shallowMount(CompanyList, {
+      global: {
+        stubs: elementPlusStubs,
+        directives: {
+          loading: {}
+        }
+      }
+    })
+
+    await flushPromises()
+    await wrapper.vm.confirmUpdatePriceAll()
+    await flushPromises()
+
+    expect(mock.history.post[0].url).toBe('/company/updatePriceAll')
+    expect(wrapper.vm.total).toBe(1)
+    expect(wrapper.vm.list).toHaveLength(1)
+    expect(wrapper.vm.list[0].companyId).toBe(
+      companyListPayload.list[0].companyId
+    )
+    expect(notifyWarning).toHaveBeenCalledWith({
+      title: '部分完成',
+      message: '股价批量更新完成，成功 2 项，失败 1 项'
+    })
+    expect(notifySuccess).not.toHaveBeenCalled()
+  })
+
   it('uses the unified bulk rebuild endpoint and shows warning when some models fail', async () => {
     mock.onGet('/valuation/companies').reply(ok(companyListPayload))
     mock.onPost('/valuation/rebuild-all').reply(

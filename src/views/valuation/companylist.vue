@@ -379,6 +379,15 @@ async function confirmUpdatePriceAll() {
     const response = await updatePriceAll()
     list.value = normalizeSummaryList(response.data.list)
     total.value = response.data.sum || 0
+    const successCount = Number(response.data.successCount || 0)
+    const failureCount = Number(response.data.failureCount || 0)
+    if (failureCount > 0) {
+      ElNotification.warning({
+        title: '部分完成',
+        message: `股价批量更新完成，成功 ${successCount} 项，失败 ${failureCount} 项`
+      })
+      return
+    }
     ElNotification.success({
       title: 'Success',
       message: '股价批量更新完成'
