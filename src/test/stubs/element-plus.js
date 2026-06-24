@@ -29,14 +29,62 @@ function createStub(name, tag = 'div') {
 }
 
 export const elementPlusStubs = {
+  ElAlert: defineComponent({
+    name: 'ElAlert',
+    props: {
+      title: {
+        type: String,
+        default: ''
+      }
+    },
+    setup(props, { slots, attrs }) {
+      return () => h('div', attrs, [props.title, slots.default?.()])
+    }
+  }),
   ElButton: createStub('ElButton', 'button'),
+  ElCard: createStub('ElCard'),
   ElDescriptions: createStub('ElDescriptions'),
   ElDescriptionsItem: createStub('ElDescriptionsItem'),
   ElDialog: createStub('ElDialog'),
   ElForm: createStub('ElForm', 'form'),
   ElFormItem: createStub('ElFormItem'),
   ElIcon: createStub('ElIcon', 'span'),
-  ElOption: createStub('ElOption'),
+  ElOption: defineComponent({
+    name: 'ElOption',
+    props: {
+      label: {
+        type: String,
+        default: ''
+      },
+      value: {
+        type: [String, Number, Boolean],
+        default: ''
+      }
+    },
+    setup(props, { attrs }) {
+      return () =>
+        h(
+          'option',
+          {
+            ...attrs,
+            value: props.value
+          },
+          props.label || props.value
+        )
+    }
+  }),
+  ElProgress: defineComponent({
+    name: 'ElProgress',
+    props: {
+      percentage: {
+        type: Number,
+        default: 0
+      }
+    },
+    setup(props, { attrs }) {
+      return () => h('div', attrs, `${props.percentage}%`)
+    }
+  }),
   ElInput: defineComponent({
     name: 'ElInput',
     props: {
@@ -97,6 +145,26 @@ export const elementPlusStubs = {
           },
           slots.default?.()
         )
+    }
+  }),
+  ElSwitch: defineComponent({
+    name: 'ElSwitch',
+    props: {
+      modelValue: {
+        type: Boolean,
+        default: false
+      }
+    },
+    emits: ['update:modelValue'],
+    setup(props, { emit, attrs }) {
+      return () =>
+        h('input', {
+          ...attrs,
+          type: 'checkbox',
+          checked: props.modelValue,
+          onChange: (event) =>
+            emit('update:modelValue', event.target.checked)
+        })
     }
   }),
   ElTabPane: createStub('ElTabPane'),

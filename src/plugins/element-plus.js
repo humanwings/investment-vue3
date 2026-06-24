@@ -1,6 +1,8 @@
 import {
+  ElAlert,
   ElButton,
   ElCascader,
+  ElCard,
   ElDatePicker,
   ElDescriptions,
   ElDescriptionsItem,
@@ -20,6 +22,7 @@ import {
   ElMenuItemGroup,
   ElOption,
   ElPagination,
+  ElProgress,
   ElRate,
   ElScrollbar,
   ElSelect,
@@ -33,8 +36,10 @@ import {
 } from 'element-plus'
 
 import 'element-plus/es/components/base/style/css'
+import 'element-plus/es/components/alert/style/css'
 import 'element-plus/es/components/button/style/css'
 import 'element-plus/es/components/cascader/style/css'
+import 'element-plus/es/components/card/style/css'
 import 'element-plus/es/components/date-picker/style/css'
 import 'element-plus/es/components/descriptions/style/css'
 import 'element-plus/es/components/descriptions-item/style/css'
@@ -54,6 +59,7 @@ import 'element-plus/es/components/menu-item/style/css'
 import 'element-plus/es/components/menu-item-group/style/css'
 import 'element-plus/es/components/option/style/css'
 import 'element-plus/es/components/pagination/style/css'
+import 'element-plus/es/components/progress/style/css'
 import 'element-plus/es/components/rate/style/css'
 import 'element-plus/es/components/scrollbar/style/css'
 import 'element-plus/es/components/select/style/css'
@@ -69,8 +75,10 @@ import 'element-plus/es/components/message-box/style/css'
 import 'element-plus/es/components/notification/style/css'
 
 const components = [
+  ElAlert,
   ElButton,
   ElCascader,
+  ElCard,
   ElDatePicker,
   ElDescriptions,
   ElDescriptionsItem,
@@ -89,6 +97,7 @@ const components = [
   ElMenuItemGroup,
   ElOption,
   ElPagination,
+  ElProgress,
   ElRate,
   ElScrollbar,
   ElSelect,
