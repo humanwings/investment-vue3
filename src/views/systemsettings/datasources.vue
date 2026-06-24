@@ -52,7 +52,10 @@
           />
         </el-form-item>
         <el-form-item v-if="lixingerSelected" label="Clear credential">
-          <el-switch v-model="settings.clearLixingerCredential" />
+          <el-switch
+            v-model="settings.clearLixingerCredential"
+            data-test="clear-lixinger-credential"
+          />
         </el-form-item>
       </el-form>
       <p class="description">
@@ -79,10 +82,7 @@
       <el-button data-test="run-assessment" @click="runAssessment">
         Run assessment
       </el-button>
-      <assessment-summary
-        v-if="assessment"
-        :assessment="assessment"
-      />
+      <assessment-summary v-if="assessment" :assessment="assessment" />
       <div
         v-for="row in comparisonRows"
         :key="`${row.company}-${row.field}`"
@@ -187,19 +187,24 @@ async function loadSettings() {
 }
 
 async function saveSettings() {
-  await updateDataSourceSettings({
+  const { data } = await updateDataSourceSettings({
     priceProvider: settings.priceProvider,
     companyProvider: settings.companyProvider,
     lixingerCredential: settings.lixingerCredential,
     clearLixingerCredential: settings.clearLixingerCredential
   })
+  savedSettings.value = data.settings || savedSettings.value
+  settings.priceProvider =
+    savedSettings.value.priceProvider || settings.priceProvider
+  settings.companyProvider =
+    savedSettings.value.companyProvider || settings.companyProvider
+  settings.lixingerCredential = ''
+  settings.clearLixingerCredential = false
 }
 
 async function runTest(capability) {
   const providerCode =
-    capability === 'PRICE'
-      ? settings.priceProvider
-      : settings.companyProvider
+    capability === 'PRICE' ? settings.priceProvider : settings.companyProvider
   const { data } = await testDataSource({
     capability,
     providerCode,

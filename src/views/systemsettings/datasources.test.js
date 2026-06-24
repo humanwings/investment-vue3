@@ -50,7 +50,16 @@ describe('data sources page', () => {
 
   it('loads independent provider selectors and saves blank credentials as retain', async () => {
     mock.onGet('/system-settings/data-sources').reply(ok(settingsPayload))
-    mock.onPut('/system-settings/data-sources').reply(ok(settingsPayload))
+    mock.onPut('/system-settings/data-sources').reply(
+      ok({
+        settings: {
+          priceProvider: 'LIXINGER',
+          companyProvider: 'EASTMONEY',
+          lixingerCredentialConfigured: true,
+          lixingerCredentialMasked: '********oken'
+        }
+      })
+    )
 
     const wrapper = mountPage()
     await flushPromises()
@@ -62,9 +71,10 @@ describe('data sources page', () => {
 
     await priceSelector.setValue('LIXINGER')
     expect(companySelector.element.value).toBe('EASTMONEY')
-    expect(wrapper.get('[data-test="lixinger-credential"]').exists()).toBe(
-      true
-    )
+    expect(wrapper.get('[data-test="lixinger-credential"]').exists()).toBe(true)
+    expect(
+      wrapper.get('[data-test="clear-lixinger-credential"]').exists()
+    ).toBe(true)
 
     await wrapper.get('[data-test="save-settings"]').trigger('click')
     await flushPromises()
@@ -83,6 +93,7 @@ describe('data sources page', () => {
     expect(mock.history.post.map((request) => request.url)).not.toContain(
       '/valuation/rebuild-all'
     )
+    expect(wrapper.text()).toContain('********oken')
   })
 
   it('renders separate connection test results for price and company providers', async () => {
@@ -195,7 +206,9 @@ describe('data sources page', () => {
     await flushPromises()
 
     expect(mock.history.post).toHaveLength(1)
-    expect(mock.history.post[0].url).toBe('/system-settings/data-sources/assess')
+    expect(mock.history.post[0].url).toBe(
+      '/system-settings/data-sources/assess'
+    )
     expect(mock.history.post[0].data).toBeUndefined()
     expect(wrapper.findAll('[data-test="sample-company"]')).toHaveLength(3)
     expect(wrapper.get('[data-test="assessment-summary"]').text()).toContain(
