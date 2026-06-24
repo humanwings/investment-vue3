@@ -36,9 +36,7 @@ describe('data sources api', () => {
     expect(JSON.parse(mock.history.put[0].data)).toEqual({
       priceProvider: 'EASTMONEY'
     })
-    expect(mock.history.post[0].url).toBe(
-      '/system-settings/data-sources/test'
-    )
+    expect(mock.history.post[0].url).toBe('/system-settings/data-sources/test')
     expect(JSON.parse(mock.history.post[0].data)).toEqual({
       capability: 'PRICE',
       providerCode: 'EASTMONEY'

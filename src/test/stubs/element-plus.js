@@ -162,8 +162,7 @@ export const elementPlusStubs = {
           ...attrs,
           type: 'checkbox',
           checked: props.modelValue,
-          onChange: (event) =>
-            emit('update:modelValue', event.target.checked)
+          onChange: (event) => emit('update:modelValue', event.target.checked)
         })
     }
   }),

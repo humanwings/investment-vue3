@@ -63,7 +63,12 @@
             align="center"
             sortable
           />
-          <el-table-column prop="price" label="当前价" width="80" align="right" />
+          <el-table-column
+            prop="price"
+            label="当前价"
+            width="80"
+            align="right"
+          />
           <el-table-column
             prop="profitValuation"
             label="利润贴现"
@@ -150,7 +155,12 @@
       </div>
     </div>
 
-    <el-dialog v-model="addDialogVisible" title="加入公司" width="420px" @opened="onDialogOpened">
+    <el-dialog
+      v-model="addDialogVisible"
+      title="加入公司"
+      width="420px"
+      @opened="onDialogOpened"
+    >
       <el-form label-position="top" @submit.prevent>
         <el-form-item label="Stock Code">
           <el-input
