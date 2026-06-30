@@ -1,9 +1,15 @@
 <template>
   <section class="data-sources-page">
+    <div class="page-actions">
+      <el-button data-test="save-all-settings" type="primary" @click="saveSettings">
+        保存全部设置
+      </el-button>
+    </div>
+
     <el-card>
-      <template #header>Price Data Source</template>
+      <template #header>股价数据接口</template>
       <el-form label-width="150px">
-        <el-form-item label="Provider">
+        <el-form-item label="数据源">
           <el-select
             v-model="settings.priceProvider"
             data-test="price-provider"
@@ -17,9 +23,9 @@
           </el-select>
         </el-form-item>
       </el-form>
-      <p class="description">Choose the provider used for latest price data.</p>
+      <p class="description">选择 companylist 功能使用的最新股价数据源。</p>
       <el-button data-test="test-price" @click="runTest('PRICE')">
-        Test price provider
+        测试股价接口
       </el-button>
       <provider-status
         data-test="price-test-result"
@@ -28,9 +34,9 @@
     </el-card>
 
     <el-card>
-      <template #header>Company Data Source</template>
+      <template #header>公司数据接口</template>
       <el-form label-width="150px">
-        <el-form-item label="Provider">
+        <el-form-item label="数据源">
           <el-select
             v-model="settings.companyProvider"
             data-test="company-provider"
@@ -43,15 +49,15 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item v-if="lixingerSelected" label="Lixinger credential">
+        <el-form-item v-if="lixingerSelected" label="理杏仁凭证">
           <el-input
             v-model="settings.lixingerCredential"
             data-test="lixinger-credential"
-            placeholder="Leave blank to retain the saved credential"
+            placeholder="留空表示继续使用已保存的凭证"
             show-password
           />
         </el-form-item>
-        <el-form-item v-if="lixingerSelected" label="Clear credential">
+        <el-form-item v-if="lixingerSelected" label="清空凭证">
           <el-switch
             v-model="settings.clearLixingerCredential"
             data-test="clear-lixinger-credential"
@@ -59,14 +65,11 @@
         </el-form-item>
       </el-form>
       <p class="description">
-        Saved credential:
+        已保存的凭证：
         {{ credentialState }}
       </p>
       <el-button data-test="test-company" @click="runTest('COMPANY_DATA')">
-        Test company provider
-      </el-button>
-      <el-button data-test="save-settings" type="primary" @click="saveSettings">
-        Save settings
+        测试公司数据接口
       </el-button>
       <provider-status
         data-test="company-test-result"
@@ -75,12 +78,12 @@
     </el-card>
 
     <el-card>
-      <template #header>Data Consistency Assessment</template>
+      <template #header>数据一致性评估</template>
       <p class="description">
-        Compare Eastmoney and Lixinger values across sampled companies.
+        随机抽取 3 只系统内股票，对东方财富与理杏仁返回的数据做一致性对比。
       </p>
       <el-button data-test="run-assessment" @click="runAssessment">
-        Run assessment
+        开始评估
       </el-button>
       <assessment-summary v-if="assessment" :assessment="assessment" />
       <div
@@ -92,18 +95,18 @@
         {{ row.lixingerValue }} {{ row.conclusion }} {{ row.message }}
       </div>
       <el-table :data="comparisonRows" size="small">
-        <el-table-column label="Company" prop="company" />
-        <el-table-column label="Field" prop="field" />
-        <el-table-column label="Eastmoney" prop="eastmoneyValue" />
-        <el-table-column label="Lixinger" prop="lixingerValue" />
-        <el-table-column label="Conclusion">
+        <el-table-column label="股票" prop="company" />
+        <el-table-column label="字段" prop="field" />
+        <el-table-column label="东方财富" prop="eastmoneyValue" />
+        <el-table-column label="理杏仁" prop="lixingerValue" />
+        <el-table-column label="结论">
           <template #default="{ row }">
             <el-tag :type="conclusionTagTypes[row.conclusion] || 'info'">
               {{ row.conclusion }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="Message" prop="message" />
+        <el-table-column label="说明" prop="message" />
       </el-table>
     </el-card>
   </section>
@@ -155,9 +158,9 @@ const lixingerSelected = computed(
 )
 const credentialState = computed(() => {
   if (savedSettings.value.lixingerCredentialConfigured) {
-    return savedSettings.value.lixingerCredentialMasked || 'configured'
+    return savedSettings.value.lixingerCredentialMasked || '已配置'
   }
-  return 'not configured'
+  return '未配置'
 })
 const comparisonRows = computed(() =>
   (assessment.value?.companies || []).flatMap((company) =>
@@ -235,6 +238,11 @@ function formatValue(value) {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.page-actions {
+  display: flex;
+  justify-content: flex-start;
 }
 
 .description {

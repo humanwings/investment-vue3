@@ -79,7 +79,20 @@ describe('AppSidebar', () => {
       (route) => route.path === 'data-sources'
     )
 
-    expect(systemSettings?.meta.title).toBe('System Settings')
-    expect(dataSources?.meta.title).toBe('Data Sources')
+    expect(systemSettings?.meta.title).toBe('系统设置')
+    expect(dataSources?.meta.title).toBe('数据接口设置')
+  })
+
+  it('renders system settings as a grouped menu with a visible child item', () => {
+    const wrapper = shallowMount(AppSidebar)
+    const systemSettings = wrapper.vm.sidebarRoutes.find(
+      (route) => route.path === '/system-settings'
+    )
+
+    expect(wrapper.vm.hasVisibleSectionChildren(systemSettings)).toBe(true)
+    expect(wrapper.vm.visibleSections(systemSettings)).toHaveLength(1)
+    expect(wrapper.vm.visibleSections(systemSettings)[0].meta.title).toBe(
+      '数据接口设置'
+    )
   })
 })

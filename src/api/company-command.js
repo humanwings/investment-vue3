@@ -34,7 +34,8 @@ export function reValuateAll() {
 export function updatePriceAll() {
   return request({
     url: '/company/updatePriceAll',
-    method: 'post'
+    method: 'post',
+    timeout: 120000
   })
 }
 

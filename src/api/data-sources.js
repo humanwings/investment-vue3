@@ -26,6 +26,7 @@ export function testDataSource(data) {
 export function assessDataSources() {
   return request({
     url: '/system-settings/data-sources/assess',
-    method: 'post'
+    method: 'post',
+    timeout: 30000
   })
 }

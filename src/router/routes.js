@@ -10,7 +10,7 @@ export const appRoutes = [
     component: () => import('@/views/login/index.vue'),
     meta: {
       hidden: true,
-      title: 'Login'
+      title: '登录'
     }
   },
   {
@@ -18,7 +18,7 @@ export const appRoutes = [
     component: Layout,
     redirect: '/dashboard',
     meta: {
-      title: 'Dashboard'
+      title: '首页'
     },
     children: [
       {
@@ -26,7 +26,7 @@ export const appRoutes = [
         name: 'Dashboard',
         component: () => import('@/views/dashboard/index.vue'),
         meta: {
-          title: 'Dashboard'
+          title: '首页'
         }
       }
     ]
@@ -36,7 +36,7 @@ export const appRoutes = [
     component: Layout,
     redirect: '/barginhunting/analyte/waitlist',
     meta: {
-      title: 'Bargin Hunting',
+      title: '捡漏分析',
       icon: TrendCharts
     },
     children: [
@@ -46,7 +46,7 @@ export const appRoutes = [
         component: () => import('@/views/placeholder/section.vue'),
         redirect: '/barginhunting/analyte/waitlist',
         meta: {
-          title: 'Analyte'
+          title: '标的分析'
         },
         children: [
           {
@@ -54,7 +54,7 @@ export const appRoutes = [
             name: 'AnalyteWaitList',
             component: () => import('@/views/analyte/waitlist.vue'),
             meta: {
-              title: 'Wait List'
+              title: '待分析列表'
             }
           },
           {
@@ -62,7 +62,7 @@ export const appRoutes = [
             name: 'AnalyteDoneList',
             component: () => import('@/views/analyte/donelist.vue'),
             meta: {
-              title: 'Done List'
+              title: '已完成列表'
             }
           },
           {
@@ -71,7 +71,7 @@ export const appRoutes = [
             component: () => import('@/views/analyte/verification.vue'),
             meta: {
               hidden: true,
-              title: 'Verification Detail',
+              title: '验证详情',
               activeMenu: '/barginhunting/analyte/waitlist'
             }
           },
@@ -82,7 +82,7 @@ export const appRoutes = [
               import('@/views/analyte/verificationcomparison.vue'),
             meta: {
               hidden: true,
-              title: 'Verification Compare',
+              title: '验证对比',
               activeMenu: '/barginhunting/analyte/waitlist'
             }
           }
@@ -94,7 +94,7 @@ export const appRoutes = [
         component: () => import('@/views/placeholder/section.vue'),
         redirect: '/barginhunting/strategy/strategylist',
         meta: {
-          title: 'Strategy'
+          title: '策略'
         },
         children: [
           {
@@ -102,7 +102,7 @@ export const appRoutes = [
             name: 'StrategyList',
             component: () => import('@/views/strategy/strategylist.vue'),
             meta: {
-              title: 'Strategy List'
+              title: '策略列表'
             }
           },
           {
@@ -110,7 +110,7 @@ export const appRoutes = [
             name: 'StrategyAdd',
             component: () => import('@/views/strategy/strategyedit.vue'),
             meta: {
-              title: 'Add Strategy'
+              title: '新增策略'
             }
           },
           {
@@ -119,7 +119,7 @@ export const appRoutes = [
             component: () => import('@/views/strategy/strategyedit.vue'),
             meta: {
               hidden: true,
-              title: 'Edit Strategy',
+              title: '编辑策略',
               activeMenu: '/barginhunting/strategy/strategylist'
             }
           }
@@ -132,7 +132,7 @@ export const appRoutes = [
     component: Layout,
     redirect: '/companyvaluation/valuation/company',
     meta: {
-      title: 'Company Valuation',
+      title: '公司估值',
       icon: Coin
     },
     children: [
@@ -142,7 +142,7 @@ export const appRoutes = [
         component: () => import('@/views/placeholder/section.vue'),
         redirect: '/companyvaluation/valuation/company',
         meta: {
-          title: 'Valuation'
+          title: '估值'
         },
         children: [
           {
@@ -150,7 +150,7 @@ export const appRoutes = [
             name: 'CompanyList',
             component: () => import('@/views/valuation/companylist.vue'),
             meta: {
-              title: 'Company List'
+              title: '公司列表'
             }
           },
           {
@@ -159,7 +159,7 @@ export const appRoutes = [
             component: () => import('@/views/valuation/companydetail.vue'),
             meta: {
               hidden: true,
-              title: 'Company Detail',
+              title: '公司详情',
               activeMenu: '/companyvaluation/valuation/company'
             }
           },
@@ -168,7 +168,7 @@ export const appRoutes = [
             name: 'ProfitDiscountList',
             component: () => import('@/views/valuation/profitdiscount.vue'),
             meta: {
-              title: 'Profit Discount'
+              title: '利润折现'
             }
           },
           {
@@ -205,7 +205,7 @@ export const appRoutes = [
         component: () => import('@/views/placeholder/section.vue'),
         redirect: '/companyvaluation/settings/macrosettings',
         meta: {
-          title: 'Settings'
+          title: '设置'
         },
         children: [
           {
@@ -213,7 +213,7 @@ export const appRoutes = [
             name: 'MacroSettings',
             component: () => import('@/views/valuation/macrosettings.vue'),
             meta: {
-              title: 'Macro Settings'
+              title: '宏观设置'
             }
           },
           {
@@ -221,7 +221,7 @@ export const appRoutes = [
             name: 'IndustrySettings',
             component: () => import('@/views/valuation/industrysettings.vue'),
             meta: {
-              title: 'Industry Settings'
+              title: '行业设置'
             }
           }
         ]
@@ -233,7 +233,7 @@ export const appRoutes = [
     component: Layout,
     redirect: '/system-settings/data-sources',
     meta: {
-      title: 'System Settings',
+      title: '系统设置',
       icon: Setting
     },
     children: [
@@ -242,7 +242,7 @@ export const appRoutes = [
         name: 'DataSources',
         component: () => import('@/views/systemsettings/datasources.vue'),
         meta: {
-          title: 'Data Sources'
+          title: '数据接口设置'
         }
       }
     ]

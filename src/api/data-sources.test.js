@@ -45,5 +45,6 @@ describe('data sources api', () => {
       '/system-settings/data-sources/assess'
     )
     expect(mock.history.post[1].data).toBeUndefined()
+    expect(mock.history.post[1].timeout).toBe(30000)
   })
 })

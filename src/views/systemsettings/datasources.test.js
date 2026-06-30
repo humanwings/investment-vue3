@@ -48,7 +48,7 @@ describe('data sources page', () => {
     mock.reset()
   })
 
-  it('loads independent provider selectors and saves blank credentials as retain', async () => {
+  it('loads independent provider selectors and saves all settings from the page header', async () => {
     mock.onGet('/system-settings/data-sources').reply(ok(settingsPayload))
     mock.onPut('/system-settings/data-sources').reply(
       ok({
@@ -76,7 +76,11 @@ describe('data sources page', () => {
       wrapper.get('[data-test="clear-lixinger-credential"]').exists()
     ).toBe(true)
 
-    await wrapper.get('[data-test="save-settings"]').trigger('click')
+    expect(wrapper.get('[data-test="save-all-settings"]').text()).toContain(
+      '保存全部设置'
+    )
+
+    await wrapper.get('[data-test="save-all-settings"]').trigger('click')
     await flushPromises()
 
     expect(mock.history.put).toHaveLength(1)
@@ -94,6 +98,9 @@ describe('data sources page', () => {
       '/valuation/rebuild-all'
     )
     expect(wrapper.text()).toContain('********oken')
+    expect(wrapper.text()).toContain('选择 companylist 功能使用的最新股价数据源')
+    expect(wrapper.text()).toContain('测试公司数据接口')
+    expect(wrapper.text()).toContain('已保存的凭证')
   })
 
   it('renders separate connection test results for price and company providers', async () => {
@@ -103,7 +110,7 @@ describe('data sources page', () => {
       return ok({
         result: {
           providerCode: request.providerCode,
-          sample: { companyId: 1, stockCode: '600519', name: '雍ｵ蟾櫁桁蜿ｰ' },
+          sample: { companyId: 1, stockCode: '600519', name: '贵州茅台' },
           operations: [
             {
               operation: request.capability,
@@ -145,7 +152,7 @@ describe('data sources page', () => {
       '123ms'
     )
     expect(wrapper.get('[data-test="company-test-result"]').text()).toContain(
-      '雍ｵ蟾櫁桁蜿ｰ'
+      '贵州茅台'
     )
   })
 
@@ -155,7 +162,7 @@ describe('data sources page', () => {
       ok({
         assessment: {
           samples: [
-            { companyId: 1, stockCode: '600519', name: '雍ｵ蟾櫁桁蜿ｰ' },
+            { companyId: 1, stockCode: '600519', name: '贵州茅台' },
             { companyId: 2, stockCode: '000001', name: 'Sample A' },
             { companyId: 3, stockCode: '000002', name: 'Sample B' }
           ],
@@ -175,7 +182,7 @@ describe('data sources page', () => {
             {
               companyId: 1,
               stockCode: '600519',
-              name: '雍ｵ蟾櫁桁蜿ｰ',
+              name: '贵州茅台',
               fields: [
                 {
                   field: 'price',
@@ -215,10 +222,10 @@ describe('data sources page', () => {
       '66.67%'
     )
     expect(wrapper.get('[data-test="assessment-summary"]').text()).toContain(
-      'Comparable 3'
+      '可比项 3'
     )
     expect(wrapper.get('[data-test="assessment-summary"]').text()).toContain(
-      'Matches 2'
+      '一致 2'
     )
     expect(wrapper.text()).toContain('PROVIDER_UNAVAILABLE')
     expect(wrapper.text()).toContain('1241.41')
@@ -257,7 +264,7 @@ describe('data sources page', () => {
       'No companies available to sample'
     )
     expect(wrapper.get('[data-test="assessment-summary"]').text()).toContain(
-      'No sampled companies'
+      '暂无抽样股票'
     )
   })
 })

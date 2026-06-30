@@ -96,6 +96,7 @@ describe('company api', () => {
       scenarioKey: 'BASE'
     })
     expect(mock.history.post[2].url).toBe('/company/updatePriceAll')
+    expect(mock.history.post[2].timeout).toBe(120000)
     expect(mock.history.post[3].url).toBe('/company/updateReport')
     expect(JSON.parse(mock.history.post[3].data)).toEqual({ companyId: 1 })
     expect(mock.history.post[4].url).toBe('/valuation/rebuild')

@@ -28,7 +28,7 @@
       </div>
 
       <el-scrollbar>
-        <div class="sidebar-section-label">业务导航</div>
+        <div class="sidebar-section-label">功能导航</div>
         <el-menu
           :default-active="activeMenu"
           :collapse="!appStore.showDesktopLabel && !appStore.isMobile"
@@ -166,9 +166,7 @@ function hasVisibleLeafChildren(section) {
 }
 
 function hasVisibleSectionChildren(group) {
-  return visibleSections(group).some((section) =>
-    hasVisibleLeafChildren(section)
-  )
+  return visibleSections(group).length > 0
 }
 
 function handleSelect() {

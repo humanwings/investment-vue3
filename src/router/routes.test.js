@@ -52,7 +52,7 @@ describe('router smoke test', () => {
       (route) => route.path === 'data-sources'
     )
 
-    expect(systemSettings?.meta.title).toBe('System Settings')
-    expect(dataSources?.meta.title).toBe('Data Sources')
+    expect(systemSettings?.meta.title).toBe('系统设置')
+    expect(dataSources?.meta.title).toBe('数据接口设置')
   })
 })
