@@ -1,4 +1,4 @@
-import { Coin, Setting, TrendCharts } from '@element-plus/icons-vue'
+import { Coin, Grid, Setting, TrendCharts } from '@element-plus/icons-vue'
 
 import Layout from '@/layout/index.vue'
 import { VALUATION_MODEL_CONFIGS } from '@/views/valuation/valuation-model-config'
@@ -28,102 +28,6 @@ export const appRoutes = [
         meta: {
           title: '首页'
         }
-      }
-    ]
-  },
-  {
-    path: '/barginhunting',
-    component: Layout,
-    redirect: '/barginhunting/analyte/waitlist',
-    meta: {
-      title: '捡漏分析',
-      icon: TrendCharts
-    },
-    children: [
-      {
-        path: 'analyte',
-        name: 'AnalyteRoot',
-        component: () => import('@/views/placeholder/section.vue'),
-        redirect: '/barginhunting/analyte/waitlist',
-        meta: {
-          title: '标的分析'
-        },
-        children: [
-          {
-            path: 'waitlist',
-            name: 'AnalyteWaitList',
-            component: () => import('@/views/analyte/waitlist.vue'),
-            meta: {
-              title: '待分析列表'
-            }
-          },
-          {
-            path: 'donelist',
-            name: 'AnalyteDoneList',
-            component: () => import('@/views/analyte/donelist.vue'),
-            meta: {
-              title: '已完成列表'
-            }
-          },
-          {
-            path: 'verification/:id',
-            name: 'VerificationById',
-            component: () => import('@/views/analyte/verification.vue'),
-            meta: {
-              hidden: true,
-              title: '验证详情',
-              activeMenu: '/barginhunting/analyte/waitlist'
-            }
-          },
-          {
-            path: 'verification/compare/:idOne/:idTwo',
-            name: 'VerificationCompare',
-            component: () =>
-              import('@/views/analyte/verificationcomparison.vue'),
-            meta: {
-              hidden: true,
-              title: '验证对比',
-              activeMenu: '/barginhunting/analyte/waitlist'
-            }
-          }
-        ]
-      },
-      {
-        path: 'strategy',
-        name: 'StrategyRoot',
-        component: () => import('@/views/placeholder/section.vue'),
-        redirect: '/barginhunting/strategy/strategylist',
-        meta: {
-          title: '策略'
-        },
-        children: [
-          {
-            path: 'strategylist',
-            name: 'StrategyList',
-            component: () => import('@/views/strategy/strategylist.vue'),
-            meta: {
-              title: '策略列表'
-            }
-          },
-          {
-            path: 'strategyadd',
-            name: 'StrategyAdd',
-            component: () => import('@/views/strategy/strategyedit.vue'),
-            meta: {
-              title: '新增策略'
-            }
-          },
-          {
-            path: 'strategyedit/:id',
-            name: 'StrategyEdit',
-            component: () => import('@/views/strategy/strategyedit.vue'),
-            meta: {
-              hidden: true,
-              title: '编辑策略',
-              activeMenu: '/barginhunting/strategy/strategylist'
-            }
-          }
-        ]
       }
     ]
   },
@@ -222,6 +126,149 @@ export const appRoutes = [
             component: () => import('@/views/valuation/industrysettings.vue'),
             meta: {
               title: '行业设置'
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    path: '/grid-trading',
+    component: Layout,
+    redirect: '/grid-trading/strategy',
+    meta: {
+      title: '网格交易',
+      icon: Grid
+    },
+    children: [
+      {
+        path: 'strategy',
+        name: 'GridStrategyList',
+        component: () => import('@/views/gridtrading/strategylist.vue'),
+        meta: {
+          title: '策略列表'
+        }
+      },
+      {
+        path: 'strategy/add',
+        name: 'GridStrategyAdd',
+        component: () => import('@/views/gridtrading/strategyedit.vue'),
+        meta: {
+          title: '新增策略'
+        }
+      },
+      {
+        path: 'strategy/edit/:id',
+        name: 'GridStrategyEdit',
+        component: () => import('@/views/gridtrading/strategyedit.vue'),
+        meta: {
+          hidden: true,
+          title: '编辑策略',
+          activeMenu: '/grid-trading/strategy'
+        }
+      },
+      {
+        path: 'strategy/:id',
+        name: 'GridStrategyDetail',
+        component: () => import('@/views/gridtrading/strategydetail.vue'),
+        meta: {
+          hidden: true,
+          title: '策略详情',
+          activeMenu: '/grid-trading/strategy'
+        }
+      }
+    ]
+  },
+  {
+    path: '/barginhunting',
+    component: Layout,
+    redirect: '/barginhunting/analyte/waitlist',
+    meta: {
+      title: '捡漏分析',
+      icon: TrendCharts
+    },
+    children: [
+      {
+        path: 'analyte',
+        name: 'AnalyteRoot',
+        component: () => import('@/views/placeholder/section.vue'),
+        redirect: '/barginhunting/analyte/waitlist',
+        meta: {
+          title: '标的分析'
+        },
+        children: [
+          {
+            path: 'waitlist',
+            name: 'AnalyteWaitList',
+            component: () => import('@/views/analyte/waitlist.vue'),
+            meta: {
+              title: '待分析列表'
+            }
+          },
+          {
+            path: 'donelist',
+            name: 'AnalyteDoneList',
+            component: () => import('@/views/analyte/donelist.vue'),
+            meta: {
+              title: '已完成列表'
+            }
+          },
+          {
+            path: 'verification/:id',
+            name: 'VerificationById',
+            component: () => import('@/views/analyte/verification.vue'),
+            meta: {
+              hidden: true,
+              title: '验证详情',
+              activeMenu: '/barginhunting/analyte/waitlist'
+            }
+          },
+          {
+            path: 'verification/compare/:idOne/:idTwo',
+            name: 'VerificationCompare',
+            component: () =>
+              import('@/views/analyte/verificationcomparison.vue'),
+            meta: {
+              hidden: true,
+              title: '验证对比',
+              activeMenu: '/barginhunting/analyte/waitlist'
+            }
+          }
+        ]
+      },
+      {
+        path: 'strategy',
+        name: 'StrategyRoot',
+        component: () => import('@/views/placeholder/section.vue'),
+        redirect: '/barginhunting/strategy/strategylist',
+        meta: {
+          title: '策略'
+        },
+        children: [
+          {
+            path: 'strategylist',
+            name: 'StrategyList',
+            component: () => import('@/views/strategy/strategylist.vue'),
+            meta: {
+              title: '策略列表'
+            }
+          },
+          {
+            path: 'strategyadd',
+            name: 'StrategyAdd',
+            component: () => import('@/views/strategy/strategyedit.vue'),
+            meta: {
+              title: '新增策略'
+            }
+          },
+          {
+            path: 'strategyedit/:id',
+            name: 'StrategyEdit',
+            component: () => import('@/views/strategy/strategyedit.vue'),
+            meta: {
+              hidden: true,
+              title: '编辑策略',
+              activeMenu: '/barginhunting/strategy/strategylist'
             }
           }
         ]

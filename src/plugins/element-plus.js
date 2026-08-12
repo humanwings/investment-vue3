@@ -23,6 +23,9 @@ import {
   ElOption,
   ElPagination,
   ElProgress,
+  ElRadio,
+  ElRadioButton,
+  ElRadioGroup,
   ElRate,
   ElScrollbar,
   ElSelect,
@@ -60,6 +63,9 @@ import 'element-plus/es/components/menu-item-group/style/css'
 import 'element-plus/es/components/option/style/css'
 import 'element-plus/es/components/pagination/style/css'
 import 'element-plus/es/components/progress/style/css'
+import 'element-plus/es/components/radio/style/css'
+import 'element-plus/es/components/radio-button/style/css'
+import 'element-plus/es/components/radio-group/style/css'
 import 'element-plus/es/components/rate/style/css'
 import 'element-plus/es/components/scrollbar/style/css'
 import 'element-plus/es/components/select/style/css'
@@ -98,6 +104,9 @@ const components = [
   ElOption,
   ElPagination,
   ElProgress,
+  ElRadio,
+  ElRadioButton,
+  ElRadioGroup,
   ElRate,
   ElScrollbar,
   ElSelect,

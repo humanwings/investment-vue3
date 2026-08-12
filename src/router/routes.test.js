@@ -13,6 +13,7 @@ describe('router smoke test', () => {
     ['/companyvaluation/valuation/dcf-v1', 'DcfValuationV1List'],
     ['/companyvaluation/valuation/dcf-v2', 'DcfValuationV2List'],
     ['/system-settings/data-sources', 'DataSources'],
+    ['/grid-trading/strategy', 'GridStrategyList'],
     ['/404', 'NotFound']
   ])('resolves %s to %s', async (path, expectedName) => {
     const resolved = router.resolve(path)
