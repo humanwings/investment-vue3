@@ -86,6 +86,7 @@
         <el-form-item
           v-if="!isEdit || form.status !== 'ENDED'"
           label="当前档位（可选）"
+          label-width="150px"
         >
           <el-select
             v-model="tierSelection"
@@ -124,12 +125,9 @@
           v-if="tiersReady"
           v-model:tiers="form.tiers"
           :base-qty="form.baseQty"
+          :base-price="form.basePrice"
           :keep-qty="form.keepQty"
           :min-unit-qty="form.minUnitQty"
-          :current-tier-level="form.currentTierLevel"
-          :position-qty="
-            tierSelection === 'not-set' ? 0 : positionAt(tierSelection)
-          "
         />
       </div>
 
@@ -328,11 +326,12 @@ function buildTiers(params) {
 
   const limit = params.baseQty - params.keepQty
   const upRows = rows.filter((row) => row.level < 0)
-  let over = upRows.reduce((sum, row) => sum + row.qty, 0) - limit
-  for (let i = upRows.length - 1; i >= 0 && over > 0; i -= 1) {
-    const cut = Math.min(upRows[i].qty - unit, over)
-    upRows[i].qty -= cut
-    over -= cut
+  if (upRows.length) {
+    const highest = upRows.reduce((a, b) => (a.level < b.level ? a : b))
+    const othersSum = upRows
+      .filter((row) => row !== highest)
+      .reduce((sum, row) => sum + row.qty, 0)
+    highest.qty = Math.max(0, limit - othersSum)
   }
   return rows.sort((a, b) => a.level - b.level)
 }

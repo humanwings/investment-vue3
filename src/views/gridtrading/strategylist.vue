@@ -22,28 +22,83 @@
         </div>
       </div>
 
+      <div class="stat-bar">
+        <div class="stat-item">
+          <span class="stat-label">总标的数</span>
+          <span class="stat-value">{{ list.length }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">总市值</span>
+          <span class="stat-value">{{ formatNumber(totalMarketValue) }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">待确认</span>
+          <span class="stat-value pending">{{ totalPending }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">即将触发</span>
+          <span class="stat-value imminent">{{ totalImminent }}</span>
+        </div>
+      </div>
+
       <el-table
         v-loading="loading"
-        :data="list"
+        :data="sortedRows"
+        :max-height="'calc(100vh - 300px)'"
         row-key="strategyId"
+        @sort-change="handleSortChange"
         @row-click="handleRowClick"
       >
+        <el-table-column type="index" label="序号" width="60" align="center" />
         <el-table-column label="标的" min-width="160">
           <template #default="{ row }">
             <div class="stock-cell">
               <b>{{ row.stockName }}</b>
               <el-tag size="small" type="info">{{ row.stockCode }}</el-tag>
+              <span
+                :class="row.market === 'H' ? 'market-h' : 'market-a'"
+                class="market-badge"
+                >{{ row.market }}</span
+              >
             </div>
           </template>
         </el-table-column>
-        <el-table-column label="市场" width="80">
+        <el-table-column
+          prop="pendingCount"
+          label="待确认"
+          width="90"
+          sortable="custom"
+        >
           <template #default="{ row }">
-            <el-tag
-              size="small"
-              :type="row.market === 'H' ? 'warning' : 'primary'"
+            <span v-if="row.pendingCount > 0" class="pending-badge">
+              <el-icon class="pending-icon"><Bell /></el-icon>
+              {{ row.pendingCount }}
+            </span>
+            <span v-else />
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="imminent"
+          label="即将触发"
+          width="120"
+          sortable="custom"
+          align="center"
+        >
+          <template #default="{ row }">
+            <span
+              v-if="row.imminentAction"
+              :title="imminentTitle(row)"
+              :class="
+                row.imminentAction === 'SELL' ? 'imminent-up' : 'imminent-down'
+              "
+              class="imminent-badge"
             >
-              {{ row.market === 'H' ? '港股' : 'A股' }}
-            </el-tag>
+              <el-icon>
+                <ArrowUpBold v-if="row.imminentAction === 'SELL'" />
+                <ArrowDownBold v-else />
+              </el-icon>
+            </span>
+            <span v-else />
           </template>
         </el-table-column>
         <el-table-column prop="basePrice" label="基准价" width="90">
@@ -71,7 +126,12 @@
             {{ row.positionQty ? `${formatNumber(row.positionQty)} 股` : '—' }}
           </template>
         </el-table-column>
-        <el-table-column label="持仓市值" width="120">
+        <el-table-column
+          prop="marketValue"
+          label="持仓市值"
+          width="120"
+          sortable="custom"
+        >
           <template #default="{ row }">
             {{ marketValue(row) }}
           </template>
@@ -81,14 +141,6 @@
             <el-tag size="small" :type="statusType(row.status)">{{
               statusLabel(row.status)
             }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="待确认" width="80">
-          <template #default="{ row }">
-            <el-tag v-if="row.pendingCount > 0" size="small" type="danger">
-              {{ row.pendingCount }} 条
-            </el-tag>
-            <span v-else>0</span>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="290" fixed="right">
@@ -145,9 +197,10 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { ArrowDownBold, ArrowUpBold, Bell } from '@element-plus/icons-vue'
 
 import {
   activateGridStrategy,
@@ -166,6 +219,7 @@ const list = ref([])
 const loading = ref(false)
 const refreshing = ref(false)
 const refreshingId = ref(null)
+const sortState = ref(null)
 
 onMounted(getList)
 
@@ -174,9 +228,66 @@ async function getList() {
   try {
     const { data } = await getGridStrategyList()
     list.value = data.strategyList || []
+    sortState.value = null
   } finally {
     loading.value = false
   }
+}
+
+const sortedRows = computed(() => {
+  const rows = [...list.value]
+  const { prop, order } = sortState.value || {}
+  if (prop === 'marketValue') {
+    const dir = order === 'ascending' ? 1 : -1
+    rows.sort((a, b) => (marketValueNumber(a) - marketValueNumber(b)) * dir)
+  } else if (prop === 'pendingCount') {
+    const dir = order === 'ascending' ? 1 : -1
+    rows.sort((a, b) => ((a.pendingCount || 0) - (b.pendingCount || 0)) * dir)
+  } else if (prop === 'imminent') {
+    const dir = order === 'ascending' ? 1 : -1
+    rows.sort((a, b) => (imminentRank(b) - imminentRank(a)) * dir)
+  } else {
+    // 缺省：待确认多 → 即将触发 → 市值大，依次优先
+    rows.sort((a, b) => {
+      const pendingDiff = (b.pendingCount || 0) - (a.pendingCount || 0)
+      if (pendingDiff !== 0) return pendingDiff
+      const imminentDiff = imminentRank(b) - imminentRank(a)
+      if (imminentDiff !== 0) return imminentDiff
+      return marketValueNumber(b) - marketValueNumber(a)
+    })
+  }
+  return rows
+})
+
+const totalMarketValue = computed(() =>
+  list.value.reduce((sum, row) => sum + marketValueNumber(row), 0)
+)
+
+const totalPending = computed(() =>
+  list.value.reduce((sum, row) => sum + (row.pendingCount || 0), 0)
+)
+
+const totalImminent = computed(
+  () => list.value.filter((row) => row.imminentAction).length
+)
+
+function handleSortChange({ prop, order }) {
+  sortState.value = order ? { prop, order } : null
+}
+
+function imminentRank(row) {
+  return row.imminentAction ? 1 : 0
+}
+
+function marketValueNumber(row) {
+  if (!row.lastPrice || !row.positionQty) return 0
+  return Number(row.lastPrice) * Number(row.positionQty)
+}
+
+function imminentTitle(row) {
+  return `即将${row.imminentAction === 'SELL' ? '升破' : '跌破'} ${tierLabel(
+    row.imminentLevel
+  )} ${formatPrice(row.imminentPrice)}`
 }
 
 async function refreshAll() {
@@ -294,15 +405,110 @@ function statusType(status) {
   }
 }
 
+.stat-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 18px;
+  background: #f5f7fa;
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+
+  .stat-label {
+    color: #909399;
+    font-size: 13px;
+  }
+
+  .stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #303133;
+
+    &.pending {
+      color: #f56c6c;
+    }
+
+    &.imminent {
+      color: #e6a23c;
+    }
+  }
+}
+
 .stock-cell {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+.market-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  flex-shrink: 0;
+
+  &.market-a {
+    background: #409eff;
+  }
+
+  &.market-h {
+    background: #e6a23c;
+  }
+}
+
 .row-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 2px;
+}
+
+.pending-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: #f56c6c;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(245, 108, 108, 0.4);
+
+  .pending-icon {
+    font-size: 13px;
+  }
+}
+
+.imminent-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  cursor: default;
+
+  &.imminent-up {
+    background: #f56c6c;
+  }
+
+  &.imminent-down {
+    background: #67c23a;
+  }
 }
 </style>

@@ -26,6 +26,7 @@
           <el-input-number
             v-if="row.level !== 0"
             v-model="row.qty"
+            :disabled="row.level === highestUpLevel"
             :min="0"
             :step="minUnitQty"
             :step-strictly="true"
@@ -51,31 +52,23 @@
           <el-tag v-else size="small" type="primary">合理</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="状态">
-        <template #default="{ row }">
-          <el-tag
-            v-if="
-              currentTierLevel !== null &&
-              currentTierLevel !== undefined &&
-              row.level === currentTierLevel
-            "
-            type="primary"
-          >
-            当前档位 · 持仓 {{ formatNumber(positionQty) }} 股
-          </el-tag>
-        </template>
-      </el-table-column>
     </el-table>
     <div class="summary">
       共 {{ sortedTiers.length }} 档 · 向上减仓合计
-      {{ formatNumber(totalUp) }} 股（上限 {{ formatNumber(limit) }}） ·
-      向下加仓合计 {{ formatNumber(totalBuy) }} 股
+      {{ formatNumber(totalUp) }} 股（剩余
+      {{ formatNumber(remainingUp) }} 股，底仓
+      {{ formatNumber(props.keepQty) }} 股） · 基准仓位
+      {{ formatNumber(props.baseQty) }} 股（{{
+        basePositionAmount
+      }}
+      万元），向下加仓合计 {{ formatNumber(totalBuy) }} 股（约
+      {{ buyAmount }} 万元）
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 
 import {
   formatNumber,
@@ -93,6 +86,10 @@ const props = defineProps({
     type: Number,
     default: 0
   },
+  basePrice: {
+    type: Number,
+    default: 0
+  },
   keepQty: {
     type: Number,
     default: 0
@@ -100,14 +97,6 @@ const props = defineProps({
   minUnitQty: {
     type: Number,
     default: 100
-  },
-  currentTierLevel: {
-    type: Number,
-    default: null
-  },
-  positionQty: {
-    type: Number,
-    default: 0
   }
 })
 
@@ -129,9 +118,50 @@ const totalBuy = computed(() =>
     .reduce((sum, row) => sum + (Number(row.qty) || 0), 0)
 )
 
+const totalBuyAmount = computed(() =>
+  sortedTiers.value
+    .filter((row) => row.level > 0)
+    .reduce(
+      (sum, row) => sum + (Number(row.qty) || 0) * (Number(row.price) || 0),
+      0
+    )
+)
+
 const limit = computed(() => props.baseQty - props.keepQty)
 
 const overLimit = computed(() => totalUp.value > limit.value)
+
+const remainingUp = computed(() => Math.max(0, limit.value - totalUp.value))
+
+const basePositionAmount = computed(() =>
+  (
+    ((Number(props.baseQty) || 0) * (Number(props.basePrice) || 0)) /
+    10000
+  ).toFixed(2)
+)
+
+const buyAmount = computed(() => (totalBuyAmount.value / 10000).toFixed(2))
+
+const highestUpLevel = computed(() => {
+  const upLevels = sortedTiers.value
+    .filter((row) => row.level < 0)
+    .map((row) => row.level)
+  return upLevels.length ? Math.min(...upLevels) : null
+})
+
+const expectedHighestQty = computed(() => {
+  if (highestUpLevel.value === null) return null
+  const others = sortedTiers.value
+    .filter((row) => row.level < 0 && row.level !== highestUpLevel.value)
+    .reduce((sum, row) => sum + (Number(row.qty) || 0), 0)
+  return Math.max(0, limit.value - others)
+})
+
+watch(
+  () => props.tiers.map((tier) => `${tier.level}:${tier.qty}`).join('|'),
+  syncHighestTier,
+  { immediate: true }
+)
 
 function valuationOf(row) {
   return (
@@ -156,6 +186,19 @@ function changeValuation(row, value) {
 function onQtyChange(row, value) {
   row.qty = value === null || value === undefined ? 0 : value
   emitChange()
+}
+
+function syncHighestTier() {
+  if (highestUpLevel.value === null || expectedHighestQty.value === null) {
+    return
+  }
+  const highest = sortedTiers.value.find(
+    (row) => row.level === highestUpLevel.value
+  )
+  if (highest && (Number(highest.qty) || 0) !== expectedHighestQty.value) {
+    highest.qty = expectedHighestQty.value
+    emitChange()
+  }
 }
 
 function emitChange() {

@@ -108,7 +108,10 @@
         </div>
         <div class="stat-card">
           <div class="stat-label">待确认提示</div>
-          <div class="stat-value small">{{ pendingHints.length }} 条</div>
+          <div v-if="pendingHints.length" class="stat-value small">
+            {{ pendingHints.length }} 条
+          </div>
+          <div v-else class="stat-value small">—</div>
           <div class="stat-hint">系统只提示，不自动成交</div>
         </div>
       </div>
@@ -179,6 +182,17 @@
             </el-table-column>
             <el-table-column label="状态">
               <template #default="{ row }">
+                <el-tag
+                  v-if="row.level === strategy?.imminentLevel"
+                  type="warning"
+                  style="margin-right: 4px"
+                >
+                  {{
+                    strategy?.imminentAction === 'SELL'
+                      ? '即将升破'
+                      : '即将跌破'
+                  }}
+                </el-tag>
                 <el-tag
                   v-if="row.level === strategy?.currentTierLevel"
                   type="primary"
