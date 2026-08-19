@@ -285,6 +285,22 @@ export const appRoutes = [
     },
     children: [
       {
+        path: 'stock-master',
+        name: 'StockMaster',
+        component: () => import('@/views/stockmaster/stockmaster.vue'),
+        meta: {
+          title: '股票基本资料'
+        }
+      },
+      {
+        path: 'fund-master',
+        name: 'FundMaster',
+        component: () => import('@/views/fundmaster/fundmaster.vue'),
+        meta: {
+          title: '基金基本资料'
+        }
+      },
+      {
         path: 'data-sources',
         name: 'DataSources',
         component: () => import('@/views/systemsettings/datasources.vue'),
