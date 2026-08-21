@@ -35,7 +35,8 @@ import {
   ElTable,
   ElTableColumn,
   ElTabs,
-  ElTag
+  ElTag,
+  ElUpload
 } from 'element-plus'
 
 import 'element-plus/es/components/base/style/css'
@@ -76,6 +77,7 @@ import 'element-plus/es/components/table/style/css'
 import 'element-plus/es/components/table-column/style/css'
 import 'element-plus/es/components/tabs/style/css'
 import 'element-plus/es/components/tag/style/css'
+import 'element-plus/es/components/upload/style/css'
 import 'element-plus/es/components/message/style/css'
 import 'element-plus/es/components/message-box/style/css'
 import 'element-plus/es/components/notification/style/css'
@@ -116,7 +118,8 @@ const components = [
   ElTable,
   ElTableColumn,
   ElTabs,
-  ElTag
+  ElTag,
+  ElUpload
 ]
 
 export default {

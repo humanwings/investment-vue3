@@ -4,8 +4,9 @@
       <div class="page-head">
         <div>
           <div class="eyebrow">Settings</div>
-          <h2>行业参数  <el-tag type="info">行业总计 {{ total }}</el-tag>
-        </h2>
+          <h2>
+            行业参数 <el-tag type="info">行业总计 {{ total }}</el-tag>
+          </h2>
         </div>
         <div class="actions">
           <el-button type="primary" @click="saveAll">

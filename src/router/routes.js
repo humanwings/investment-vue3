@@ -1,4 +1,10 @@
-import { Coin, Grid, Setting, TrendCharts } from '@element-plus/icons-vue'
+import {
+  Coin,
+  Grid,
+  Setting,
+  TrendCharts,
+  PieChart
+} from '@element-plus/icons-vue'
 
 import Layout from '@/layout/index.vue'
 import { VALUATION_MODEL_CONFIGS } from '@/views/valuation/valuation-model-config'
@@ -28,6 +34,48 @@ export const appRoutes = [
         meta: {
           title: '首页'
         }
+      }
+    ]
+  },
+  {
+    path: '/portfolio',
+    component: Layout,
+    redirect: '/portfolio/latest',
+    meta: { title: '持仓管理', icon: PieChart },
+    children: [
+      {
+        path: 'latest',
+        name: 'LatestPosition',
+        component: () => import('@/views/portfolio/LatestPosition.vue'),
+        meta: { title: '最新持仓' }
+      },
+      {
+        path: 'history',
+        name: 'HistoryPosition',
+        component: () => import('@/views/portfolio/HistoryPosition.vue'),
+        meta: { title: '历史明细' }
+      },
+      {
+        path: 'history/:statsDate',
+        name: 'HistoryDetail',
+        component: () => import('@/views/portfolio/HistoryDetail.vue'),
+        meta: {
+          hidden: true,
+          title: '历史详情',
+          activeMenu: '/portfolio/history'
+        }
+      },
+      {
+        path: 'statistics',
+        name: 'PortfolioStatistics',
+        component: () => import('@/views/portfolio/PortfolioStatistics.vue'),
+        meta: { title: '统计分析' }
+      },
+      {
+        path: 'cleared',
+        name: 'ClearedPosition',
+        component: () => import('@/views/portfolio/ClearedPosition.vue'),
+        meta: { title: '已清仓一览' }
       }
     ]
   },

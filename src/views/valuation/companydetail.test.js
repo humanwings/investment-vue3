@@ -85,12 +85,16 @@ describe('companydetail page', () => {
     expect(wrapper.vm.financialHighlightItems[0].value).toBe('ROE 表现较强')
     expect(wrapper.vm.activeTab).toBe('overview')
     expect(wrapper.vm.dcfValuationV1.modelVersion).toBe('DCF_V1_SIMPLE_FCFF')
-    expect(wrapper.vm.hasDcfManualOverride(wrapper.vm.dcfValuationV1)).toBe(true)
+    expect(wrapper.vm.hasDcfManualOverride(wrapper.vm.dcfValuationV1)).toBe(
+      true
+    )
     expect(wrapper.vm.dcfValuationV2.modelVersion).toBe('DCF_V2_STANDARD_FCFF')
     expect(wrapper.vm.dcfValuationV2.status).toBe('ready')
     expect(wrapper.vm.dcfV2StageDetails).toHaveLength(2)
     expect(wrapper.vm.dcfV2SensitivitySnapshots).toHaveLength(3)
-    expect(wrapper.vm.formatSensitivityRange(wrapper.vm.dcfValuationV2)).toBe('980 / 1280')
+    expect(wrapper.vm.formatSensitivityRange(wrapper.vm.dcfValuationV2)).toBe(
+      '980 / 1280'
+    )
     expect(wrapper.vm.researchNavItems).toHaveLength(4)
   })
 
@@ -189,6 +193,8 @@ describe('companydetail page', () => {
     })
     expect(mock.history.delete[0].url).toBe('/company/1')
     expect(notifySuccess).toHaveBeenCalled()
-    expect(push).toHaveBeenCalledWith('/companyvaluation/valuation/profit-discount')
+    expect(push).toHaveBeenCalledWith(
+      '/companyvaluation/valuation/profit-discount'
+    )
   })
 })

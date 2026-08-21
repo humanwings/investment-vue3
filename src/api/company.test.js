@@ -68,7 +68,9 @@ describe('company api', () => {
     mock.onPost('/company/add').reply(ok({ companySummary: { companyId: 1 } }))
     mock.onDelete('/company/1').reply(ok({}))
     mock.onPatch('/company/1').reply(ok({ companySummary: { companyId: 1 } }))
-    mock.onPost('/valuation/rebuild-all').reply(ok({ runResult: { items: [] } }))
+    mock
+      .onPost('/valuation/rebuild-all')
+      .reply(ok({ runResult: { items: [] } }))
     mock.onPost('/company/updatePriceAll').reply(ok({ list: [], sum: 0 }))
     mock
       .onPost('/company/updateReport')
@@ -133,10 +135,14 @@ describe('company api', () => {
       .reply(ok({ list: [], sum: 0 }))
     mock.onPost('/valuation/rebuild').reply(
       ok({
-        runResult: { items: [{ companyId: 1, modelVersion: 'DCF_V2_STANDARD_FCFF' }] }
+        runResult: {
+          items: [{ companyId: 1, modelVersion: 'DCF_V2_STANDARD_FCFF' }]
+        }
       })
     )
-    mock.onPost('/valuation/rebuild-all').reply(ok({ runResult: { items: [] } }))
+    mock
+      .onPost('/valuation/rebuild-all')
+      .reply(ok({ runResult: { items: [] } }))
 
     await getProfitValuationList({ industryName: '白酒' })
     await getDcfValuationList({ industry: '白酒' })

@@ -1,7 +1,11 @@
 <template>
   <section class="data-sources-page">
     <div class="page-actions">
-      <el-button data-test="save-all-settings" type="primary" @click="saveSettings">
+      <el-button
+        data-test="save-all-settings"
+        type="primary"
+        @click="saveSettings"
+      >
         保存全部设置
       </el-button>
     </div>

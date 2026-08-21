@@ -2,11 +2,7 @@
   <section v-loading="loading" class="page-shell company-overview">
     <div class="page-header">
       <div>
-        <el-button
-          text
-          @click="router.push(parentRoute)"
-          >返回上一级</el-button
-        >
+        <el-button text @click="router.push(parentRoute)">返回上一级</el-button>
         <div class="eyebrow">Company Overview</div>
         <h2>{{ overview.name || '公司总览' }}</h2>
       </div>
@@ -130,7 +126,9 @@
               <div class="summary-result-row">
                 <div class="summary-result-item">
                   <span class="summary-result-label">利润贴现估值</span>
-                  <strong>{{ safeRound(profitDetail.finalValuation) || '-' }}</strong>
+                  <strong>{{
+                    safeRound(profitDetail.finalValuation) || '-'
+                  }}</strong>
                 </div>
                 <div class="summary-result-item">
                   <span class="summary-result-label">偏离率</span>
@@ -145,136 +143,280 @@
                 </div>
               </div>
               <table class="calc-table" width="75%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">净资产估值</td>
-                  <td class="calc-value">{{ safeRound(profitDetail.netAssetValuation) || '-' }}</td>
-                  <td class="calc-label">高增长期估值</td>
-                  <td class="calc-value">{{ safeRound(profitDetail.highGrowthValuation) || '-' }}</td>
-                  <td class="calc-label">稳定期估值</td>
-                  <td class="calc-value">{{ safeRound(profitDetail.perpetualValuation) || '-' }}</td>
-                </tr>`r`n              </tbody>`r`n              </table>
-              <br>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">净资产估值</td>
+                    <td class="calc-value">
+                      {{ safeRound(profitDetail.netAssetValuation) || '-' }}
+                    </td>
+                    <td class="calc-label">高增长期估值</td>
+                    <td class="calc-value">
+                      {{ safeRound(profitDetail.highGrowthValuation) || '-' }}
+                    </td>
+                    <td class="calc-label">稳定期估值</td>
+                    <td class="calc-value">
+                      {{ safeRound(profitDetail.perpetualValuation) || '-' }}
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
+              <br />
               <table class="calc-table" width="100%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">折现率</td>
-                  <td class="calc-value">{{ formatPercent(profitDetail.discountRate) || '-' }}</td>
-                  <td class="calc-label">市场风险系数</td>
-                  <td class="calc-value">{{ profitDetail.marketRisk?.toFixed(2) || '-' }}</td>
-                  <td class="calc-label">行业风险系数</td>
-                  <td class="calc-value">{{ profitDetail.industryRisk?.toFixed(2) || '-' }}</td>
-                  <td class="calc-label">采用增长率</td>
-                  <td class="calc-value">
-                    <el-tag :type="profitDetail.manualOverride ? 'warning' : 'info'" size="small">
-                      {{ formatRatePoint(profitDetail.appliedGrowthRate) }}
-                    </el-tag>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="calc-label">净资产折价率</td>
-                  <td class="calc-value">{{ formatPercent(profitDetail.netAssetDiscount) || '-' }}</td>
-                  <td class="calc-label">预期分红率</td>
-                  <td class="calc-value" colspan="5">{{ formatPercent(profitDetail.dividendRatePrediction) || '-' }}</td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">折现率</td>
+                    <td class="calc-value">
+                      {{ formatPercent(profitDetail.discountRate) || '-' }}
+                    </td>
+                    <td class="calc-label">市场风险系数</td>
+                    <td class="calc-value">
+                      {{ profitDetail.marketRisk?.toFixed(2) || '-' }}
+                    </td>
+                    <td class="calc-label">行业风险系数</td>
+                    <td class="calc-value">
+                      {{ profitDetail.industryRisk?.toFixed(2) || '-' }}
+                    </td>
+                    <td class="calc-label">采用增长率</td>
+                    <td class="calc-value">
+                      <el-tag
+                        :type="profitDetail.manualOverride ? 'warning' : 'info'"
+                        size="small"
+                      >
+                        {{ formatRatePoint(profitDetail.appliedGrowthRate) }}
+                      </el-tag>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="calc-label">净资产折价率</td>
+                    <td class="calc-value">
+                      {{ formatPercent(profitDetail.netAssetDiscount) || '-' }}
+                    </td>
+                    <td class="calc-label">预期分红率</td>
+                    <td class="calc-value" colspan="5">
+                      {{
+                        formatPercent(profitDetail.dividendRatePrediction) ||
+                        '-'
+                      }}
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
             </section>
 
             <section class="calc-step">
               <div class="calc-step-head">
                 <h4>Step 1 — 增长率推算</h4>
-                <el-button text type="primary" @click="growthHelpVisible = true">
+                <el-button
+                  text
+                  type="primary"
+                  @click="growthHelpVisible = true"
+                >
                   <el-icon><QuestionFilled /></el-icon>
                   <span>增长率推算说明</span>
                 </el-button>
               </div>
               <table class="calc-table" width="75%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">营收累积增速</td>
-                  <td class="calc-value">{{ formatPercent(profitDetail.revenueGrowthRateTotal) || '-' }}</td>
-                  <td class="calc-label">营收当期增速</td>
-                  <td class="calc-value">{{ formatPercent(profitDetail.revenueGrowthRateCurrent) || '-' }}</td>
-                  <td class="calc-label">营收增速预测</td>
-                  <td class="calc-value">{{ formatPercent(profitDetail.revenueGrowthRatePrediction) || '-' }}</td>
-                </tr>
-                <tr>
-                  <td class="calc-label">扣非利润累积增速</td>
-                  <td class="calc-value">{{ formatPercent(profitDetail.profitGrowthRateTotal) || '-' }}</td>
-                  <td class="calc-label">扣非利润当期增速</td>
-                  <td class="calc-value">{{ formatPercent(profitDetail.profitGrowthRateCurrent) || '-' }}</td>
-                  <td class="calc-label">利润增速预测</td>
-                  <td class="calc-value">{{ formatPercent(profitDetail.profitGrowthRatePrediction) || '-' }}</td>
-                </tr>
-                <tr>
-                  <td class="calc-label">系统增长率</td>
-                  <td class="calc-value"><strong>{{ formatRatePoint(profitDetail.systemGrowthRatePrediction) || '-' }}</strong></td>
-                  <td class="calc-label">手动增长率</td>
-                  <td class="calc-value">
-                    <span :class="{ 'manual-value': profitDetail.manualOverride }">
-                      {{ profitDetail.manualGrowthRate != null ? formatRatePoint(profitDetail.manualGrowthRate) : '（未设置）' }}
-                    </span>
-                  </td>
-                  <td class="calc-label">采用增长率</td>
-                  <td class="calc-value">
-                    <el-tag :type="profitDetail.manualOverride ? 'warning' : 'info'" size="small">
-                      {{ formatRatePoint(profitDetail.appliedGrowthRate) }}
-                    </el-tag>
-                    <span class="tag-caption">{{ profitDetail.manualOverride ? '人工覆盖' : '系统预测' }}</span>
-                  </td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">营收累积增速</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(profitDetail.revenueGrowthRateTotal) ||
+                        '-'
+                      }}
+                    </td>
+                    <td class="calc-label">营收当期增速</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(profitDetail.revenueGrowthRateCurrent) ||
+                        '-'
+                      }}
+                    </td>
+                    <td class="calc-label">营收增速预测</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(
+                          profitDetail.revenueGrowthRatePrediction
+                        ) || '-'
+                      }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="calc-label">扣非利润累积增速</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(profitDetail.profitGrowthRateTotal) || '-'
+                      }}
+                    </td>
+                    <td class="calc-label">扣非利润当期增速</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(profitDetail.profitGrowthRateCurrent) ||
+                        '-'
+                      }}
+                    </td>
+                    <td class="calc-label">利润增速预测</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(
+                          profitDetail.profitGrowthRatePrediction
+                        ) || '-'
+                      }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="calc-label">系统增长率</td>
+                    <td class="calc-value">
+                      <strong>{{
+                        formatRatePoint(
+                          profitDetail.systemGrowthRatePrediction
+                        ) || '-'
+                      }}</strong>
+                    </td>
+                    <td class="calc-label">手动增长率</td>
+                    <td class="calc-value">
+                      <span
+                        :class="{ 'manual-value': profitDetail.manualOverride }"
+                      >
+                        {{
+                          profitDetail.manualGrowthRate != null
+                            ? formatRatePoint(profitDetail.manualGrowthRate)
+                            : '（未设置）'
+                        }}
+                      </span>
+                    </td>
+                    <td class="calc-label">采用增长率</td>
+                    <td class="calc-value">
+                      <el-tag
+                        :type="profitDetail.manualOverride ? 'warning' : 'info'"
+                        size="small"
+                      >
+                        {{ formatRatePoint(profitDetail.appliedGrowthRate) }}
+                      </el-tag>
+                      <span class="tag-caption">{{
+                        profitDetail.manualOverride ? '人工覆盖' : '系统预测'
+                      }}</span>
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
             </section>
 
             <section class="calc-step">
               <div class="calc-step-head">
                 <h4>Step 2 — 分红率推算</h4>
-                <el-button text type="primary" @click="dividendHelpVisible = true">
+                <el-button
+                  text
+                  type="primary"
+                  @click="dividendHelpVisible = true"
+                >
                   <el-icon><QuestionFilled /></el-icon>
                   <span>分红率推算说明</span>
                 </el-button>
               </div>
               <table class="calc-table" width="100%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">分红年数</td>
-                  <td class="calc-value">{{ profitDetail.dividendYears ?? '-' }}</td>
-                  <td class="calc-label">持续分红</td>
-                  <td class="calc-value">{{ profitDetail.dividendIsSure ? '是' : '否' }}</td>
-                  <td class="calc-label">上年度分红率</td>
-                  <td class="calc-value">{{ formatPercent(profitDetail.lastDividendRate) || '-' }}</td>
-                  <td class="calc-label">分红稳定性</td>
-                  <td class="calc-value">{{ formatPercent(profitDetail.dividendStability) || '-' }}</td>
-                </tr>
-                <tr>
-                  <td class="calc-label">预期分红率</td>
-                  <td class="calc-value" colspan="7"><strong>{{ formatPercent(profitDetail.dividendRatePrediction) || '-' }}</strong></td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">分红年数</td>
+                    <td class="calc-value">
+                      {{ profitDetail.dividendYears ?? '-' }}
+                    </td>
+                    <td class="calc-label">持续分红</td>
+                    <td class="calc-value">
+                      {{ profitDetail.dividendIsSure ? '是' : '否' }}
+                    </td>
+                    <td class="calc-label">上年度分红率</td>
+                    <td class="calc-value">
+                      {{ formatPercent(profitDetail.lastDividendRate) || '-' }}
+                    </td>
+                    <td class="calc-label">分红稳定性</td>
+                    <td class="calc-value">
+                      {{ formatPercent(profitDetail.dividendStability) || '-' }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="calc-label">预期分红率</td>
+                    <td class="calc-value" colspan="7">
+                      <strong>{{
+                        formatPercent(profitDetail.dividendRatePrediction) ||
+                        '-'
+                      }}</strong>
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
             </section>
 
             <section class="calc-step">
               <h4>Step 3 — 净资产估值</h4>
               <table class="calc-table" width="75%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">每股净资产</td>
-                  <td class="calc-value">{{ safeRound(profitDetail.netAssetValuePer) || '-' }}</td>
-                  <td class="calc-label">净资产折价率</td>
-                  <td class="calc-value">{{ formatPercent(profitDetail.netAssetDiscount) || '-' }}</td>
-                  <td class="calc-label">净资产估值</td>
-                  <td class="calc-value"><strong>{{ safeRound(profitDetail.netAssetValuation) || '-' }}</strong></td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">每股净资产</td>
+                    <td class="calc-value">
+                      {{ safeRound(profitDetail.netAssetValuePer) || '-' }}
+                    </td>
+                    <td class="calc-label">净资产折价率</td>
+                    <td class="calc-value">
+                      {{ formatPercent(profitDetail.netAssetDiscount) || '-' }}
+                    </td>
+                    <td class="calc-label">净资产估值</td>
+                    <td class="calc-value">
+                      <strong>{{
+                        safeRound(profitDetail.netAssetValuation) || '-'
+                      }}</strong>
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
               <p class="calc-formula">
-                净资产估值 = 每股净资产 × 净资产折价率 = {{ safeRound(profitDetail.netAssetValuePer) }} × {{ formatPercent(profitDetail.netAssetDiscount) }} = <strong>{{ safeRound(profitDetail.netAssetValuation) }}</strong>
+                净资产估值 = 每股净资产 × 净资产折价率 =
+                {{ safeRound(profitDetail.netAssetValuePer) }} ×
+                {{ formatPercent(profitDetail.netAssetDiscount) }} =
+                <strong>{{ safeRound(profitDetail.netAssetValuation) }}</strong>
               </p>
             </section>
 
             <section class="calc-step">
               <h4>Step 4 — 高增长期估值</h4>
               <table class="calc-table" width="100%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">采用增长率</td>
-                  <td class="calc-value">{{ formatRatePoint(profitDetail.appliedGrowthRate) }}</td>
-                  <td class="calc-label">高增长年数</td>
-                  <td class="calc-value">{{ profitDetail.growthYears }}</td>
-                  <td class="calc-label">折现率（WACC）</td>
-                  <td class="calc-value">{{ formatPercent(profitDetail.discountRate) }}</td>
-                  <td class="calc-label">每股扣非净利润</td>
-                  <td class="calc-value">{{ safeRound(profitDetail.deductedNetProfitPer) }}</td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">采用增长率</td>
+                    <td class="calc-value">
+                      {{ formatRatePoint(profitDetail.appliedGrowthRate) }}
+                    </td>
+                    <td class="calc-label">高增长年数</td>
+                    <td class="calc-value">{{ profitDetail.growthYears }}</td>
+                    <td class="calc-label">折现率（WACC）</td>
+                    <td class="calc-value">
+                      {{ formatPercent(profitDetail.discountRate) }}
+                    </td>
+                    <td class="calc-label">每股扣非净利润</td>
+                    <td class="calc-value">
+                      {{ safeRound(profitDetail.deductedNetProfitPer) }}
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
               <div class="sub-section">
                 <h5>逐年折现系数</h5>
                 <div class="table-shell">
@@ -298,60 +440,157 @@
                   </el-table>
                 </div>
                 <p class="calc-formula">
-                  折现系数合计 = <strong>{{ profitDetail.highGrowthDiscountCoefficientSum?.toFixed(4) }}</strong>
+                  折现系数合计 =
+                  <strong>{{
+                    profitDetail.highGrowthDiscountCoefficientSum?.toFixed(4)
+                  }}</strong>
                 </p>
               </div>
               <table class="calc-table section-block" width="75%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">折现系数合计</td>
-                  <td class="calc-value">{{ profitDetail.highGrowthDiscountCoefficientSum?.toFixed(4) }}</td>
-                  <td class="calc-label">留存折算系数</td>
-                  <td class="calc-value">{{ profitDetail.retentionCoefficient?.toFixed(4) }}</td>
-                  <td class="calc-label">高增长期估值</td>
-                  <td class="calc-value"><strong>{{ safeRound(profitDetail.highGrowthValuation) || '-' }}</strong></td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">折现系数合计</td>
+                    <td class="calc-value">
+                      {{
+                        profitDetail.highGrowthDiscountCoefficientSum?.toFixed(
+                          4
+                        )
+                      }}
+                    </td>
+                    <td class="calc-label">留存折算系数</td>
+                    <td class="calc-value">
+                      {{ profitDetail.retentionCoefficient?.toFixed(4) }}
+                    </td>
+                    <td class="calc-label">高增长期估值</td>
+                    <td class="calc-value">
+                      <strong>{{
+                        safeRound(profitDetail.highGrowthValuation) || '-'
+                      }}</strong>
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
               <p class="calc-formula">
-                留存折算系数 = 分红率 + (1 - 分红率) × 净资产折价率 = {{ formatPercent(profitDetail.dividendRatePrediction) }} + (1 - {{ formatPercent(profitDetail.dividendRatePrediction) }}) × {{ formatPercent(profitDetail.netAssetDiscount) }} = {{ profitDetail.retentionCoefficient?.toFixed(4) }}
+                留存折算系数 = 分红率 + (1 - 分红率) × 净资产折价率 =
+                {{ formatPercent(profitDetail.dividendRatePrediction) }} + (1 -
+                {{ formatPercent(profitDetail.dividendRatePrediction) }}) ×
+                {{ formatPercent(profitDetail.netAssetDiscount) }} =
+                {{ profitDetail.retentionCoefficient?.toFixed(4) }}
               </p>
               <p class="calc-formula">
-                高增长期估值 = 每股扣非净利润 × 折现系数合计 × 留存折算系数 = {{ safeRound(profitDetail.deductedNetProfitPer) }} × {{ profitDetail.highGrowthDiscountCoefficientSum?.toFixed(4) }} × {{ profitDetail.retentionCoefficient?.toFixed(4) }} = <strong>{{ safeRound(profitDetail.highGrowthValuation) }}</strong>
+                高增长期估值 = 每股扣非净利润 × 折现系数合计 × 留存折算系数 =
+                {{ safeRound(profitDetail.deductedNetProfitPer) }} ×
+                {{ profitDetail.highGrowthDiscountCoefficientSum?.toFixed(4) }}
+                × {{ profitDetail.retentionCoefficient?.toFixed(4) }} =
+                <strong>{{
+                  safeRound(profitDetail.highGrowthValuation)
+                }}</strong>
               </p>
             </section>
 
             <section class="calc-step">
               <h4>Step 5 — 稳定期估值</h4>
               <table class="calc-table" width="75%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">永续增长率</td>
-                  <td class="calc-value">{{ formatPercent(profitDetail.perpetualGrowthRate) || '-' }}</td>
-                  <td class="calc-label">折现系数合计</td>
-                  <td class="calc-value">{{ profitDetail.perpetualDiscountCoefficientSum?.toFixed(4) }}</td>
-                  <td class="calc-label">稳定期估值</td>
-                  <td class="calc-value"><strong>{{ safeRound(profitDetail.perpetualValuation) || '-' }}</strong></td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">永续增长率</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(profitDetail.perpetualGrowthRate) || '-'
+                      }}
+                    </td>
+                    <td class="calc-label">折现系数合计</td>
+                    <td class="calc-value">
+                      {{
+                        profitDetail.perpetualDiscountCoefficientSum?.toFixed(4)
+                      }}
+                    </td>
+                    <td class="calc-label">稳定期估值</td>
+                    <td class="calc-value">
+                      <strong>{{
+                        safeRound(profitDetail.perpetualValuation) || '-'
+                      }}</strong>
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
               <p class="calc-formula">
-                稳定期估值 = 每股扣非净利润 × 稳定期折现系数合计 × 留存折算系数 = {{ safeRound(profitDetail.deductedNetProfitPer) }} × {{ profitDetail.perpetualDiscountCoefficientSum?.toFixed(4) }} × {{ profitDetail.retentionCoefficient?.toFixed(4) }} = <strong>{{ safeRound(profitDetail.perpetualValuation) }}</strong>
+                稳定期估值 = 每股扣非净利润 × 稳定期折现系数合计 × 留存折算系数
+                = {{ safeRound(profitDetail.deductedNetProfitPer) }} ×
+                {{ profitDetail.perpetualDiscountCoefficientSum?.toFixed(4) }} ×
+                {{ profitDetail.retentionCoefficient?.toFixed(4) }} =
+                <strong>{{
+                  safeRound(profitDetail.perpetualValuation)
+                }}</strong>
               </p>
             </section>
 
             <section class="calc-step">
               <h4>Step 6 — 风险调整</h4>
               <table class="calc-table" width="100%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">市场风险系数</td>
-                  <td class="calc-value">{{ profitDetail.marketRisk?.toFixed(2) || '-' }}</td>
-                  <td class="calc-label">行业风险系数</td>
-                  <td class="calc-value">{{ profitDetail.industryRisk?.toFixed(2) || '-' }}</td>
-                  <td class="calc-label">三段合计</td>
-                  <td class="calc-value">{{ safeRound(profitDetail.netAssetValuation + profitDetail.highGrowthValuation + profitDetail.perpetualValuation) || '-' }}</td>
-                  <td class="calc-label">最终估值</td>
-                  <td class="calc-value"><strong class="final-value">{{ safeRound(profitDetail.finalValuation) || '-' }}</strong></td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">市场风险系数</td>
+                    <td class="calc-value">
+                      {{ profitDetail.marketRisk?.toFixed(2) || '-' }}
+                    </td>
+                    <td class="calc-label">行业风险系数</td>
+                    <td class="calc-value">
+                      {{ profitDetail.industryRisk?.toFixed(2) || '-' }}
+                    </td>
+                    <td class="calc-label">三段合计</td>
+                    <td class="calc-value">
+                      {{
+                        safeRound(
+                          profitDetail.netAssetValuation +
+                            profitDetail.highGrowthValuation +
+                            profitDetail.perpetualValuation
+                        ) || '-'
+                      }}
+                    </td>
+                    <td class="calc-label">最终估值</td>
+                    <td class="calc-value">
+                      <strong class="final-value">{{
+                        safeRound(profitDetail.finalValuation) || '-'
+                      }}</strong>
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
               <p class="calc-formula">
-                风险调整前合计 = 净资产估值 + 高增长期估值 + 稳定期估值 = {{ safeRound(profitDetail.netAssetValuation) }} + {{ safeRound(profitDetail.highGrowthValuation) }} + {{ safeRound(profitDetail.perpetualValuation) }} = {{ safeRound(profitDetail.netAssetValuation + profitDetail.highGrowthValuation + profitDetail.perpetualValuation) }}
+                风险调整前合计 = 净资产估值 + 高增长期估值 + 稳定期估值 =
+                {{ safeRound(profitDetail.netAssetValuation) }} +
+                {{ safeRound(profitDetail.highGrowthValuation) }} +
+                {{ safeRound(profitDetail.perpetualValuation) }} =
+                {{
+                  safeRound(
+                    profitDetail.netAssetValuation +
+                      profitDetail.highGrowthValuation +
+                      profitDetail.perpetualValuation
+                  )
+                }}
               </p>
               <p class="calc-formula">
-                最终估值 = 三段合计 × 市场风险系数 × 行业风险系数 = {{ safeRound(profitDetail.netAssetValuation + profitDetail.highGrowthValuation + profitDetail.perpetualValuation) }} × {{ profitDetail.marketRisk?.toFixed(2) }} × {{ profitDetail.industryRisk?.toFixed(2) }} = <strong>{{ safeRound(profitDetail.finalValuation) }}</strong>
+                最终估值 = 三段合计 × 市场风险系数 × 行业风险系数 =
+                {{
+                  safeRound(
+                    profitDetail.netAssetValuation +
+                      profitDetail.highGrowthValuation +
+                      profitDetail.perpetualValuation
+                  )
+                }}
+                × {{ profitDetail.marketRisk?.toFixed(2) }} ×
+                {{ profitDetail.industryRisk?.toFixed(2) }} =
+                <strong>{{ safeRound(profitDetail.finalValuation) }}</strong>
               </p>
             </section>
 
@@ -360,11 +599,15 @@
               <div class="conclusion-row">
                 <div class="conclusion-item">
                   <span class="conclusion-label">当前价格</span>
-                  <strong>{{ safeRound(profitDetail.currentPrice) || '-' }}</strong>
+                  <strong>{{
+                    safeRound(profitDetail.currentPrice) || '-'
+                  }}</strong>
                 </div>
                 <div class="conclusion-item">
                   <span class="conclusion-label">利润贴现估值</span>
-                  <strong>{{ safeRound(profitDetail.finalValuation) || '-' }}</strong>
+                  <strong>{{
+                    safeRound(profitDetail.finalValuation) || '-'
+                  }}</strong>
                 </div>
                 <div class="conclusion-item">
                   <span class="conclusion-label">偏离率</span>
@@ -379,13 +622,25 @@
                 </div>
               </div>
               <p class="calc-formula">
-                偏离率 = 利润贴现估值 ÷ 当前价格 - 1 = {{ safeRound(profitDetail.finalValuation) }} ÷ {{ safeRound(profitDetail.currentPrice) }} - 1 = <strong>{{ formatPercent(profitDetail.deviation) }}</strong>
+                偏离率 = 利润贴现估值 ÷ 当前价格 - 1 =
+                {{ safeRound(profitDetail.finalValuation) }} ÷
+                {{ safeRound(profitDetail.currentPrice) }} - 1 =
+                <strong>{{ formatPercent(profitDetail.deviation) }}</strong>
               </p>
               <div
-                v-if="profitDetail.storedValuation != null && Math.abs(profitDetail.finalValuation - profitDetail.storedValuation) > 0.01"
+                v-if="
+                  profitDetail.storedValuation != null &&
+                  Math.abs(
+                    profitDetail.finalValuation - profitDetail.storedValuation
+                  ) > 0.01
+                "
                 class="stored-note"
               >
-                <span>DB 中已存储的估值为 <strong>{{ safeRound(profitDetail.storedValuation) }}</strong>，与本次重算结果略有差异，可能因为上次存储后财务数据或参数发生了变化。</span>
+                <span
+                  >DB 中已存储的估值为
+                  <strong>{{ safeRound(profitDetail.storedValuation) }}</strong
+                  >，与本次重算结果略有差异，可能因为上次存储后财务数据或参数发生了变化。</span
+                >
               </div>
             </section>
           </div>
@@ -413,7 +668,9 @@
               <div class="summary-result-row">
                 <div class="summary-result-item">
                   <span class="summary-result-label">DCF v1 每股估值</span>
-                  <strong>{{ safeRound(dcfValuationV1.perShareValue) || '-' }}</strong>
+                  <strong>{{
+                    safeRound(dcfValuationV1.perShareValue) || '-'
+                  }}</strong>
                 </div>
                 <div class="summary-result-item">
                   <span class="summary-result-label">偏离率</span>
@@ -428,35 +685,65 @@
                 </div>
               </div>
               <table class="calc-table" width="100%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">预测期现值</td>
-                  <td class="calc-value">{{ safeRound(dcfV1ForecastPV) || '-' }}</td>
-                  <td class="calc-label">终值现值</td>
-                  <td class="calc-value">{{ safeRound(dcfV1TerminalPV) || '-' }}</td>
-                  <td class="calc-label">终值占比</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV1.terminalValueRatio) || '-' }}</td>
-                </tr>
-                <tr>
-                  <td class="calc-label">企业价值</td>
-                  <td class="calc-value">{{ safeRound(dcfValuationV1.enterpriseValue) || '-' }}</td>
-                  <td class="calc-label">净债务</td>
-                  <td class="calc-value">{{ safeRound(dcfValuationV1.netDebt) || '-' }}</td>
-                  <td class="calc-label">股权价值</td>
-                  <td class="calc-value">{{ safeRound(dcfValuationV1.equityValue) || '-' }}</td>
-                </tr>
-                <tr>
-                  <td class="calc-label">与利润贴现差异</td>
-                  <td class="calc-value">{{ safeRound(dcfValuationV1.profitDcfGap) || '-' }}</td>
-                  <td class="calc-label">覆盖状态</td>
-                  <td class="calc-value" colspan="3">
-                    <el-tag
-                      :type="hasDcfManualOverride(dcfValuationV1) ? 'warning' : 'info'"
-                      size="small"
-                    >
-                      {{ hasDcfManualOverride(dcfValuationV1) ? '人工覆盖' : '系统默认' }}
-                    </el-tag>
-                  </td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">预测期现值</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfV1ForecastPV) || '-' }}
+                    </td>
+                    <td class="calc-label">终值现值</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfV1TerminalPV) || '-' }}
+                    </td>
+                    <td class="calc-label">终值占比</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(dcfValuationV1.terminalValueRatio) || '-'
+                      }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="calc-label">企业价值</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfValuationV1.enterpriseValue) || '-' }}
+                    </td>
+                    <td class="calc-label">净债务</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfValuationV1.netDebt) || '-' }}
+                    </td>
+                    <td class="calc-label">股权价值</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfValuationV1.equityValue) || '-' }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="calc-label">与利润贴现差异</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfValuationV1.profitDcfGap) || '-' }}
+                    </td>
+                    <td class="calc-label">覆盖状态</td>
+                    <td class="calc-value" colspan="3">
+                      <el-tag
+                        :type="
+                          hasDcfManualOverride(dcfValuationV1)
+                            ? 'warning'
+                            : 'info'
+                        "
+                        size="small"
+                      >
+                        {{
+                          hasDcfManualOverride(dcfValuationV1)
+                            ? '人工覆盖'
+                            : '系统默认'
+                        }}
+                      </el-tag>
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
             </section>
 
             <section class="calc-step">
@@ -464,96 +751,219 @@
                 <h4>Step 1 — 关键参数假设</h4>
               </div>
               <table class="calc-table" width="100%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label"></td>
-                  <td class="calc-label">系统预测</td>
-                  <td class="calc-label">手动设置</td>
-                  <td class="calc-label">采用值</td>
-                </tr>
-                <tr>
-                  <td class="calc-label">营收增长率</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV1.revenueGrowthRatePrediction) || '-' }}</td>
-                  <td class="calc-value">
-                    <span :class="{ 'manual-value': hasValue(dcfValuationV1.revenueGrowthRateManual) }">
-                      {{ formatPercent(dcfValuationV1.revenueGrowthRateManual) || '（未设置）' }}
-                    </span>
-                  </td>
-                  <td class="calc-value">
-                    <el-tag
-                      :type="hasValue(dcfValuationV1.revenueGrowthRateManual) ? 'warning' : 'info'"
-                      size="small"
-                    >
-                      {{ formatPercent(dcfValuationV1.revenueGrowthRateApplied) || '-' }}
-                    </el-tag>
-                    <span class="tag-caption">{{ hasValue(dcfValuationV1.revenueGrowthRateManual) ? '人工覆盖' : '系统预测' }}</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="calc-label">折现率 (WACC)</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV1.discountRatePrediction) || '-' }}</td>
-                  <td class="calc-value">
-                    <span :class="{ 'manual-value': hasValue(dcfValuationV1.discountRateManual) }">
-                      {{ formatPercent(dcfValuationV1.discountRateManual) || '（未设置）' }}
-                    </span>
-                  </td>
-                  <td class="calc-value">
-                    <el-tag
-                      :type="hasValue(dcfValuationV1.discountRateManual) ? 'warning' : 'info'"
-                      size="small"
-                    >
-                      {{ formatPercent(dcfValuationV1.discountRateApplied) || '-' }}
-                    </el-tag>
-                    <span class="tag-caption">{{ hasValue(dcfValuationV1.discountRateManual) ? '人工覆盖' : '系统预测' }}</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="calc-label">永续增长率</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV1.terminalGrowthRatePrediction) || '-' }}</td>
-                  <td class="calc-value">
-                    <span :class="{ 'manual-value': hasValue(dcfValuationV1.terminalGrowthRateManual) }">
-                      {{ formatPercent(dcfValuationV1.terminalGrowthRateManual) || '（未设置）' }}
-                    </span>
-                  </td>
-                  <td class="calc-value">
-                    <el-tag
-                      :type="hasValue(dcfValuationV1.terminalGrowthRateManual) ? 'warning' : 'info'"
-                      size="small"
-                    >
-                      {{ formatPercent(dcfValuationV1.terminalGrowthRateApplied) || '-' }}
-                    </el-tag>
-                    <span class="tag-caption">{{ hasValue(dcfValuationV1.terminalGrowthRateManual) ? '人工覆盖' : '系统预测' }}</span>
-                  </td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label"></td>
+                    <td class="calc-label">系统预测</td>
+                    <td class="calc-label">手动设置</td>
+                    <td class="calc-label">采用值</td>
+                  </tr>
+                  <tr>
+                    <td class="calc-label">营收增长率</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(
+                          dcfValuationV1.revenueGrowthRatePrediction
+                        ) || '-'
+                      }}
+                    </td>
+                    <td class="calc-value">
+                      <span
+                        :class="{
+                          'manual-value': hasValue(
+                            dcfValuationV1.revenueGrowthRateManual
+                          )
+                        }"
+                      >
+                        {{
+                          formatPercent(
+                            dcfValuationV1.revenueGrowthRateManual
+                          ) || '（未设置）'
+                        }}
+                      </span>
+                    </td>
+                    <td class="calc-value">
+                      <el-tag
+                        :type="
+                          hasValue(dcfValuationV1.revenueGrowthRateManual)
+                            ? 'warning'
+                            : 'info'
+                        "
+                        size="small"
+                      >
+                        {{
+                          formatPercent(
+                            dcfValuationV1.revenueGrowthRateApplied
+                          ) || '-'
+                        }}
+                      </el-tag>
+                      <span class="tag-caption">{{
+                        hasValue(dcfValuationV1.revenueGrowthRateManual)
+                          ? '人工覆盖'
+                          : '系统预测'
+                      }}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="calc-label">折现率 (WACC)</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(dcfValuationV1.discountRatePrediction) ||
+                        '-'
+                      }}
+                    </td>
+                    <td class="calc-value">
+                      <span
+                        :class="{
+                          'manual-value': hasValue(
+                            dcfValuationV1.discountRateManual
+                          )
+                        }"
+                      >
+                        {{
+                          formatPercent(dcfValuationV1.discountRateManual) ||
+                          '（未设置）'
+                        }}
+                      </span>
+                    </td>
+                    <td class="calc-value">
+                      <el-tag
+                        :type="
+                          hasValue(dcfValuationV1.discountRateManual)
+                            ? 'warning'
+                            : 'info'
+                        "
+                        size="small"
+                      >
+                        {{
+                          formatPercent(dcfValuationV1.discountRateApplied) ||
+                          '-'
+                        }}
+                      </el-tag>
+                      <span class="tag-caption">{{
+                        hasValue(dcfValuationV1.discountRateManual)
+                          ? '人工覆盖'
+                          : '系统预测'
+                      }}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="calc-label">永续增长率</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(
+                          dcfValuationV1.terminalGrowthRatePrediction
+                        ) || '-'
+                      }}
+                    </td>
+                    <td class="calc-value">
+                      <span
+                        :class="{
+                          'manual-value': hasValue(
+                            dcfValuationV1.terminalGrowthRateManual
+                          )
+                        }"
+                      >
+                        {{
+                          formatPercent(
+                            dcfValuationV1.terminalGrowthRateManual
+                          ) || '（未设置）'
+                        }}
+                      </span>
+                    </td>
+                    <td class="calc-value">
+                      <el-tag
+                        :type="
+                          hasValue(dcfValuationV1.terminalGrowthRateManual)
+                            ? 'warning'
+                            : 'info'
+                        "
+                        size="small"
+                      >
+                        {{
+                          formatPercent(
+                            dcfValuationV1.terminalGrowthRateApplied
+                          ) || '-'
+                        }}
+                      </el-tag>
+                      <span class="tag-caption">{{
+                        hasValue(dcfValuationV1.terminalGrowthRateManual)
+                          ? '人工覆盖'
+                          : '系统预测'
+                      }}</span>
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
               <table class="calc-table section-block" width="100%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">模型版本</td>
-                  <td class="calc-value">{{ dcfValuationV1.modelVersion || '-' }}</td>
-                  <td class="calc-label">场景</td>
-                  <td class="calc-value">{{ dcfValuationV1.scenarioKey || '-' }}</td>
-                  <td class="calc-label">公式版本</td>
-                  <td class="calc-value">{{ dcfValuationV1.formulaVersion || '-' }}</td>
-                </tr>
-                <tr>
-                  <td class="calc-label">现金流口径</td>
-                  <td class="calc-value">{{ dcfValuationV1.cashFlowBasis || '-' }}</td>
-                  <td class="calc-label">参数来源</td>
-                  <td class="calc-value">{{ dcfValuationV1.defaultParameterSource || '-' }}</td>
-                  <td class="calc-label">更新时间</td>
-                  <td class="calc-value">{{ dcfValuationV1.updatedAt || '-' }}</td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">模型版本</td>
+                    <td class="calc-value">
+                      {{ dcfValuationV1.modelVersion || '-' }}
+                    </td>
+                    <td class="calc-label">场景</td>
+                    <td class="calc-value">
+                      {{ dcfValuationV1.scenarioKey || '-' }}
+                    </td>
+                    <td class="calc-label">公式版本</td>
+                    <td class="calc-value">
+                      {{ dcfValuationV1.formulaVersion || '-' }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="calc-label">现金流口径</td>
+                    <td class="calc-value">
+                      {{ dcfValuationV1.cashFlowBasis || '-' }}
+                    </td>
+                    <td class="calc-label">参数来源</td>
+                    <td class="calc-value">
+                      {{ dcfValuationV1.defaultParameterSource || '-' }}
+                    </td>
+                    <td class="calc-label">更新时间</td>
+                    <td class="calc-value">
+                      {{ dcfValuationV1.updatedAt || '-' }}
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
             </section>
 
             <section class="calc-step">
               <h4>Step 2 — 自由现金流预测</h4>
               <table class="calc-table" width="75%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">基准自由现金流</td>
-                  <td class="calc-value">{{ safeRound(dcfValuationV1.baseFreeCashFlow) || '-' }}</td>
-                  <td class="calc-label">采用增长率</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV1.revenueGrowthRateApplied) || '-' }}</td>
-                  <td class="calc-label">折现率 (WACC)</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV1.discountRateApplied) || '-' }}</td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">基准自由现金流</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfValuationV1.baseFreeCashFlow) || '-' }}
+                    </td>
+                    <td class="calc-label">采用增长率</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(
+                          dcfValuationV1.revenueGrowthRateApplied
+                        ) || '-'
+                      }}
+                    </td>
+                    <td class="calc-label">折现率 (WACC)</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(dcfValuationV1.discountRateApplied) || '-'
+                      }}
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
               <div v-if="dcfV1YearlyRows.length" class="sub-section">
                 <h5>逐年折现明细</h5>
                 <div class="table-shell">
@@ -566,18 +976,25 @@
                     </el-table-column>
                     <el-table-column label="折现因子">
                       <template #default="{ row }">
-                        {{ row.discountFactor != null ? row.discountFactor.toFixed(4) : '-' }}
+                        {{
+                          row.discountFactor != null
+                            ? row.discountFactor.toFixed(4)
+                            : '-'
+                        }}
                       </template>
                     </el-table-column>
                     <el-table-column label="现值">
                       <template #default="{ row }">
-                        <strong>{{ safeRound(row.presentValue) || '-' }}</strong>
+                        <strong>{{
+                          safeRound(row.presentValue) || '-'
+                        }}</strong>
                       </template>
                     </el-table-column>
                   </el-table>
                 </div>
                 <p class="calc-formula">
-                  预测期现值合计 = <strong>{{ safeRound(dcfV1ForecastPV) || '-' }}</strong>
+                  预测期现值合计 =
+                  <strong>{{ safeRound(dcfV1ForecastPV) || '-' }}</strong>
                 </p>
               </div>
               <div v-else class="placeholder-panel section-block">
@@ -588,44 +1005,101 @@
             <section class="calc-step">
               <h4>Step 3 — 终值计算</h4>
               <table class="calc-table" width="75%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">永续增长率</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV1.terminalGrowthRateApplied) || '-' }}</td>
-                  <td class="calc-label">折现率</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV1.discountRateApplied) || '-' }}</td>
-                  <td class="calc-label">终值现值</td>
-                  <td class="calc-value"><strong>{{ safeRound(dcfV1TerminalPV) || '-' }}</strong></td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">永续增长率</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(
+                          dcfValuationV1.terminalGrowthRateApplied
+                        ) || '-'
+                      }}
+                    </td>
+                    <td class="calc-label">折现率</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(dcfValuationV1.discountRateApplied) || '-'
+                      }}
+                    </td>
+                    <td class="calc-label">终值现值</td>
+                    <td class="calc-value">
+                      <strong>{{ safeRound(dcfV1TerminalPV) || '-' }}</strong>
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
               <p class="calc-formula">
-                终值现值 = 终值 ÷ (1 + WACC)^n &nbsp; | &nbsp; 终值占比 = {{ formatPercent(dcfValuationV1.terminalValueRatio) || '-' }}
+                终值现值 = 终值 ÷ (1 + WACC)^n &nbsp; | &nbsp; 终值占比 =
+                {{ formatPercent(dcfValuationV1.terminalValueRatio) || '-' }}
               </p>
             </section>
 
             <section class="calc-step">
               <h4>Step 4 — 估值汇总</h4>
               <table class="calc-table" width="75%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">预测期现值</td>
-                  <td class="calc-value">{{ safeRound(dcfV1ForecastPV) || '-' }}</td>
-                  <td class="calc-label">终值现值</td>
-                  <td class="calc-value">{{ safeRound(dcfV1TerminalPV) || '-' }}</td>
-                  <td class="calc-label">企业价值</td>
-                  <td class="calc-value"><strong>{{ safeRound(dcfValuationV1.enterpriseValue) || '-' }}</strong></td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">预测期现值</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfV1ForecastPV) || '-' }}
+                    </td>
+                    <td class="calc-label">终值现值</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfV1TerminalPV) || '-' }}
+                    </td>
+                    <td class="calc-label">企业价值</td>
+                    <td class="calc-value">
+                      <strong>{{
+                        safeRound(dcfValuationV1.enterpriseValue) || '-'
+                      }}</strong>
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
               <p class="calc-formula">
-                企业价值 = 预测期现值 + 终值现值 = {{ safeRound(dcfV1ForecastPV) || '?' }} + {{ safeRound(dcfV1TerminalPV) || '?' }} = <strong>{{ safeRound(dcfValuationV1.enterpriseValue) || '-' }}</strong>
+                企业价值 = 预测期现值 + 终值现值 =
+                {{ safeRound(dcfV1ForecastPV) || '?' }} +
+                {{ safeRound(dcfV1TerminalPV) || '?' }} =
+                <strong>{{
+                  safeRound(dcfValuationV1.enterpriseValue) || '-'
+                }}</strong>
               </p>
               <table class="calc-table section-block" width="75%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">企业价值</td>
-                  <td class="calc-value">{{ safeRound(dcfValuationV1.enterpriseValue) || '-' }}</td>
-                  <td class="calc-label">净债务</td>
-                  <td class="calc-value">{{ safeRound(dcfValuationV1.netDebt) || '-' }}</td>
-                  <td class="calc-label">股权价值</td>
-                  <td class="calc-value"><strong>{{ safeRound(dcfValuationV1.equityValue) || '-' }}</strong></td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">企业价值</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfValuationV1.enterpriseValue) || '-' }}
+                    </td>
+                    <td class="calc-label">净债务</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfValuationV1.netDebt) || '-' }}
+                    </td>
+                    <td class="calc-label">股权价值</td>
+                    <td class="calc-value">
+                      <strong>{{
+                        safeRound(dcfValuationV1.equityValue) || '-'
+                      }}</strong>
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
               <p class="calc-formula">
-                股权价值 = 企业价值 − 净债务 = {{ safeRound(dcfValuationV1.enterpriseValue) || '?' }} − {{ safeRound(dcfValuationV1.netDebt) || '?' }} = <strong>{{ safeRound(dcfValuationV1.equityValue) || '-' }}</strong>
+                股权价值 = 企业价值 − 净债务 =
+                {{ safeRound(dcfValuationV1.enterpriseValue) || '?' }} −
+                {{ safeRound(dcfValuationV1.netDebt) || '?' }} =
+                <strong>{{
+                  safeRound(dcfValuationV1.equityValue) || '-'
+                }}</strong>
               </p>
             </section>
 
@@ -638,7 +1112,9 @@
                 </div>
                 <div class="conclusion-item">
                   <span class="conclusion-label">DCF v1 每股估值</span>
-                  <strong>{{ safeRound(dcfValuationV1.perShareValue) || '-' }}</strong>
+                  <strong>{{
+                    safeRound(dcfValuationV1.perShareValue) || '-'
+                  }}</strong>
                 </div>
                 <div class="conclusion-item">
                   <span class="conclusion-label">偏离率</span>
@@ -653,7 +1129,12 @@
                 </div>
               </div>
               <p class="calc-formula">
-                偏离率 = DCF v1 每股估值 ÷ 当前价格 − 1 = {{ safeRound(dcfValuationV1.perShareValue) || '?' }} ÷ {{ safeRound(overview.price) || '?' }} − 1 = <strong>{{ formatPercent(dcfValuationV1.deviation) || '-' }}</strong>
+                偏离率 = DCF v1 每股估值 ÷ 当前价格 − 1 =
+                {{ safeRound(dcfValuationV1.perShareValue) || '?' }} ÷
+                {{ safeRound(overview.price) || '?' }} − 1 =
+                <strong>{{
+                  formatPercent(dcfValuationV1.deviation) || '-'
+                }}</strong>
               </p>
             </section>
           </div>
@@ -677,7 +1158,9 @@
               <div class="summary-result-row">
                 <div class="summary-result-item">
                   <span class="summary-result-label">DCF v2 每股估值</span>
-                  <strong>{{ safeRound(dcfValuationV2.perShareValue) || '-' }}</strong>
+                  <strong>{{
+                    safeRound(dcfValuationV2.perShareValue) || '-'
+                  }}</strong>
                 </div>
                 <div class="summary-result-item">
                   <span class="summary-result-label">偏离率</span>
@@ -692,28 +1175,52 @@
                 </div>
               </div>
               <table class="calc-table" width="100%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">预测期现值</td>
-                  <td class="calc-value">{{ safeRound(dcfV2ForecastPV) || '-' }}</td>
-                  <td class="calc-label">终值现值</td>
-                  <td class="calc-value">{{ safeRound(dcfV2TerminalPV) || '-' }}</td>
-                  <td class="calc-label">终值占比</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV2.terminalValueRatio) || '-' }}</td>
-                </tr>
-                <tr>
-                  <td class="calc-label">企业价值</td>
-                  <td class="calc-value">{{ safeRound(dcfValuationV2.enterpriseValue) || '-' }}</td>
-                  <td class="calc-label">净债务</td>
-                  <td class="calc-value">{{ safeRound(dcfValuationV2.netDebt) || '-' }}</td>
-                  <td class="calc-label">股权价值</td>
-                  <td class="calc-value">{{ safeRound(dcfValuationV2.equityValue) || '-' }}</td>
-                </tr>
-                <tr>
-                  <td class="calc-label">与利润贴现差异</td>
-                  <td class="calc-value">{{ safeRound(dcfValuationV2.profitDcfGap) || '-' }}</td>
-                  <td class="calc-label">敏感性区间</td>
-                  <td class="calc-value" colspan="3">{{ formatSensitivityRange(dcfValuationV2) }}</td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">预测期现值</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfV2ForecastPV) || '-' }}
+                    </td>
+                    <td class="calc-label">终值现值</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfV2TerminalPV) || '-' }}
+                    </td>
+                    <td class="calc-label">终值占比</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(dcfValuationV2.terminalValueRatio) || '-'
+                      }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="calc-label">企业价值</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfValuationV2.enterpriseValue) || '-' }}
+                    </td>
+                    <td class="calc-label">净债务</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfValuationV2.netDebt) || '-' }}
+                    </td>
+                    <td class="calc-label">股权价值</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfValuationV2.equityValue) || '-' }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="calc-label">与利润贴现差异</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfValuationV2.profitDcfGap) || '-' }}
+                    </td>
+                    <td class="calc-label">敏感性区间</td>
+                    <td class="calc-value" colspan="3">
+                      {{ formatSensitivityRange(dcfValuationV2) }}
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
             </section>
 
             <section class="calc-step">
@@ -721,109 +1228,249 @@
                 <h4>Step 1 — 关键参数假设</h4>
               </div>
               <table class="calc-table" width="100%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label"></td>
-                  <td class="calc-label">系统预测</td>
-                  <td class="calc-label">手动设置</td>
-                  <td class="calc-label">采用值</td>
-                </tr>
-                <tr>
-                  <td class="calc-label">营收增长率</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV2.revenueGrowthRatePrediction) || '-' }}</td>
-                  <td class="calc-value">
-                    <span :class="{ 'manual-value': hasValue(dcfValuationV2.revenueGrowthRateManual) }">
-                      {{ formatPercent(dcfValuationV2.revenueGrowthRateManual) || '（未设置）' }}
-                    </span>
-                  </td>
-                  <td class="calc-value">
-                    <el-tag
-                      :type="hasValue(dcfValuationV2.revenueGrowthRateManual) ? 'warning' : 'info'"
-                      size="small"
-                    >
-                      {{ formatPercent(dcfValuationV2.revenueGrowthRateApplied) || '-' }}
-                    </el-tag>
-                    <span class="tag-caption">{{ hasValue(dcfValuationV2.revenueGrowthRateManual) ? '人工覆盖' : '系统预测' }}</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="calc-label">折现率 (WACC)</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV2.discountRatePrediction) || '-' }}</td>
-                  <td class="calc-value">
-                    <span :class="{ 'manual-value': hasValue(dcfValuationV2.discountRateManual) }">
-                      {{ formatPercent(dcfValuationV2.discountRateManual) || '（未设置）' }}
-                    </span>
-                  </td>
-                  <td class="calc-value">
-                    <el-tag
-                      :type="hasValue(dcfValuationV2.discountRateManual) ? 'warning' : 'info'"
-                      size="small"
-                    >
-                      {{ formatPercent(dcfValuationV2.discountRateApplied) || '-' }}
-                    </el-tag>
-                    <span class="tag-caption">{{ hasValue(dcfValuationV2.discountRateManual) ? '人工覆盖' : '系统预测' }}</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="calc-label">永续增长率</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV2.terminalGrowthRatePrediction) || '-' }}</td>
-                  <td class="calc-value">
-                    <span :class="{ 'manual-value': hasValue(dcfValuationV2.terminalGrowthRateManual) }">
-                      {{ formatPercent(dcfValuationV2.terminalGrowthRateManual) || '（未设置）' }}
-                    </span>
-                  </td>
-                  <td class="calc-value">
-                    <el-tag
-                      :type="hasValue(dcfValuationV2.terminalGrowthRateManual) ? 'warning' : 'info'"
-                      size="small"
-                    >
-                      {{ formatPercent(dcfValuationV2.terminalGrowthRateApplied) || '-' }}
-                    </el-tag>
-                    <span class="tag-caption">{{ hasValue(dcfValuationV2.terminalGrowthRateManual) ? '人工覆盖' : '系统预测' }}</span>
-                  </td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label"></td>
+                    <td class="calc-label">系统预测</td>
+                    <td class="calc-label">手动设置</td>
+                    <td class="calc-label">采用值</td>
+                  </tr>
+                  <tr>
+                    <td class="calc-label">营收增长率</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(
+                          dcfValuationV2.revenueGrowthRatePrediction
+                        ) || '-'
+                      }}
+                    </td>
+                    <td class="calc-value">
+                      <span
+                        :class="{
+                          'manual-value': hasValue(
+                            dcfValuationV2.revenueGrowthRateManual
+                          )
+                        }"
+                      >
+                        {{
+                          formatPercent(
+                            dcfValuationV2.revenueGrowthRateManual
+                          ) || '（未设置）'
+                        }}
+                      </span>
+                    </td>
+                    <td class="calc-value">
+                      <el-tag
+                        :type="
+                          hasValue(dcfValuationV2.revenueGrowthRateManual)
+                            ? 'warning'
+                            : 'info'
+                        "
+                        size="small"
+                      >
+                        {{
+                          formatPercent(
+                            dcfValuationV2.revenueGrowthRateApplied
+                          ) || '-'
+                        }}
+                      </el-tag>
+                      <span class="tag-caption">{{
+                        hasValue(dcfValuationV2.revenueGrowthRateManual)
+                          ? '人工覆盖'
+                          : '系统预测'
+                      }}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="calc-label">折现率 (WACC)</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(dcfValuationV2.discountRatePrediction) ||
+                        '-'
+                      }}
+                    </td>
+                    <td class="calc-value">
+                      <span
+                        :class="{
+                          'manual-value': hasValue(
+                            dcfValuationV2.discountRateManual
+                          )
+                        }"
+                      >
+                        {{
+                          formatPercent(dcfValuationV2.discountRateManual) ||
+                          '（未设置）'
+                        }}
+                      </span>
+                    </td>
+                    <td class="calc-value">
+                      <el-tag
+                        :type="
+                          hasValue(dcfValuationV2.discountRateManual)
+                            ? 'warning'
+                            : 'info'
+                        "
+                        size="small"
+                      >
+                        {{
+                          formatPercent(dcfValuationV2.discountRateApplied) ||
+                          '-'
+                        }}
+                      </el-tag>
+                      <span class="tag-caption">{{
+                        hasValue(dcfValuationV2.discountRateManual)
+                          ? '人工覆盖'
+                          : '系统预测'
+                      }}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="calc-label">永续增长率</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(
+                          dcfValuationV2.terminalGrowthRatePrediction
+                        ) || '-'
+                      }}
+                    </td>
+                    <td class="calc-value">
+                      <span
+                        :class="{
+                          'manual-value': hasValue(
+                            dcfValuationV2.terminalGrowthRateManual
+                          )
+                        }"
+                      >
+                        {{
+                          formatPercent(
+                            dcfValuationV2.terminalGrowthRateManual
+                          ) || '（未设置）'
+                        }}
+                      </span>
+                    </td>
+                    <td class="calc-value">
+                      <el-tag
+                        :type="
+                          hasValue(dcfValuationV2.terminalGrowthRateManual)
+                            ? 'warning'
+                            : 'info'
+                        "
+                        size="small"
+                      >
+                        {{
+                          formatPercent(
+                            dcfValuationV2.terminalGrowthRateApplied
+                          ) || '-'
+                        }}
+                      </el-tag>
+                      <span class="tag-caption">{{
+                        hasValue(dcfValuationV2.terminalGrowthRateManual)
+                          ? '人工覆盖'
+                          : '系统预测'
+                      }}</span>
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
               <table class="calc-table section-block" width="100%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">阶段营收增长率</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV2.averageRevenueGrowthRate) || '-' }}</td>
-                  <td class="calc-label">经营利润率</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV2.averageOperatingMargin) || '-' }}</td>
-                  <td class="calc-label">税率</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV2.averageTaxRate) || '-' }}</td>
-                </tr>
-                <tr>
-                  <td class="calc-label">再投资率</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV2.averageReinvestmentRatio) || '-' }}</td>
-                  <td class="calc-label">模型版本</td>
-                  <td class="calc-value">{{ dcfValuationV2.modelVersion || '-' }}</td>
-                  <td class="calc-label">场景</td>
-                  <td class="calc-value">{{ dcfValuationV2.scenarioKey || '-' }}</td>
-                </tr>
-                <tr>
-                  <td class="calc-label">公式版本</td>
-                  <td class="calc-value">{{ dcfValuationV2.formulaVersion || '-' }}</td>
-                  <td class="calc-label">现金流口径</td>
-                  <td class="calc-value">{{ dcfValuationV2.cashFlowBasis || '-' }}</td>
-                  <td class="calc-label">参数来源</td>
-                  <td class="calc-value">{{ dcfValuationV2.defaultParameterSource || '-' }}</td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">阶段营收增长率</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(
+                          dcfValuationV2.averageRevenueGrowthRate
+                        ) || '-'
+                      }}
+                    </td>
+                    <td class="calc-label">经营利润率</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(dcfValuationV2.averageOperatingMargin) ||
+                        '-'
+                      }}
+                    </td>
+                    <td class="calc-label">税率</td>
+                    <td class="calc-value">
+                      {{ formatPercent(dcfValuationV2.averageTaxRate) || '-' }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="calc-label">再投资率</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(
+                          dcfValuationV2.averageReinvestmentRatio
+                        ) || '-'
+                      }}
+                    </td>
+                    <td class="calc-label">模型版本</td>
+                    <td class="calc-value">
+                      {{ dcfValuationV2.modelVersion || '-' }}
+                    </td>
+                    <td class="calc-label">场景</td>
+                    <td class="calc-value">
+                      {{ dcfValuationV2.scenarioKey || '-' }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="calc-label">公式版本</td>
+                    <td class="calc-value">
+                      {{ dcfValuationV2.formulaVersion || '-' }}
+                    </td>
+                    <td class="calc-label">现金流口径</td>
+                    <td class="calc-value">
+                      {{ dcfValuationV2.cashFlowBasis || '-' }}
+                    </td>
+                    <td class="calc-label">参数来源</td>
+                    <td class="calc-value">
+                      {{ dcfValuationV2.defaultParameterSource || '-' }}
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
             </section>
 
             <section class="calc-step">
               <h4>Step 2 — 分阶段自由现金流预测</h4>
               <table class="calc-table" width="75%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">基准自由现金流</td>
-                  <td class="calc-value">{{ safeRound(dcfValuationV2.baseFreeCashFlow) || '-' }}</td>
-                  <td class="calc-label">折现率 (WACC)</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV2.discountRateApplied) || '-' }}</td>
-                  <td class="calc-label">更新时间</td>
-                  <td class="calc-value">{{ dcfValuationV2.updatedAt || '-' }}</td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">基准自由现金流</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfValuationV2.baseFreeCashFlow) || '-' }}
+                    </td>
+                    <td class="calc-label">折现率 (WACC)</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(dcfValuationV2.discountRateApplied) || '-'
+                      }}
+                    </td>
+                    <td class="calc-label">更新时间</td>
+                    <td class="calc-value">
+                      {{ dcfValuationV2.updatedAt || '-' }}
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
               <div v-if="dcfV2StageDetails.length" class="sub-section">
                 <h5>逐年预测明细</h5>
                 <div class="table-shell">
                   <el-table :data="dcfV2StageDetails" size="small">
-                    <el-table-column prop="yearOffset" label="年度" width="80" />
+                    <el-table-column
+                      prop="yearOffset"
+                      label="年度"
+                      width="80"
+                    />
                     <el-table-column label="营收增长率">
                       <template #default="{ row }">
                         {{ formatPercent(row.revenueGrowthRate) || '-' }}
@@ -846,18 +1493,25 @@
                     </el-table-column>
                     <el-table-column label="折现因子">
                       <template #default="{ row }">
-                        {{ row.discountFactor != null ? row.discountFactor.toFixed(4) : '-' }}
+                        {{
+                          row.discountFactor != null
+                            ? row.discountFactor.toFixed(4)
+                            : '-'
+                        }}
                       </template>
                     </el-table-column>
                     <el-table-column label="现值">
                       <template #default="{ row }">
-                        <strong>{{ safeRound(row.presentValue) || '-' }}</strong>
+                        <strong>{{
+                          safeRound(row.presentValue) || '-'
+                        }}</strong>
                       </template>
                     </el-table-column>
                   </el-table>
                 </div>
                 <p class="calc-formula">
-                  预测期现值合计 = <strong>{{ safeRound(dcfV2ForecastPV) || '-' }}</strong>
+                  预测期现值合计 =
+                  <strong>{{ safeRound(dcfV2ForecastPV) || '-' }}</strong>
                 </p>
               </div>
               <div v-else class="placeholder-panel section-block">
@@ -868,44 +1522,101 @@
             <section class="calc-step">
               <h4>Step 3 — 终值计算</h4>
               <table class="calc-table" width="75%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">永续增长率</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV2.terminalGrowthRateApplied) || '-' }}</td>
-                  <td class="calc-label">折现率</td>
-                  <td class="calc-value">{{ formatPercent(dcfValuationV2.discountRateApplied) || '-' }}</td>
-                  <td class="calc-label">终值现值</td>
-                  <td class="calc-value"><strong>{{ safeRound(dcfV2TerminalPV) || '-' }}</strong></td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">永续增长率</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(
+                          dcfValuationV2.terminalGrowthRateApplied
+                        ) || '-'
+                      }}
+                    </td>
+                    <td class="calc-label">折现率</td>
+                    <td class="calc-value">
+                      {{
+                        formatPercent(dcfValuationV2.discountRateApplied) || '-'
+                      }}
+                    </td>
+                    <td class="calc-label">终值现值</td>
+                    <td class="calc-value">
+                      <strong>{{ safeRound(dcfV2TerminalPV) || '-' }}</strong>
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
               <p class="calc-formula">
-                终值现值 = 终值 ÷ (1 + WACC)^n &nbsp; | &nbsp; 终值占比 = {{ formatPercent(dcfValuationV2.terminalValueRatio) || '-' }}
+                终值现值 = 终值 ÷ (1 + WACC)^n &nbsp; | &nbsp; 终值占比 =
+                {{ formatPercent(dcfValuationV2.terminalValueRatio) || '-' }}
               </p>
             </section>
 
             <section class="calc-step">
               <h4>Step 4 — 估值汇总</h4>
               <table class="calc-table" width="75%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">预测期现值</td>
-                  <td class="calc-value">{{ safeRound(dcfV2ForecastPV) || '-' }}</td>
-                  <td class="calc-label">终值现值</td>
-                  <td class="calc-value">{{ safeRound(dcfV2TerminalPV) || '-' }}</td>
-                  <td class="calc-label">企业价值</td>
-                  <td class="calc-value"><strong>{{ safeRound(dcfValuationV2.enterpriseValue) || '-' }}</strong></td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">预测期现值</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfV2ForecastPV) || '-' }}
+                    </td>
+                    <td class="calc-label">终值现值</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfV2TerminalPV) || '-' }}
+                    </td>
+                    <td class="calc-label">企业价值</td>
+                    <td class="calc-value">
+                      <strong>{{
+                        safeRound(dcfValuationV2.enterpriseValue) || '-'
+                      }}</strong>
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
               <p class="calc-formula">
-                企业价值 = 预测期现值 + 终值现值 = {{ safeRound(dcfV2ForecastPV) || '?' }} + {{ safeRound(dcfV2TerminalPV) || '?' }} = <strong>{{ safeRound(dcfValuationV2.enterpriseValue) || '-' }}</strong>
+                企业价值 = 预测期现值 + 终值现值 =
+                {{ safeRound(dcfV2ForecastPV) || '?' }} +
+                {{ safeRound(dcfV2TerminalPV) || '?' }} =
+                <strong>{{
+                  safeRound(dcfValuationV2.enterpriseValue) || '-'
+                }}</strong>
               </p>
               <table class="calc-table section-block" width="75%">
-                <tbody>`r`n                <tr>
-                  <td class="calc-label">企业价值</td>
-                  <td class="calc-value">{{ safeRound(dcfValuationV2.enterpriseValue) || '-' }}</td>
-                  <td class="calc-label">净债务</td>
-                  <td class="calc-value">{{ safeRound(dcfValuationV2.netDebt) || '-' }}</td>
-                  <td class="calc-label">股权价值</td>
-                  <td class="calc-value"><strong>{{ safeRound(dcfValuationV2.equityValue) || '-' }}</strong></td>
-                </tr>`r`n              </tbody>`r`n              </table>
+                <tbody>
+                  `r`n
+                  <tr>
+                    <td class="calc-label">企业价值</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfValuationV2.enterpriseValue) || '-' }}
+                    </td>
+                    <td class="calc-label">净债务</td>
+                    <td class="calc-value">
+                      {{ safeRound(dcfValuationV2.netDebt) || '-' }}
+                    </td>
+                    <td class="calc-label">股权价值</td>
+                    <td class="calc-value">
+                      <strong>{{
+                        safeRound(dcfValuationV2.equityValue) || '-'
+                      }}</strong>
+                    </td>
+                  </tr>
+                  `r`n
+                </tbody>
+                `r`n
+              </table>
               <p class="calc-formula">
-                股权价值 = 企业价值 − 净债务 = {{ safeRound(dcfValuationV2.enterpriseValue) || '?' }} − {{ safeRound(dcfValuationV2.netDebt) || '?' }} = <strong>{{ safeRound(dcfValuationV2.equityValue) || '-' }}</strong>
+                股权价值 = 企业价值 − 净债务 =
+                {{ safeRound(dcfValuationV2.enterpriseValue) || '?' }} −
+                {{ safeRound(dcfValuationV2.netDebt) || '?' }} =
+                <strong>{{
+                  safeRound(dcfValuationV2.equityValue) || '-'
+                }}</strong>
               </p>
             </section>
 
@@ -914,7 +1625,11 @@
               <div v-if="dcfV2SensitivitySnapshots.length" class="sub-section">
                 <div class="table-shell">
                   <el-table :data="dcfV2SensitivitySnapshots" size="small">
-                    <el-table-column prop="scenarioKey" label="场景" width="130" />
+                    <el-table-column
+                      prop="scenarioKey"
+                      label="场景"
+                      width="130"
+                    />
                     <el-table-column label="折现率">
                       <template #default="{ row }">
                         {{ formatPercent(row.discountRate) || '-' }}
@@ -952,7 +1667,9 @@
                 </div>
                 <div class="conclusion-item">
                   <span class="conclusion-label">DCF v2 每股估值</span>
-                  <strong>{{ safeRound(dcfValuationV2.perShareValue) || '-' }}</strong>
+                  <strong>{{
+                    safeRound(dcfValuationV2.perShareValue) || '-'
+                  }}</strong>
                 </div>
                 <div class="conclusion-item">
                   <span class="conclusion-label">偏离率</span>
@@ -967,7 +1684,12 @@
                 </div>
               </div>
               <p class="calc-formula">
-                偏离率 = DCF v2 每股估值 ÷ 当前价格 − 1 = {{ safeRound(dcfValuationV2.perShareValue) || '?' }} ÷ {{ safeRound(overview.price) || '?' }} − 1 = <strong>{{ formatPercent(dcfValuationV2.deviation) || '-' }}</strong>
+                偏离率 = DCF v2 每股估值 ÷ 当前价格 − 1 =
+                {{ safeRound(dcfValuationV2.perShareValue) || '?' }} ÷
+                {{ safeRound(overview.price) || '?' }} − 1 =
+                <strong>{{
+                  formatPercent(dcfValuationV2.deviation) || '-'
+                }}</strong>
               </p>
             </section>
 
@@ -1078,7 +1800,6 @@
           </div>
         </div>
       </el-tab-pane>
-
     </el-tabs>
     <el-dialog
       v-model="helpDialogVisible"
@@ -1094,7 +1815,8 @@
             再乘以市场风险系数和行业风险系数。
           </p>
           <p class="formula">
-            最终估值 = (净资产估值 + 高增长期估值 + 稳定期估值) × 市场风险系数 × 行业风险系数
+            最终估值 = (净资产估值 + 高增长期估值 + 稳定期估值) × 市场风险系数 ×
+            行业风险系数
           </p>
         </section>
 
@@ -1107,7 +1829,10 @@
           <ul>
             <li>页面里的增长率是百分数点，例如 15 表示 15%。</li>
             <li>高增长期目前按 3 年计算。</li>
-            <li>系统推算时，营收下降会保守处理利润增速；营收和利润增速上限按 30% 截断。</li>
+            <li>
+              系统推算时，营收下降会保守处理利润增速；营收和利润增速上限按 30%
+              截断。
+            </li>
           </ul>
         </section>
 
@@ -1115,7 +1840,10 @@
           <h3>三段估值</h3>
           <ul>
             <li>净资产估值 = 每股净资产 × 净资产折算率。</li>
-            <li>高增长期估值 = 每股扣非净利润 × 未来 3 年利润增长后的折现系数合计 × 分红/留存折算系数。</li>
+            <li>
+              高增长期估值 = 每股扣非净利润 × 未来 3 年利润增长后的折现系数合计
+              × 分红/留存折算系数。
+            </li>
             <li>稳定期估值 = 第 3 年后的永续利润价值 × 分红/留存折算系数。</li>
           </ul>
           <p>
@@ -1150,9 +1878,17 @@
         <section>
           <h3>推算逻辑</h3>
           <ul>
-            <li>先用累积增速和当期增速综合预测未来增速。两者同正取均值，同负取当期值，一正一负取较小值（保守）。</li>
-            <li>再用营收增速和利润增速推算最终利润率增速。营收下降时取较保守值，营收正常时取两者均值，且上限按 30% 截断。</li>
-            <li>如果仅有一季报（报告日期为 03-31），直接用当期增速推算，不做综合预测。</li>
+            <li>
+              先用累积增速和当期增速综合预测未来增速。两者同正取均值，同负取当期值，一正一负取较小值（保守）。
+            </li>
+            <li>
+              再用营收增速和利润增速推算最终利润率增速。营收下降时取较保守值，营收正常时取两者均值，且上限按
+              30% 截断。
+            </li>
+            <li>
+              如果仅有一季报（报告日期为
+              03-31），直接用当期增速推算，不做综合预测。
+            </li>
           </ul>
         </section>
         <section>
@@ -1182,16 +1918,25 @@
         <section>
           <h3>分红稳定性</h3>
           <ul>
-            <li>持续分红（上市以来每年都分）的公司：10 年以上稳定性为 100%，不足 10 年按年限折减。</li>
-            <li>未持续分红的公司：5 年以上稳定性为 100%，不足 5 年同样按年限折减。</li>
+            <li>
+              持续分红（上市以来每年都分）的公司：10 年以上稳定性为 100%，不足
+              10 年按年限折减。
+            </li>
+            <li>
+              未持续分红的公司：5 年以上稳定性为 100%，不足 5 年同样按年限折减。
+            </li>
           </ul>
         </section>
         <section>
           <h3>预期分红率</h3>
           <ul>
             <li>以上年度分红率为基础，乘以分红稳定性系数。</li>
-            <li>长期分红率上限按 70% 处理，认为企业不可能维持长期 100% 分红。</li>
-            <li>预期分红率会影响留存折算系数，进而影响高增长期和稳定期估值。</li>
+            <li>
+              长期分红率上限按 70% 处理，认为企业不可能维持长期 100% 分红。
+            </li>
+            <li>
+              预期分红率会影响留存折算系数，进而影响高增长期和稳定期估值。
+            </li>
           </ul>
         </section>
       </div>
@@ -1206,19 +1951,22 @@
         <section>
           <h3>总体口径</h3>
           <p>
-            DCF v1（简易 FCFF 模型）采用统一增长率假设，将基准自由现金流按固定增长率外推，
+            DCF v1（简易 FCFF
+            模型）采用统一增长率假设，将基准自由现金流按固定增长率外推，
             折现后加总得到企业价值，再扣减净债务得到股权价值。
           </p>
-          <p class="formula">
-            股权价值 = 企业价值 − 净债务
-          </p>
+          <p class="formula">股权价值 = 企业价值 − 净债务</p>
         </section>
         <section>
           <h3>参数来源</h3>
           <ul>
-            <li>营收增长率：优先使用手动设置值，否则使用系统预测值（基于历史财务数据推算）。</li>
+            <li>
+              营收增长率：优先使用手动设置值，否则使用系统预测值（基于历史财务数据推算）。
+            </li>
             <li>折现率（WACC）：优先使用手动设置值，否则使用系统默认值。</li>
-            <li>永续增长率：优先使用手动设置值，否则使用系统默认值（通常 2%–3%）。</li>
+            <li>
+              永续增长率：优先使用手动设置值，否则使用系统默认值（通常 2%–3%）。
+            </li>
           </ul>
         </section>
         <section>
@@ -1227,7 +1975,10 @@
             <li>Step 1：确定关键参数（增长率、折现率、永续增长率）。</li>
             <li>Step 2：逐年外推自由现金流并折现。</li>
             <li>Step 3：计算终值（永续增长模型）并折现。</li>
-            <li>Step 4：企业价值 = 预测期现值 + 终值现值；股权价值 = 企业价值 − 净债务。</li>
+            <li>
+              Step 4：企业价值 = 预测期现值 + 终值现值；股权价值 = 企业价值 −
+              净债务。
+            </li>
             <li>Step 5：每股估值 = 股权价值 ÷ 总股本。</li>
           </ul>
         </section>
@@ -1250,7 +2001,8 @@
         <section>
           <h3>总体口径</h3>
           <p>
-            DCF v2（标准 FCFF 模型）采用分阶段假设，每个阶段可设置不同的营收增长率、经营利润率、
+            DCF v2（标准 FCFF
+            模型）采用分阶段假设，每个阶段可设置不同的营收增长率、经营利润率、
             税率和再投资率，逐期推算自由现金流并折现。
           </p>
           <p class="formula">
@@ -1261,15 +2013,22 @@
           <h3>与 v1 的主要区别</h3>
           <ul>
             <li>v1 使用统一增长率外推 FCFF；v2 从营收出发，逐期推算 FCFF。</li>
-            <li>v2 引入了经营利润率、税率、再投资率等中间变量，更贴近实际经营逻辑。</li>
-            <li>v2 支持敏感性分析：在不同折现率和永续增长率组合下展示估值区间。</li>
+            <li>
+              v2
+              引入了经营利润率、税率、再投资率等中间变量，更贴近实际经营逻辑。
+            </li>
+            <li>
+              v2 支持敏感性分析：在不同折现率和永续增长率组合下展示估值区间。
+            </li>
           </ul>
         </section>
         <section>
           <h3>计算步骤</h3>
           <ul>
             <li>Step 1：确定关键参数和各阶段假设。</li>
-            <li>Step 2：分阶段逐年推算营收 → 经营利润 → NOPAT → FCFF，并折现。</li>
+            <li>
+              Step 2：分阶段逐年推算营收 → 经营利润 → NOPAT → FCFF，并折现。
+            </li>
             <li>Step 3：终值计算（与 v1 相同）。</li>
             <li>Step 4：估值汇总。</li>
             <li>Step 5：敏感性分析，展示不同参数组合下的估值区间。</li>
@@ -1346,7 +2105,7 @@ const researchNavItems = computed(() => [
     name: 'financial',
     label: '财务评价',
     summary: latestReport.date || '等待财报'
-  },
+  }
 ])
 
 const profitDetailYearlyRows = computed(() => {
@@ -1357,8 +2116,8 @@ const profitDetailYearlyRows = computed(() => {
     const year = i + 1
     return {
       year: `第 ${year} 年`,
-      growthFactor: (Math.pow(1 + g, year)).toFixed(4),
-      discountFactor: (Math.pow(1 + r, year)).toFixed(4),
+      growthFactor: Math.pow(1 + g, year).toFixed(4),
+      discountFactor: Math.pow(1 + r, year).toFixed(4),
       coefficient: coef.toFixed(4)
     }
   })
@@ -1491,11 +2250,15 @@ async function loadProfitDetail() {
   }
 }
 
-watch(activeTab, (tab) => {
-  if (tab === 'profit') {
-    loadProfitDetail()
-  }
-}, { immediate: true })
+watch(
+  activeTab,
+  (tab) => {
+    if (tab === 'profit') {
+      loadProfitDetail()
+    }
+  },
+  { immediate: true }
+)
 
 async function confirmDeleteCompany() {
   await ElMessageBox.confirm('此操作将删除本公司，是否继续？', '提示', {

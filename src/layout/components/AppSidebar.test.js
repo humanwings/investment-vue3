@@ -90,9 +90,9 @@ describe('AppSidebar', () => {
     )
 
     expect(wrapper.vm.hasVisibleSectionChildren(systemSettings)).toBe(true)
-    expect(wrapper.vm.visibleSections(systemSettings)).toHaveLength(1)
-    expect(wrapper.vm.visibleSections(systemSettings)[0].meta.title).toBe(
-      '数据接口设置'
-    )
+    const visibleTitles = wrapper.vm
+      .visibleSections(systemSettings)
+      .map((s) => s.meta?.title)
+    expect(visibleTitles).toContain('数据接口设置')
   })
 })

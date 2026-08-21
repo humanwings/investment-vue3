@@ -98,7 +98,9 @@ describe('data sources page', () => {
       '/valuation/rebuild-all'
     )
     expect(wrapper.text()).toContain('********oken')
-    expect(wrapper.text()).toContain('选择 companylist 功能使用的最新股价数据源')
+    expect(wrapper.text()).toContain(
+      '选择 companylist 功能使用的最新股价数据源'
+    )
     expect(wrapper.text()).toContain('测试公司数据接口')
     expect(wrapper.text()).toContain('已保存的凭证')
   })
