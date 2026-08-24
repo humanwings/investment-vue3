@@ -4,16 +4,40 @@
       <el-button type="primary" @click="importVisible = true"
         >导入 Excel</el-button
       >
+      <el-button
+        type="success"
+        :loading="saving"
+        :disabled="saving"
+        @click="saveAll"
+        >保存</el-button
+      >
+      <el-button @click="reset">重置</el-button>
       <span v-if="summary.statsDate" class="summary">
         最新统计日期：{{ summary.statsDate }} ｜ 持仓
-        {{ summary.positionCount }} 只 ｜ 总市值
-        {{ format(summary.totalMv) }} ｜ 总盈亏 {{ format(summary.totalPl) }}
+        {{ summary.positionCount }} 只 ｜ 总市值(含现金)
+        {{ format(totalAll) }}
+        <span
+          v-if="weekDiff !== null"
+          class="diff"
+          :class="weekDiff >= 0 ? 'up' : 'down'"
+        >
+          {{ weekDiff >= 0 ? '▲' : '▼' }} 较上周{{
+            weekDiff >= 0 ? '增加' : '减少'
+          }}
+          {{ format(Math.abs(weekDiff)) }}
+        </span>
       </span>
     </div>
 
     <el-tabs v-model="activeTab">
       <el-tab-pane label="总持仓" name="total">
-        <el-table :data="totalTable" border stripe>
+        <el-table
+          :data="totalTable"
+          border
+          stripe
+          :header-cell-style="headerStyle"
+          :row-class-name="rowClassName"
+        >
           <el-table-column type="index" label="序号" width="60" />
           <el-table-column prop="stockName" label="名称" width="120" />
           <el-table-column
@@ -23,15 +47,26 @@
             :filters="industryOpts"
             :filter-method="(value, row) => row.industryL1 === value"
           />
-          <el-table-column label="总市值" width="120">
+          <el-table-column
+            label="总市值"
+            width="120"
+            align="right"
+            header-align="right"
+          >
             <template #default="{ row }">{{
               format(row.stockCode ? mv(row) : row.totalMv)
             }}</template>
           </el-table-column>
-          <el-table-column label="总盈亏" width="120">
-            <template #default="{ row }">{{
-              format(row.stockCode ? pl(row) : '-')
-            }}</template>
+          <el-table-column
+            label="总盈亏"
+            width="120"
+            align="right"
+            header-align="right"
+          >
+            <template #default="{ row }">
+              <span v-if="row.stockCode">{{ format(pl(row)) }}</span>
+              <span v-else>-</span>
+            </template>
           </el-table-column>
           <el-table-column
             label="来源"
@@ -45,6 +80,7 @@
                 v-model="row.sourceType"
                 size="small"
                 clearable
+                @change="onSourceChange(row)"
               >
                 <el-option
                   v-for="v in sources"
@@ -68,6 +104,7 @@
                 v-model="row.buyReason"
                 size="small"
                 clearable
+                :disabled="row.sourceType === '大V推荐'"
               >
                 <el-option
                   v-for="v in buyReasons"
@@ -117,9 +154,10 @@
               <el-input
                 v-if="row.stockCode"
                 v-model="row.earningsNote"
-                size="small"
                 type="textarea"
                 :rows="1"
+                :autosize="{ minRows: 1, maxRows: 10 }"
+                class="note-input"
               />
               <span v-else>-</span>
             </template>
@@ -129,39 +167,57 @@
               <el-input
                 v-if="row.stockCode"
                 v-model="row.archiveRemark"
-                size="small"
+                type="textarea"
+                :rows="1"
+                :autosize="{ minRows: 1, maxRows: 10 }"
+                class="note-input"
               />
               <span v-else>-</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="80" fixed="right">
-            <template #default="{ row }">
-              <el-button
-                v-if="row.stockCode"
-                type="primary"
-                link
-                @click="saveRow(row)"
-              >
-                保存
-              </el-button>
             </template>
           </el-table-column>
         </el-table>
       </el-tab-pane>
 
       <el-tab-pane label="国泰海通" name="gt">
-        <el-table :data="gtTable" border stripe>
+        <el-table
+          :data="gtTable"
+          border
+          stripe
+          :header-cell-style="headerStyle"
+          :row-class-name="rowClassName"
+        >
           <el-table-column type="index" label="序号" width="60" />
           <el-table-column prop="stockName" label="名称" width="120" />
           <el-table-column prop="stockCode" label="代码" width="100" />
-          <el-table-column prop="gtQty" label="数量" width="90" />
-          <el-table-column label="市值" width="110">
+          <el-table-column
+            prop="gtQty"
+            label="数量"
+            width="90"
+            align="right"
+            header-align="right"
+          />
+          <el-table-column
+            label="市值"
+            width="110"
+            align="right"
+            header-align="right"
+          >
             <template #default="{ row }">{{ format(row.gtMv) }}</template>
           </el-table-column>
-          <el-table-column label="成本价" width="100">
+          <el-table-column
+            label="成本价"
+            width="100"
+            align="right"
+            header-align="right"
+          >
             <template #default="{ row }">{{ row.gtCost ?? '-' }}</template>
           </el-table-column>
-          <el-table-column label="浮动盈亏" width="110">
+          <el-table-column
+            label="浮动盈亏"
+            width="110"
+            align="right"
+            header-align="right"
+          >
             <template #default="{ row }">{{ format(row.gtPl) }}</template>
           </el-table-column>
           <el-table-column
@@ -173,18 +229,45 @@
       </el-tab-pane>
 
       <el-tab-pane label="平安证券" name="pa">
-        <el-table :data="paTable" border stripe>
+        <el-table
+          :data="paTable"
+          border
+          stripe
+          :header-cell-style="headerStyle"
+          :row-class-name="rowClassName"
+        >
           <el-table-column type="index" label="序号" width="60" />
           <el-table-column prop="stockName" label="名称" width="120" />
           <el-table-column prop="stockCode" label="代码" width="100" />
-          <el-table-column prop="paQty" label="数量" width="90" />
-          <el-table-column label="市值" width="110">
+          <el-table-column
+            prop="paQty"
+            label="数量"
+            width="90"
+            align="right"
+            header-align="right"
+          />
+          <el-table-column
+            label="市值"
+            width="110"
+            align="right"
+            header-align="right"
+          >
             <template #default="{ row }">{{ format(row.paMv) }}</template>
           </el-table-column>
-          <el-table-column label="成本价" width="100">
+          <el-table-column
+            label="成本价"
+            width="100"
+            align="right"
+            header-align="right"
+          >
             <template #default="{ row }">{{ row.paCost ?? '-' }}</template>
           </el-table-column>
-          <el-table-column label="浮动盈亏" width="110">
+          <el-table-column
+            label="浮动盈亏"
+            width="110"
+            align="right"
+            header-align="right"
+          >
             <template #default="{ row }">{{ format(row.paPl) }}</template>
           </el-table-column>
           <el-table-column
@@ -202,11 +285,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getPortfolioLatest,
-  updatePortfolioArchive,
-  updatePositionEarnings
+  getPortfolioSnapshots,
+  saveAllPortfolio
 } from '@/api/portfolio'
 import ImportDialog from './components/ImportDialog.vue'
 
@@ -218,6 +301,20 @@ const activeTab = ref('total')
 const importVisible = ref(false)
 const summary = ref({})
 const positions = ref([])
+const prevAll = ref(null)
+const saving = ref(false)
+
+const totalAll = computed(
+  () => (summary.value.totalMv || 0) + (summary.value.totalCash || 0)
+)
+const weekDiff = computed(() =>
+  prevAll.value == null ? null : totalAll.value - prevAll.value
+)
+
+const headerStyle = { background: '#16305a', color: '#fff', fontWeight: '700' }
+function rowClassName({ row }) {
+  return row.stockCode ? '' : 'cash-row'
+}
 
 function format(v) {
   return v == null
@@ -283,29 +380,94 @@ async function load() {
       holdPlan: p.holdPlan || '',
       archiveRemark: p.archiveRemark || ''
     }))
+    const sres = await getPortfolioSnapshots()
+    const snaps = sres.data.snapshots || []
+    const idx = snaps.findIndex((s) => s.statsDate === summary.value.statsDate)
+    const prevRow = idx >= 0 && idx + 1 < snaps.length ? snaps[idx + 1] : null
+    prevAll.value = prevRow
+      ? (prevRow.totalMv || 0) + (prevRow.totalCash || 0)
+      : null
   } catch {
     // interceptor 已提示
   }
 }
 
-async function saveRow(row) {
+function onSourceChange(row) {
+  if (row.sourceType === '大V推荐') row.buyReason = ''
+}
+
+async function saveAll() {
+  if (saving.value) return
+  saving.value = true
   try {
-    await updatePortfolioArchive(row.stockCode, {
+    await saveAllWithRetry(3)
+    ElMessage.success('保存成功')
+  } catch (e) {
+    const msg = String(e?.message || '').toLowerCase()
+    const busy =
+      msg.includes('sqlite_busy') || msg.includes('database is locked')
+    if (busy) {
+      ElMessage.error('保存失败：数据库正忙，请稍后重试')
+    }
+    // 其它错误已由 request 拦截器提示
+  } finally {
+    saving.value = false
+  }
+}
+
+async function saveAllWithRetry(maxAttempts) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await persistAll()
+      return
+    } catch (e) {
+      const msg = String(e?.message || '').toLowerCase()
+      const busy =
+        msg.includes('sqlite_busy') || msg.includes('database is locked')
+      if (!busy || attempt === maxAttempts) {
+        throw e
+      }
+      await sleep(300 * attempt)
+    }
+  }
+}
+
+async function persistAll() {
+  const items = positions.value
+    .filter((p) => p.stockCode)
+    .map((row) => ({
+      stockCode: row.stockCode,
       stockName: row.stockName,
       sourceType: row.sourceType || null,
       bigV: row.sourceType === '大V推荐' ? row.bigV : null,
       buyReason: row.buyReason || null,
       holdStrategy: row.holdStrategy || null,
       holdPlan: row.holdPlan,
-      remark: row.archiveRemark
-    })
-    if (row.positionId != null) {
-      await updatePositionEarnings(row.positionId, row.earningsNote || null)
-    }
-    ElMessage.success('保存成功')
+      remark: row.archiveRemark,
+      positionId: row.positionId != null ? row.positionId : null,
+      earningsNote: row.earningsNote || null
+    }))
+  await saveAllPortfolio(items)
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function reset() {
+  try {
+    await ElMessageBox.confirm(
+      '将放弃本次所有未保存的修改，确定重置吗？',
+      '提示',
+      {
+        confirmButtonText: '重置',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
     await load()
   } catch {
-    // interceptor 已提示
+    // 用户取消，不处理
   }
 }
 
@@ -319,5 +481,32 @@ onMounted(load)
 .summary {
   margin-left: 14px;
   color: #606266;
+}
+.diff {
+  margin-left: 12px;
+  font-weight: 700;
+}
+:deep(.el-table th.el-table__cell) {
+  background: #16305a;
+  color: #fff;
+  border-color: #2b4a78;
+}
+:deep(
+  .el-table--enable-row-hover .el-table__body tr:hover > td.el-table__cell
+) {
+  background: #eef4fb;
+}
+.cash-row td.el-table__cell {
+  background: #e5effc !important;
+  font-weight: 700;
+}
+.up {
+  color: #f56c6c;
+}
+.down {
+  color: #67c23a;
+}
+:deep(.note-input .el-textarea__inner) {
+  resize: vertical;
 }
 </style>

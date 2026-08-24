@@ -32,6 +32,26 @@
       <el-table-column label="参考盈亏(只读)" width="120">
         <template #default="{ row }">{{ formatPl(row.refTotalPl) }}</template>
       </el-table-column>
+      <el-table-column label="实现盈亏" width="130">
+        <template #default="{ row }">
+          <el-input-number
+            v-model="row.realizedPl"
+            :precision="2"
+            size="small"
+            controls-position="right"
+          />
+        </template>
+      </el-table-column>
+      <el-table-column label="持股天数" width="110">
+        <template #default="{ row }">
+          <el-input-number
+            v-model="row.holdDays"
+            :min="0"
+            size="small"
+            controls-position="right"
+          />
+        </template>
+      </el-table-column>
       <el-table-column label="清仓原因" width="120">
         <template #default="{ row }">
           <el-select v-model="row.clearReason" size="small" clearable>
@@ -49,24 +69,15 @@
           <el-input v-model="row.clearReasonRemark" size="small" />
         </template>
       </el-table-column>
-      <el-table-column label="实现盈亏" width="130">
-        <template #default="{ row }">
-          <el-input-number
-            v-model="row.realizedPl"
-            :precision="2"
-            size="small"
-            controls-position="right"
-          />
-        </template>
-      </el-table-column>
       <el-table-column label="备注" width="160">
         <template #default="{ row }">
           <el-input v-model="row.clearedRemark" size="small" />
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="80" fixed="right">
+      <el-table-column label="操作" width="130" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" link @click="saveRow(row)">保存</el-button>
+          <el-button type="danger" link @click="removeRow(row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -75,10 +86,22 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { getPortfolioCleared, updatePortfolioCleared } from '@/api/portfolio'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  getPortfolioCleared,
+  updatePortfolioCleared,
+  deletePortfolioCleared
+} from '@/api/portfolio'
 
-const clearReasons = ['止损', '止盈', '换仓', '基本面变化', '其他']
+const clearReasons = [
+  '止损',
+  '止盈',
+  '消息利空',
+  '财报不佳',
+  '跟随大V',
+  '信心不足',
+  '其他'
+]
 const cleared = ref([])
 
 function formatPl(v) {
@@ -95,10 +118,11 @@ async function load() {
       clearReason: c.clearReason || '',
       clearReasonRemark: c.clearReasonRemark || '',
       realizedPl: c.realizedPl ?? null,
+      holdDays: c.holdDays ?? null,
       clearedRemark: c.clearedRemark || ''
     }))
   } catch {
-    // interceptor
+    // interceptor 已提示
   }
 }
 
@@ -108,12 +132,35 @@ async function saveRow(row) {
       clearReason: row.clearReason,
       clearReasonRemark: row.clearReasonRemark,
       realizedPl: row.realizedPl,
+      holdDays: row.holdDays,
       clearedRemark: row.clearedRemark
     })
     ElMessage.success('保存成功')
+  } catch {
+    // interceptor 已提示
+  }
+}
+
+async function removeRow(row) {
+  try {
+    await ElMessageBox.confirm(
+      `确定删除 ${row.stockName}(${row.stockCode}) 这条清仓记录吗？`,
+      '删除确认',
+      {
+        type: 'warning',
+        confirmButtonText: '删除',
+        cancelButtonText: '取消'
+      }
+    )
+  } catch {
+    return
+  }
+  try {
+    await deletePortfolioCleared(row.clearedId)
+    ElMessage.success('删除成功')
     await load()
   } catch {
-    // interceptor
+    // interceptor 已提示
   }
 }
 

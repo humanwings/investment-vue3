@@ -9,7 +9,8 @@ import {
   updatePortfolioArchive,
   getPortfolioCleared,
   updatePortfolioCleared,
-  getPortfolioStats
+  getPortfolioStats,
+  saveAllPortfolio
 } from './portfolio'
 import { createHttpMock, ok } from '@/test/mocks/http'
 
@@ -63,6 +64,17 @@ describe('portfolio api', () => {
     })
     expect(mock.history.get[1].url).toBe('/portfolio/snapshots')
     expect(mock.history.get[4].url).toBe('/portfolio/stats')
-    expect(mock.history.get[4].params).toEqual({ scope: 'all', week: '2026-08-08' })
+    expect(mock.history.get[4].params).toEqual({
+      scope: 'all',
+      week: '2026-08-08'
+    })
+  })
+
+  it('posts all items to save-all endpoint', async () => {
+    mock.onPost('/portfolio/archive/save-all').reply(ok({}))
+    const items = [{ stockCode: '00700.HK', positionId: 1, earningsNote: 'x' }]
+    await saveAllPortfolio(items)
+    expect(mock.history.post[0].url).toBe('/portfolio/archive/save-all')
+    expect(JSON.parse(mock.history.post[0].data)).toEqual(items)
   })
 })

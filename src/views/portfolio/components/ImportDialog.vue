@@ -7,6 +7,7 @@
     @open="reset"
   >
     <el-upload
+      ref="uploadRef"
       :auto-upload="false"
       :limit="1"
       accept=".xlsx"
@@ -89,6 +90,7 @@ import { previewPortfolio, confirmImport } from '@/api/portfolio'
 defineProps({ visible: { type: Boolean, default: false } })
 const emit = defineEmits(['update:visible', 'success'])
 
+const uploadRef = ref(null)
 const file = ref(null)
 const preview = ref(null)
 const selectedDate = ref('')
@@ -115,6 +117,7 @@ async function onFileChange(uploadFile) {
 }
 
 function reset() {
+  uploadRef.value?.clearFiles()
   file.value = null
   preview.value = null
   selectedDate.value = ''

@@ -21,14 +21,20 @@
     <el-table :data="snapshots" border stripe @row-click="rowClick">
       <el-table-column label="统计日期" prop="statsDate" width="140" />
       <el-table-column label="持仓数" prop="positionCount" width="90" />
-      <el-table-column label="总市值" width="130">
-        <template #default="{ row }">{{ format(row.totalMv) }}</template>
+      <el-table-column label="总市值(含现金)" width="140">
+        <template #default="{ row }">{{
+          format((row.totalMv || 0) + (row.totalCash || 0))
+        }}</template>
       </el-table-column>
-      <el-table-column label="国泰市值" width="130">
-        <template #default="{ row }">{{ format(row.gtTotalMv) }}</template>
+      <el-table-column label="国泰市值(含现金)" width="140">
+        <template #default="{ row }">{{
+          format((row.gtTotalMv || 0) + (row.gtCash || 0))
+        }}</template>
       </el-table-column>
-      <el-table-column label="平安市值" width="130">
-        <template #default="{ row }">{{ format(row.paTotalMv) }}</template>
+      <el-table-column label="平安市值(含现金)" width="140">
+        <template #default="{ row }">{{
+          format((row.paTotalMv || 0) + (row.paCash || 0))
+        }}</template>
       </el-table-column>
       <el-table-column label="总浮动盈亏" width="130">
         <template #default="{ row }">{{ format(row.totalPl) }}</template>

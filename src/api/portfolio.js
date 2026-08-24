@@ -54,6 +54,14 @@ export function updatePortfolioCleared(id, data) {
 export function getPortfolioStats(params) {
   return request({ url: '/portfolio/stats', method: 'get', params })
 }
+export function saveAllPortfolio(items) {
+  return request({
+    url: '/portfolio/archive/save-all',
+    method: 'post',
+    data: items
+  })
+}
+
 export function updatePositionEarnings(positionId, earningsNote) {
   return request({
     url: `/portfolio/position/${positionId}/earnings`,
@@ -64,4 +72,8 @@ export function updatePositionEarnings(positionId, earningsNote) {
 
 export function deletePortfolioSnapshot(statsDate) {
   return request({ url: `/portfolio/snapshot/${statsDate}`, method: 'delete' })
+}
+
+export function deletePortfolioCleared(id) {
+  return request({ url: `/portfolio/cleared/${id}`, method: 'delete' })
 }
