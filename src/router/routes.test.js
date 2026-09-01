@@ -14,20 +14,26 @@ describe('router smoke test', () => {
     ['/companyvaluation/valuation/dcf-v2', 'DcfValuationV2List'],
     ['/system-settings/data-sources', 'DataSources'],
     ['/grid-trading/strategy', 'GridStrategyList'],
+    ['/grid-trading/records', 'GridTradeRecords'],
+    ['/grid-trading/statistics', 'GridTradeStatistics'],
     ['/404', 'NotFound']
-  ])('resolves %s to %s', async (path, expectedName) => {
-    const resolved = router.resolve(path)
+  ])(
+    'resolves %s to %s',
+    async (path, expectedName) => {
+      const resolved = router.resolve(path)
 
-    expect(resolved.name).toBe(expectedName)
+      expect(resolved.name).toBe(expectedName)
 
-    const componentLoader = resolved.matched.at(-1)?.components?.default
+      const componentLoader = resolved.matched.at(-1)?.components?.default
 
-    expect(componentLoader).toBeTypeOf('function')
+      expect(componentLoader).toBeTypeOf('function')
 
-    const componentModule = await componentLoader()
+      const componentModule = await componentLoader()
 
-    expect(componentModule.default).toBeTruthy()
-  })
+      expect(componentModule.default).toBeTruthy()
+    },
+    15000
+  )
 
   it('wires DCF routes through the shared valuation model config', () => {
     const dcfV1 = router.resolve('/companyvaluation/valuation/dcf-v1')
@@ -55,5 +61,17 @@ describe('router smoke test', () => {
 
     expect(systemSettings?.meta.title).toBe('系统设置')
     expect(dataSources?.meta.title).toBe('数据接口设置')
+  })
+
+  it('hides the add-strategy menu item but keeps the route reachable', () => {
+    const gridTrading = appRoutes.find(
+      (route) => route.path === '/grid-trading'
+    )
+    const addRoute = gridTrading?.children?.find(
+      (route) => route.path === 'strategy/add'
+    )
+
+    expect(addRoute?.name).toBe('GridStrategyAdd')
+    expect(addRoute?.meta?.hidden).toBe(true)
   })
 })

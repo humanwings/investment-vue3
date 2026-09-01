@@ -69,14 +69,16 @@ export function endGridStrategy(id) {
 export function refreshGridPrice(id) {
   return request({
     url: restfulFormat('/grid-trading/strategy/{id}/refresh-price', { id }),
-    method: 'post'
+    method: 'post',
+    timeout: 60000
   })
 }
 
 export function refreshAllPrices() {
   return request({
     url: '/grid-trading/refresh-all-prices',
-    method: 'post'
+    method: 'post',
+    timeout: 240000
   })
 }
 
@@ -116,5 +118,19 @@ export function recordManualTrade(id, data) {
     url: restfulFormat('/grid-trading/strategy/{id}/manual-trade', { id }),
     method: 'post',
     data
+  })
+}
+
+export function getGridTradeRecords() {
+  return request({
+    url: '/grid-trading/records',
+    method: 'get'
+  })
+}
+
+export function getGridTradeStats() {
+  return request({
+    url: '/grid-trading/records/stats',
+    method: 'get'
   })
 }

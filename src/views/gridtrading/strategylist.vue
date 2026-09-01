@@ -6,7 +6,7 @@
           <h2>网格策略</h2>
           <p>
             网格策略管理 +
-            模拟信号跟踪；股价需手动刷新，系统检测跨档后生成待确认提示。
+            模拟信号跟踪；股价需手动刷新，系统检测跨档后生成已触发提示。
           </p>
         </div>
         <div class="actions">
@@ -32,7 +32,7 @@
           <span class="stat-value">{{ formatNumber(totalMarketValue) }}</span>
         </div>
         <div class="stat-item">
-          <span class="stat-label">待确认</span>
+          <span class="stat-label">已触发</span>
           <span class="stat-value pending">{{ totalPending }}</span>
         </div>
         <div class="stat-item">
@@ -65,7 +65,7 @@
         </el-table-column>
         <el-table-column
           prop="pendingCount"
-          label="待确认"
+          label="已触发"
           width="90"
           sortable="custom"
         >
@@ -101,10 +101,13 @@
             <span v-else />
           </template>
         </el-table-column>
-        <el-table-column prop="basePrice" label="基准价" width="90">
+        <el-table-column label="触发价格" width="90">
           <template #default="{ row }">{{
-            formatPrice(row.basePrice)
+            formatPrice(row.imminentPrice)
           }}</template>
+        </el-table-column>
+        <el-table-column prop="intervalPct" label="档位间隔" width="90">
+          <template #default="{ row }">{{ intervalLabel(row) }}</template>
         </el-table-column>
         <el-table-column label="现价" width="90">
           <template #default="{ row }">{{
@@ -247,7 +250,7 @@ const sortedRows = computed(() => {
     const dir = order === 'ascending' ? 1 : -1
     rows.sort((a, b) => (imminentRank(b) - imminentRank(a)) * dir)
   } else {
-    // 缺省：待确认多 → 即将触发 → 市值大，依次优先
+    // 缺省：已触发多 → 即将触发 → 市值大，依次优先
     rows.sort((a, b) => {
       const pendingDiff = (b.pendingCount || 0) - (a.pendingCount || 0)
       if (pendingDiff !== 0) return pendingDiff
@@ -294,9 +297,30 @@ async function refreshAll() {
   refreshing.value = true
   try {
     const { data } = await refreshAllPrices()
-    ElMessage.success(
-      `已刷新 ${data.result.success} 条，失败 ${data.result.failed} 条`
-    )
+    const result = data.result || {}
+    const failures = result.failures || []
+    if (failures.length) {
+      const lines = failures.map(
+        (f) =>
+          `${f.stockName || f.stockCode || '未知标的'}：${(
+            f.message || ''
+          ).replace(/</g, '&lt;')}`
+      )
+      ElMessageBox.alert(
+        `<div style="max-height:360px;overflow:auto;white-space:pre-wrap">${lines.join(
+          '\n'
+        )}</div>`,
+        `刷新失败 ${result.failed} 条（可在下方逐条重试）`,
+        {
+          type: 'warning',
+          confirmButtonText: '知道了',
+          dangerouslyUseHTMLString: true
+        }
+      )
+    }
+    if (result.success > 0) {
+      ElMessage.success(`已刷新 ${result.success} 条`)
+    }
     await getList()
   } finally {
     refreshing.value = false
@@ -362,6 +386,12 @@ function goEdit(row) {
 function marketValue(row) {
   if (!row.lastPrice || !row.positionQty) return '—'
   return formatNumber(Number(row.lastPrice) * Number(row.positionQty))
+}
+
+function intervalLabel(row) {
+  const v = row.intervalPct
+  if (v === null || v === undefined || Number.isNaN(Number(v))) return '—'
+  return `${Number(v)}%`
 }
 
 function statusLabel(status) {

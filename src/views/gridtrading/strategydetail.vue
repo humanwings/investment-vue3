@@ -107,7 +107,7 @@
           <div class="stat-hint">现价 × 当前持仓</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">待确认提示</div>
+          <div class="stat-label">已触发提示</div>
           <div v-if="pendingHints.length" class="stat-value small">
             {{ pendingHints.length }} 条
           </div>
@@ -118,9 +118,13 @@
 
       <div class="two-col">
         <div class="section">
-          <h3>待确认提示</h3>
+          <h3>策略备注（备考）</h3>
+          <div class="remark-box">{{ strategy?.remark || '暂无备注' }}</div>
+        </div>
+        <div class="section">
+          <h3>已触发提示</h3>
           <div v-if="!pendingHints.length" class="empty">
-            当前无待确认提示。刷新股价后，系统会在这里生成跨档提示。
+            当前无已触发提示。刷新股价后，系统会在这里生成跨档提示。
           </div>
           <div
             v-for="hint in pendingHints"
@@ -134,23 +138,29 @@
               {{ hint.action === 'SELL' ? '卖出' : '买入' }}
             </el-tag>
             <span class="hint-text">
-              现价 {{ formatPrice(strategy?.lastPrice) }} 已{{
-                hint.action === 'SELL' ? '升破' : '跌破'
-              }}
-              {{ tierLabel(hint.tierLevel) }}（档位价
-              {{ formatPrice(hint.tierPrice) }}）→ 建议
-              {{ hint.action === 'SELL' ? '卖出' : '买入' }}
-              <b>{{ formatNumber(hint.qty) }}</b> 股
+              <template v-if="Number(hint.qty) === 0">
+                现价 {{ formatPrice(strategy?.lastPrice) }} 已{{
+                  hint.action === 'SELL' ? '升破' : '跌破'
+                }}
+                {{ tierLabel(hint.tierLevel) }}（档位价
+                {{ formatPrice(hint.tierPrice) }}）→ 该档位计划数量为
+                <b>0</b> 股，确认后仅变更当前档位，无成交记录
+              </template>
+              <template v-else>
+                现价 {{ formatPrice(strategy?.lastPrice) }} 已{{
+                  hint.action === 'SELL' ? '升破' : '跌破'
+                }}
+                {{ tierLabel(hint.tierLevel) }}（档位价
+                {{ formatPrice(hint.tierPrice) }}）→ 建议
+                {{ hint.action === 'SELL' ? '卖出' : '买入' }}
+                <b>{{ formatNumber(hint.qty) }}</b> 股
+              </template>
             </span>
             <el-button size="small" type="primary" @click="openConfirm(hint)">
               确认执行
             </el-button>
             <el-button size="small" @click="ignore(hint)">忽略</el-button>
           </div>
-        </div>
-        <div class="section">
-          <h3>策略备注（备考）</h3>
-          <div class="remark-box">{{ strategy?.remark || '暂无备注' }}</div>
         </div>
       </div>
 
@@ -255,7 +265,7 @@
         当前档位
         {{
           tierLabelOf(strategy?.currentTierLevel)
-        }}；填入股价后，系统会像"刷新股价"一样重新检测跨档并生成待确认提示（不依赖网络）。
+        }}；填入股价后，系统会像"刷新股价"一样重新检测跨档并生成已触发提示（不依赖网络）。
       </div>
       <el-form label-width="60px">
         <el-form-item label="股价">
@@ -507,15 +517,18 @@ function simulateManualTrade(tiers, currentLevel, price, action) {
     }
   }
   let error = ''
-  if (hints.length === 0) {
-    error =
-      action === 'SELL'
+  // 与后端 recordManualTrade 一致：0 股档位不计入补录候选
+  const realHints = hints.filter((h) => Number(h.qty) > 0)
+  if (realHints.length === 0) {
+    error = hints.length
+      ? '跨越的档位计划数量均为 0 股，无法记录成交。请先确认该档位的 0 股提示'
+      : action === 'SELL'
         ? '成交价未升破相邻更高档位价，无法推导卖出档位'
         : '成交价未跌破相邻更低档位价，无法推导买入档位'
-  } else if (hints.length > 1) {
-    error = `成交价一次跨越 ${hints.length} 个档位，无法确定成交档，请按每档分别补录`
+  } else if (realHints.length > 1) {
+    error = `成交价一次跨越 ${realHints.length} 个档位，无法确定成交档，请按每档分别补录`
   }
-  return { hints, error }
+  return { hints: realHints, error }
 }
 
 const manualTradeSim = computed(() => {

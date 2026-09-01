@@ -6,15 +6,26 @@
     @update:model-value="(value) => emit('update:visible', value)"
   >
     <div class="hint-desc">
-      操作：{{ hint?.action === 'SELL' ? '卖出' : '买入' }}
-      <b>{{ formatNumber(hint?.qty) }}</b>
-      股（{{ tierLabel(hint?.tierLevel) }} · 档位价
-      {{ formatPrice(hint?.tierPrice) }}）
-      <br />
-      当前现价
-      {{
-        formatPrice(currentPrice)
-      }}。请在券商完成真实操作后，回来填写实际成交信息。
+      <template v-if="isZeroQtyHint">
+        操作：{{ hint?.action === 'SELL' ? '卖出' : '买入' }}
+        <b>0</b>
+        股（{{ tierLabel(hint?.tierLevel) }} · 档位价
+        {{ formatPrice(hint?.tierPrice) }}）
+        <br />
+        当前现价 {{ formatPrice(currentPrice) }}。该档位的计划数量为
+        <b>0</b> 股，确认后仅变更当前档位，不生成成交记录。
+      </template>
+      <template v-else>
+        操作：{{ hint?.action === 'SELL' ? '卖出' : '买入' }}
+        <b>{{ formatNumber(hint?.qty) }}</b>
+        股（{{ tierLabel(hint?.tierLevel) }} · 档位价
+        {{ formatPrice(hint?.tierPrice) }}）
+        <br />
+        当前现价
+        {{
+          formatPrice(currentPrice)
+        }}。请在券商完成真实操作后，回来填写实际成交信息。
+      </template>
     </div>
     <el-form label-width="80px" class="confirm-form">
       <el-form-item label="成交价">
@@ -33,6 +44,7 @@
           :step="minUnitQty"
           :step-strictly="true"
           :precision="0"
+          :disabled="isZeroQtyHint"
           style="width: 200px"
         />
       </el-form-item>
@@ -75,6 +87,8 @@ const emit = defineEmits(['update:visible', 'confirm'])
 const tradePrice = ref(0)
 const qty = ref(0)
 
+const isZeroQtyHint = computed(() => Number(props.hint?.qty) === 0)
+
 watch(
   () => [props.visible, props.hint],
   () => {
@@ -86,10 +100,11 @@ watch(
   { immediate: true }
 )
 
-const valid = computed(
-  () =>
-    tradePrice.value > 0 && qty.value > 0 && qty.value % props.minUnitQty === 0
-)
+const valid = computed(() => {
+  if (!tradePrice.value || tradePrice.value <= 0) return false
+  if (isZeroQtyHint.value) return qty.value === 0
+  return qty.value > 0 && qty.value % props.minUnitQty === 0
+})
 
 function confirm() {
   emit('confirm', { tradePrice: tradePrice.value, qty: qty.value })

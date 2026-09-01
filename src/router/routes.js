@@ -198,11 +198,29 @@ export const appRoutes = [
         }
       },
       {
+        path: 'records',
+        name: 'GridTradeRecords',
+        component: () => import('@/views/gridtrading/traderecords.vue'),
+        meta: {
+          title: '成交记录'
+        }
+      },
+      {
+        path: 'statistics',
+        name: 'GridTradeStatistics',
+        component: () => import('@/views/gridtrading/statistics.vue'),
+        meta: {
+          title: '统计分析'
+        }
+      },
+      {
         path: 'strategy/add',
         name: 'GridStrategyAdd',
         component: () => import('@/views/gridtrading/strategyedit.vue'),
         meta: {
-          title: '新增策略'
+          hidden: true,
+          title: '新增策略',
+          activeMenu: '/grid-trading/strategy'
         }
       },
       {
