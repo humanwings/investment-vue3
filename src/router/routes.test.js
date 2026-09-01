@@ -74,4 +74,15 @@ describe('router smoke test', () => {
     expect(addRoute?.name).toBe('GridStrategyAdd')
     expect(addRoute?.meta?.hidden).toBe(true)
   })
+
+  it('registers the decision buy check page', () => {
+    const resolved = router.resolve('/decision/buy-check')
+
+    expect(resolved.name).toBe('BuyDecision')
+
+    const decisionGroup = appRoutes.find((route) => route.path === '/decision')
+
+    expect(decisionGroup?.meta?.title).toBe('决策判定')
+    expect(decisionGroup?.children?.[0]?.meta?.title).toBe('买入判定')
+  })
 })

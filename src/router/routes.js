@@ -1,6 +1,7 @@
 import {
   Coin,
   Grid,
+  MagicStick,
   Setting,
   TrendCharts,
   PieChart
@@ -76,6 +77,25 @@ export const appRoutes = [
         name: 'ClearedPosition',
         component: () => import('@/views/portfolio/ClearedPosition.vue'),
         meta: { title: '已清仓一览' }
+      }
+    ]
+  },
+  {
+    path: '/decision',
+    component: Layout,
+    redirect: '/decision/buy-check',
+    meta: {
+      title: '决策判定',
+      icon: MagicStick
+    },
+    children: [
+      {
+        path: 'buy-check',
+        name: 'BuyDecision',
+        component: () => import('@/views/decision/BuyDecision.vue'),
+        meta: {
+          title: '买入判定'
+        }
       }
     ]
   },
