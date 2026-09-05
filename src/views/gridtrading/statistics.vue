@@ -328,7 +328,29 @@ function renderTrend(rows) {
   const chart = chartInstances['chart-trend']
   if (!chart) return
   chart.setOption({
-    tooltip: { trigger: 'axis' },
+    tooltip: {
+      trigger: 'axis',
+      formatter: (params) => {
+        if (!params || !params.length) return ''
+        const lines = params.map(
+          (p) =>
+            `${p.marker}${p.seriesName}: ${Number(p.value || 0).toLocaleString(
+              'zh-CN'
+            )}`
+        )
+        const buy = params.find((p) => p.seriesName === '买入金额')
+        const sell = params.find((p) => p.seriesName === '卖出金额')
+        if (buy && sell) {
+          const total = round2(Number(buy.value || 0) + Number(sell.value || 0))
+          lines.splice(
+            2,
+            0,
+            `${sell.marker}合计金额: ${total.toLocaleString('zh-CN')}`
+          )
+        }
+        return `${params[0].axisValue}<br/>${lines.join('<br/>')}`
+      }
+    },
     legend: { bottom: 0 },
     grid: { left: 70, right: 80, top: 40, bottom: 80 },
     xAxis: {
@@ -344,9 +366,20 @@ function renderTrend(rows) {
       { type: 'value', name: '笔数', position: 'right' }
     ],
     series: [
-      { name: '合计金额', type: 'bar', data: rows.map((r) => r.totalAmount) },
-      { name: '买入金额', type: 'bar', data: rows.map((r) => r.buyAmount) },
-      { name: '卖出金额', type: 'bar', data: rows.map((r) => r.sellAmount) },
+      {
+        name: '卖出金额',
+        type: 'bar',
+        stack: 'amount',
+        barMaxWidth: 32,
+        data: rows.map((r) => r.sellAmount)
+      },
+      {
+        name: '买入金额',
+        type: 'bar',
+        stack: 'amount',
+        barMaxWidth: 32,
+        data: rows.map((r) => r.buyAmount)
+      },
       {
         name: '合计笔数',
         type: 'line',

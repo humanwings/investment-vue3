@@ -1800,6 +1800,61 @@
           </div>
         </div>
       </el-tab-pane>
+
+      <el-tab-pane label="巴菲特分析" name="buffett">
+        <div v-if="!buffettReport" class="page-card buffett-empty">
+          <el-empty description="该公司暂无导入的巴菲特分析报告">
+            <el-button type="primary" @click="goResearchReports">
+              前往研究分析导入
+            </el-button>
+          </el-empty>
+        </div>
+        <template v-else>
+          <div class="page-card buffett-summary">
+            <div class="section-head">
+              <div class="section-head-row">
+                <h3>Buffett 框架分析结论</h3>
+                <el-button text type="primary" @click="goResearchReportDetail">
+                  <el-icon><View /></el-icon>
+                  <span>查看完整报告</span>
+                </el-button>
+              </div>
+            </div>
+            <el-descriptions :column="4" border>
+              <el-descriptions-item label="结论">
+                <el-tag :type="buffettVerdictType(buffettReport.verdict)">
+                  {{ buffettReport.verdict || '未解析' }}
+                </el-tag>
+              </el-descriptions-item>
+              <el-descriptions-item label="完整性得分">
+                {{ formatBuffettScore(buffettReport.completenessScore) }}
+              </el-descriptions-item>
+              <el-descriptions-item label="能力圈">
+                {{ buffettReport.circleOfCompetence || '—' }}
+              </el-descriptions-item>
+              <el-descriptions-item label="分析日期">
+                {{ buffettReport.analysisDate || '—' }}
+              </el-descriptions-item>
+              <el-descriptions-item label="护城河">
+                {{ formatBuffettMoat(buffettReport) }}
+              </el-descriptions-item>
+              <el-descriptions-item label="内在价值区间">
+                {{ formatBuffettValueRange(buffettReport) }}
+              </el-descriptions-item>
+              <el-descriptions-item label="推荐买入价">
+                {{ buffettReport.buyPrice ?? '—' }}
+              </el-descriptions-item>
+              <el-descriptions-item label="现价对比">
+                {{ formatBuffettPriceGap(buffettReport) }}
+              </el-descriptions-item>
+            </el-descriptions>
+          </div>
+          <div class="page-card buffett-content">
+            <!-- eslint-disable-next-line vue/no-v-html -->
+            <div class="markdown-body" v-html="buffettRenderedContent" />
+          </div>
+        </template>
+      </el-tab-pane>
     </el-tabs>
     <el-dialog
       v-model="helpDialogVisible"
@@ -2051,12 +2106,14 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox, ElNotification } from 'element-plus'
-import { Delete, QuestionFilled } from '@element-plus/icons-vue'
+import { Delete, QuestionFilled, View } from '@element-plus/icons-vue'
 
 import { deleteCompany } from '@/api/company-command'
 import { getProfitValuationDetail } from '@/api/profit-valuation'
+import { getResearchReportByStock } from '@/api/researchreport'
 import { getCompanyOverview } from '@/api/valuation-query'
 import { formatPercent, formatYi, roundToDecimal } from '@/utils'
+import { renderMarkdown } from '@/utils/markdown'
 import AssumptionStrip from './components/AssumptionStrip.vue'
 import ValuationMetric from './components/ValuationMetric.vue'
 
@@ -2080,6 +2137,8 @@ const growthHelpVisible = ref(false)
 const dividendHelpVisible = ref(false)
 const dcfV1HelpVisible = ref(false)
 const dcfV2HelpVisible = ref(false)
+const buffettReport = ref(null)
+const buffettLoaded = ref(false)
 
 loadDetail()
 
@@ -2105,6 +2164,11 @@ const researchNavItems = computed(() => [
     name: 'financial',
     label: '财务评价',
     summary: latestReport.date || '等待财报'
+  },
+  {
+    name: 'buffett',
+    label: '巴菲特分析',
+    summary: buffettReport.value?.verdict || '未导入'
   }
 ])
 
@@ -2217,7 +2281,14 @@ const financialHighlightItems = computed(() => {
 })
 
 function resolveInitialTab(tab) {
-  return ['overview', 'profit', 'dcf-v1', 'dcf-v2', 'financial'].includes(tab)
+  return [
+    'overview',
+    'profit',
+    'dcf-v1',
+    'dcf-v2',
+    'financial',
+    'buffett'
+  ].includes(tab)
     ? tab
     : 'overview'
 }
@@ -2250,14 +2321,42 @@ async function loadProfitDetail() {
   }
 }
 
+const buffettRenderedContent = computed(() =>
+  renderMarkdown(buffettReport.value?.content)
+)
+
+async function loadBuffettReport() {
+  if (activeTab.value !== 'buffett' || buffettLoaded.value) return
+  if (!overview.stockCode) return
+  buffettLoaded.value = true
+  try {
+    const { data } = await getResearchReportByStock(overview.stockCode)
+    buffettReport.value = data.report || null
+  } catch {
+    buffettReport.value = null
+  }
+}
+
 watch(
   activeTab,
   (tab) => {
     if (tab === 'profit') {
       loadProfitDetail()
     }
+    if (tab === 'buffett') {
+      loadBuffettReport()
+    }
   },
   { immediate: true }
+)
+
+watch(
+  () => overview.stockCode,
+  () => {
+    if (activeTab.value === 'buffett') {
+      loadBuffettReport()
+    }
+  }
 )
 
 async function confirmDeleteCompany() {
@@ -2343,6 +2442,64 @@ function conclusionType(conclusion) {
     return 'info'
   }
   return ''
+}
+
+function buffettVerdictType(verdict) {
+  if (!verdict) return 'info'
+  if (verdict.includes('买')) return 'success'
+  if (verdict === '不买' || verdict === '卖出') return 'danger'
+  if (verdict === '继续观察') return 'warning'
+  return 'primary'
+}
+
+function formatBuffettScore(score) {
+  return score === null || score === undefined ? '—' : `${score} / 21`
+}
+
+function formatBuffettMoat(report) {
+  const parts = []
+  if (report.moatType) parts.push(report.moatType)
+  if (report.moatStrength) parts.push(`强度：${report.moatStrength}`)
+  if (report.moatTrend) parts.push(`趋势：${report.moatTrend}`)
+  return parts.join('；') || '—'
+}
+
+function formatBuffettValueRange(report) {
+  if (
+    report.intrinsicValueLow === null ||
+    report.intrinsicValueLow === undefined
+  ) {
+    return '—'
+  }
+  if (
+    report.intrinsicValueHigh === null ||
+    report.intrinsicValueHigh === undefined
+  ) {
+    return `${report.intrinsicValueLow}`
+  }
+  return `${report.intrinsicValueLow} ~ ${report.intrinsicValueHigh}`
+}
+
+function formatBuffettPriceGap(report) {
+  const price = overview.price
+  const buyPrice = report.buyPrice
+  if (!hasNumber(price) || !hasNumber(buyPrice)) {
+    return '—'
+  }
+  const gapPercent = ((price - buyPrice) / buyPrice) * 100
+  const sign = gapPercent > 0 ? '+' : ''
+  return `现价 ${safeRound(price)}（${sign}${gapPercent.toFixed(1)}% vs 买入价）`
+}
+
+function goResearchReportDetail() {
+  router.push({
+    name: 'ResearchReportDetail',
+    params: { id: buffettReport.value.reportId }
+  })
+}
+
+function goResearchReports() {
+  router.push({ name: 'ResearchReportList' })
 }
 </script>
 
@@ -2695,5 +2852,107 @@ function conclusionType(conclusion) {
   background: #f4f7fb;
   color: #22384f;
   font-weight: 700;
+}
+
+.buffett-empty {
+  padding: 40px 20px;
+}
+
+.buffett-summary {
+  padding: 16px 20px;
+}
+
+.buffett-content {
+  padding: 20px 28px;
+}
+
+.markdown-body {
+  line-height: 1.75;
+  font-size: 14px;
+  color: var(--app-text);
+  word-break: break-word;
+}
+
+.markdown-body :deep(h1) {
+  font-size: 22px;
+  margin: 24px 0 14px;
+}
+
+.markdown-body :deep(h2) {
+  font-size: 19px;
+  margin: 26px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e6e8ec;
+}
+
+.markdown-body :deep(h3) {
+  font-size: 16px;
+  margin: 20px 0 10px;
+}
+
+.markdown-body :deep(h4) {
+  font-size: 15px;
+  margin: 16px 0 8px;
+}
+
+.markdown-body :deep(p) {
+  margin: 10px 0;
+}
+
+.markdown-body :deep(ul),
+.markdown-body :deep(ol) {
+  padding-left: 24px;
+  margin: 10px 0;
+}
+
+.markdown-body :deep(table) {
+  border-collapse: collapse;
+  margin: 14px 0;
+  width: 100%;
+  font-size: 13px;
+}
+
+.markdown-body :deep(th),
+.markdown-body :deep(td) {
+  border: 1px solid #e6e8ec;
+  padding: 7px 10px;
+  text-align: left;
+}
+
+.markdown-body :deep(th) {
+  background: #f4f6f9;
+}
+
+.markdown-body :deep(blockquote) {
+  margin: 12px 0;
+  padding: 8px 16px;
+  border-left: 3px solid #a8c6e8;
+  background: #f4f7fb;
+  color: #43566b;
+}
+
+.markdown-body :deep(code) {
+  background: #f0f2f5;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.markdown-body :deep(pre) {
+  background: #f0f2f5;
+  padding: 12px 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.markdown-body :deep(pre code) {
+  background: transparent;
+  padding: 0;
+}
+
+.markdown-body :deep(hr) {
+  border: none;
+  border-top: 1px solid #e6e8ec;
+  margin: 20px 0;
 }
 </style>

@@ -172,6 +172,35 @@ export const appRoutes = [
         ]
       },
       {
+        path: 'research',
+        name: 'ResearchRoot',
+        component: () => import('@/views/placeholder/section.vue'),
+        redirect: '/companyvaluation/research/reports',
+        meta: {
+          title: '研究分析'
+        },
+        children: [
+          {
+            path: 'reports',
+            name: 'ResearchReportList',
+            component: () => import('@/views/research/reportlist.vue'),
+            meta: {
+              title: '公司分析'
+            }
+          },
+          {
+            path: 'reports/:id',
+            name: 'ResearchReportDetail',
+            component: () => import('@/views/research/reportdetail.vue'),
+            meta: {
+              hidden: true,
+              title: '报告详情',
+              activeMenu: '/companyvaluation/research/reports'
+            }
+          }
+        ]
+      },
+      {
         path: 'settings',
         name: 'SettingsRoot',
         component: () => import('@/views/placeholder/section.vue'),

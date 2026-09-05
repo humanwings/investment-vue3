@@ -95,7 +95,10 @@ describe('companydetail page', () => {
     expect(wrapper.vm.formatSensitivityRange(wrapper.vm.dcfValuationV2)).toBe(
       '980 / 1280'
     )
-    expect(wrapper.vm.researchNavItems).toHaveLength(4)
+    expect(wrapper.vm.researchNavItems).toHaveLength(5)
+    expect(
+      wrapper.vm.researchNavItems.some((item) => item.name === 'buffett')
+    ).toBe(true)
   })
 
   it('opens the profit valuation tab when entered from profit discount', async () => {
