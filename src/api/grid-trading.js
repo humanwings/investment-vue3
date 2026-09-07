@@ -90,14 +90,6 @@ export function setManualPrice(id, price) {
   })
 }
 
-export function searchStocks(keyword) {
-  return request({
-    url: '/grid-trading/stock-search',
-    method: 'get',
-    params: { keyword }
-  })
-}
-
 export function confirmHint(hintId, data) {
   return request({
     url: restfulFormat('/grid-trading/hint/{id}/confirm', { id: hintId }),

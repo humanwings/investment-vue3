@@ -65,26 +65,13 @@
             :value="opt.code"
           />
         </el-select>
-        <el-select
+        <StockSelect
           v-model="stockFilter"
-          filterable
-          remote
-          clearable
-          value-key="stockCode"
-          :remote-method="doStockSearch"
-          :loading="autocompleteLoading"
+          :manual="false"
           placeholder="输入拼音简写/代码/名称"
           style="width: 260px"
           @change="onStockChange"
-          @clear="loadList"
-        >
-          <el-option
-            v-for="item in autocompleteOptions"
-            :key="`${item.market}-${item.stockCode}`"
-            :label="`${item.stockName}（${item.stockCode}）`"
-            :value="item"
-          />
-        </el-select>
+        />
         <el-button type="primary" @click="resetAndSearch">查询</el-button>
         <el-button @click="resetFilters">重置</el-button>
       </div>
@@ -292,10 +279,10 @@ import {
   disableStockMaster,
   enableStockMaster,
   getStockMasterList,
-  getSwIndustries,
-  searchStockMasterPinyin,
   updateStockMaster
 } from '@/api/stock-master'
+import { getMasterSwIndustries } from '@/api/master-data'
+import StockSelect from '@/components/StockSelect.vue'
 
 const loading = ref(false)
 const list = ref([])
@@ -303,8 +290,6 @@ const industries = ref([])
 const currentPage = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
-const autocompleteOptions = ref([])
-const autocompleteLoading = ref(false)
 const stockFilter = ref(null)
 const dialogVisible = ref(false)
 const editing = ref(false)
@@ -382,7 +367,7 @@ async function loadList() {
     if (filters.market) params.market = filters.market
     if (stockFilter.value) {
       params.market = stockFilter.value.market
-      params.keyword = stockFilter.value.stockCode
+      params.keyword = stockFilter.value.code
     } else if (filters.keyword) {
       params.keyword = filters.keyword
     }
@@ -412,7 +397,7 @@ function onSizeChange(size) {
 }
 
 async function loadIndustries() {
-  const { data } = await getSwIndustries()
+  const { data } = await getMasterSwIndustries()
   industries.value = data.list || []
 }
 
@@ -432,20 +417,6 @@ function onL1Change() {
 
 function onL2Change() {
   form.swL3Code = ''
-}
-
-async function doStockSearch(keyword) {
-  if (!keyword) {
-    autocompleteOptions.value = []
-    return
-  }
-  autocompleteLoading.value = true
-  try {
-    const { data } = await searchStockMasterPinyin(keyword)
-    autocompleteOptions.value = data.results || []
-  } finally {
-    autocompleteLoading.value = false
-  }
 }
 
 function onStockChange() {

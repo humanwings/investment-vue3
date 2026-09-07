@@ -95,4 +95,28 @@ describe('AppSidebar', () => {
       .map((s) => s.meta?.title)
     expect(visibleTitles).toContain('数据接口设置')
   })
+
+  it('renders stock management as a top-level group', () => {
+    const wrapper = shallowMount(AppSidebar)
+    const stockGroup = wrapper.vm.sidebarRoutes.find(
+      (route) => route.path === '/stock-master'
+    )
+
+    expect(stockGroup?.meta.title).toBe('股票管理')
+    const titles = wrapper.vm
+      .visibleSections(stockGroup)
+      .map((s) => s.meta?.title)
+    expect(titles).toEqual(['股票基本资料', '基金基本资料'])
+  })
+
+  it('keeps only data sources under system settings', () => {
+    const wrapper = shallowMount(AppSidebar)
+    const systemSettings = wrapper.vm.sidebarRoutes.find(
+      (route) => route.path === '/system-settings'
+    )
+
+    expect(
+      wrapper.vm.visibleSections(systemSettings).map((s) => s.meta?.title)
+    ).toEqual(['数据接口设置'])
+  })
 })

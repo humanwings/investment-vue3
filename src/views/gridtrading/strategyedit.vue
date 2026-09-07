@@ -23,7 +23,7 @@
 
       <el-form label-width="120px">
         <el-form-item label="选择标的" required>
-          <StockSearchSelect v-model="selectedStock" :disabled="isEdit" />
+          <StockSelect v-model="selectedStock" :disabled="isEdit" />
         </el-form-item>
         <div class="form-grid">
           <el-form-item label="基准价格" required>
@@ -174,7 +174,7 @@ import {
   tierLabel
 } from '@/utils/grid-trading'
 import GridLadder from './components/GridLadder.vue'
-import StockSearchSelect from './components/StockSearchSelect.vue'
+import StockSelect from '@/components/StockSelect.vue'
 import TierTableEditor from './components/TierTableEditor.vue'
 
 const route = useRoute()
@@ -253,8 +253,8 @@ async function loadExisting() {
   })
   tierSelection.value = strategy.currentTierLevel ?? 'not-set'
   selectedStock.value = {
-    stockCode: strategy.stockCode,
-    stockName: strategy.stockName,
+    code: strategy.stockCode,
+    name: strategy.stockName,
     market: strategy.market
   }
   originalParams.value = {
@@ -423,8 +423,8 @@ async function save() {
   }
   const payload = {
     ...form,
-    stockCode: selectedStock.value.stockCode,
-    stockName: selectedStock.value.stockName,
+    stockCode: selectedStock.value.code,
+    stockName: selectedStock.value.name,
     market: selectedStock.value.market,
     tiers: form.tiers
   }

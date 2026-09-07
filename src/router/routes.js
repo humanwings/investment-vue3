@@ -4,7 +4,8 @@ import {
   MagicStick,
   Setting,
   TrendCharts,
-  PieChart
+  PieChart,
+  Wallet
 } from '@element-plus/icons-vue'
 
 import Layout from '@/layout/index.vue'
@@ -391,6 +392,33 @@ export const appRoutes = [
     ]
   },
   {
+    path: '/stock-master',
+    component: Layout,
+    redirect: '/stock-master/list',
+    meta: {
+      title: '股票管理',
+      icon: Wallet
+    },
+    children: [
+      {
+        path: 'list',
+        name: 'StockMaster',
+        component: () => import('@/views/stockmaster/stockmaster.vue'),
+        meta: {
+          title: '股票基本资料'
+        }
+      },
+      {
+        path: 'fund',
+        name: 'FundMaster',
+        component: () => import('@/views/fundmaster/fundmaster.vue'),
+        meta: {
+          title: '基金基本资料'
+        }
+      }
+    ]
+  },
+  {
     path: '/system-settings',
     component: Layout,
     redirect: '/system-settings/data-sources',
@@ -399,22 +427,6 @@ export const appRoutes = [
       icon: Setting
     },
     children: [
-      {
-        path: 'stock-master',
-        name: 'StockMaster',
-        component: () => import('@/views/stockmaster/stockmaster.vue'),
-        meta: {
-          title: '股票基本资料'
-        }
-      },
-      {
-        path: 'fund-master',
-        name: 'FundMaster',
-        component: () => import('@/views/fundmaster/fundmaster.vue'),
-        meta: {
-          title: '基金基本资料'
-        }
-      },
       {
         path: 'data-sources',
         name: 'DataSources',

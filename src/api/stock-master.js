@@ -8,14 +8,6 @@ export function getStockMasterList(params) {
   })
 }
 
-export function getStockMasterReference(params) {
-  return request({
-    url: '/stock-master/reference',
-    method: 'get',
-    params
-  })
-}
-
 export function getStockMasterDetail(market, code) {
   return request({
     url: `/stock-master/${market}/${code}`,
@@ -50,21 +42,5 @@ export function enableStockMaster(market, code) {
   return request({
     url: `/stock-master/${market}/${code}/enable`,
     method: 'post'
-  })
-}
-
-export function getSwIndustries() {
-  return request({
-    url: '/stock-master/sw-industries',
-    method: 'get'
-  })
-}
-
-// 复用网格的东财 suggest 检索：支持拼音简写/代码/名称
-export function searchStockMasterPinyin(keyword) {
-  return request({
-    url: '/stock-master/search',
-    method: 'get',
-    params: { keyword }
   })
 }

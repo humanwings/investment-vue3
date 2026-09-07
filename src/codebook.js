@@ -134,3 +134,28 @@ export const trendOptions = [
   { value: '⇲', label: '⇲' },
   { value: 'OTHERS', label: 'OTHERS' }
 ]
+
+export const stockMarketOptions = [
+  { value: 'A', label: 'A股' },
+  { value: 'H', label: '港股' }
+]
+
+export const stockMarketMap = new Map(
+  stockMarketOptions.map((v) => [v.value, v.label])
+)
+
+export const enabledStatusOptions = [
+  { value: 1, label: '启用' },
+  { value: 0, label: '停用' }
+]
+
+export function marketOfCode(code) {
+  const codeStr = String(code ?? '')
+  if (/^\d{5}$/.test(codeStr)) {
+    return 'H'
+  }
+  if (/^\d{6}$/.test(codeStr)) {
+    return 'A'
+  }
+  return null
+}

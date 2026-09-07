@@ -38,21 +38,6 @@ export function enableFundMaster(code) {
   })
 }
 
-export function searchFundMaster(keyword) {
-  return request({
-    url: '/fund-master/search',
-    method: 'get',
-    params: { keyword }
-  })
-}
-
-export function getFundSwIndustries() {
-  return request({
-    url: '/fund-master/sw-industries',
-    method: 'get'
-  })
-}
-
 export function getFundSize(code) {
   return request({
     url: `/fund-master/size/${code}`,

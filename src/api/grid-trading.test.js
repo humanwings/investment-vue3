@@ -14,7 +14,6 @@ import {
   refreshAllPrices,
   refreshGridPrice,
   resumeGridStrategy,
-  searchStocks,
   setManualPrice,
   updateGridStrategy
 } from './grid-trading'
@@ -104,18 +103,6 @@ describe('grid-trading api', () => {
     )
     expect(mock.history.post[1].url).toBe('/grid-trading/refresh-all-prices')
     expect(result.data.result.success).toBe(2)
-  })
-
-  it('searches stocks by keyword', async () => {
-    mock
-      .onGet('/grid-trading/stock-search')
-      .reply(ok({ results: [{ stockCode: '601318' }] }))
-
-    const result = await searchStocks('zgpa')
-
-    expect(result.data.results[0].stockCode).toBe('601318')
-    expect(mock.history.get[0].url).toBe('/grid-trading/stock-search')
-    expect(mock.history.get[0].params).toEqual({ keyword: 'zgpa' })
   })
 
   it('sets manual price for a strategy', async () => {

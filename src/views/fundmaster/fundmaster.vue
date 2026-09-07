@@ -136,25 +136,11 @@
     >
       <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="搜索基金">
-          <el-select
+          <StockSelect
             v-model="selectedFund"
-            filterable
-            remote
-            clearable
-            value-key="stockCode"
-            :remote-method="doFundSearch"
-            :loading="fundLoading"
-            placeholder="输入拼音简写/代码/名称，如 zgpa、huili"
-            style="width: 100%"
+            type="fund"
             @change="onFundSelected"
-          >
-            <el-option
-              v-for="item in fundOptions"
-              :key="item.market + '-' + item.stockCode"
-              :label="item.stockName + '（' + item.stockCode + '）'"
-              :value="item"
-            />
-          </el-select>
+          />
         </el-form-item>
         <el-form-item label="代码" prop="code" required>
           <el-input
@@ -250,10 +236,10 @@ import {
   enableFundMaster,
   getFundMasterList,
   getFundSize,
-  getFundSwIndustries,
-  searchFundMaster,
   updateFundMaster
 } from '@/api/fund-master'
+import { getMasterSwIndustries, searchMasterData } from '@/api/master-data'
+import StockSelect from '@/components/StockSelect.vue'
 
 const loading = ref(false)
 const list = ref([])
@@ -264,8 +250,6 @@ const formRef = ref(null)
 const currentPage = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
-const fundOptions = ref([])
-const fundLoading = ref(false)
 const selectedFund = ref(null)
 
 const filters = reactive({
@@ -350,22 +334,8 @@ async function loadList() {
 }
 
 async function loadIndustries() {
-  const { data } = await getFundSwIndustries()
+  const { data } = await getMasterSwIndustries()
   industries.value = data.list || []
-}
-
-async function doFundSearch(keyword) {
-  if (!keyword) {
-    fundOptions.value = []
-    return
-  }
-  fundLoading.value = true
-  try {
-    const { data } = await searchFundMaster(keyword)
-    fundOptions.value = data.results || []
-  } finally {
-    fundLoading.value = false
-  }
 }
 
 function onFundSelected() {
@@ -373,8 +343,8 @@ function onFundSelected() {
     return
   }
   const item = selectedFund.value
-  form.code = String(item.stockCode)
-  form.name = item.stockName
+  form.code = String(item.code)
+  form.name = item.name
   fetchSize(form.code)
 }
 
@@ -393,12 +363,12 @@ async function autoFillName() {
   if (!form.code || editing.value || form.name) {
     return
   }
-  const { data } = await searchFundMaster(form.code)
+  const { data } = await searchMasterData(form.code)
   const hit = (data.results || []).find(
-    (item) => String(item.stockCode) === String(form.code)
+    (item) => String(item.code) === String(form.code)
   )
   if (hit) {
-    form.name = hit.stockName
+    form.name = hit.name
   }
 }
 

@@ -1,13 +1,13 @@
 <template>
-  <div class="stock-search">
+  <div class="stock-select">
     <div v-if="disabled && modelValue" class="stock-display">
-      <b>{{ modelValue.stockName }}</b>
-      <span class="stock-code">{{ modelValue.stockCode }}</span>
+      <b>{{ modelValue.name }}</b>
+      <span class="stock-code">{{ modelValue.code }}</span>
       <el-tag
         size="small"
         :type="modelValue.market === 'H' ? 'warning' : 'primary'"
       >
-        {{ modelValue.market === 'H' ? '港股' : 'A股' }}
+        {{ stockMarketMap.get(modelValue.market) || modelValue.market }}
       </el-tag>
     </div>
     <el-select
@@ -16,62 +16,82 @@
       filterable
       remote
       clearable
-      value-key="stockCode"
+      value-key="code"
       :remote-method="doSearch"
       :loading="loading"
       :disabled="disabled"
-      placeholder="输入拼音简写 / 代码 / 名称，如 albb、zgpa"
+      :placeholder="placeholder"
       style="width: 100%"
       @change="emitSelected"
     >
       <el-option
         v-for="item in options"
-        :key="`${item.market}-${item.stockCode}`"
+        :key="`${item.market}-${item.code}`"
         :label="optionLabel(item)"
         :value="item"
       />
       <template #empty>
-        <div class="search-empty">无匹配结果，可在下方手动输入代码</div>
+        <div class="search-empty">无匹配结果，可手动输入代码</div>
       </template>
     </el-select>
-    <div v-if="!disabled" class="manual-row">
+    <div v-if="manual && !disabled" class="manual-row">
       <el-input
         v-model="manualCode"
         placeholder="手动输入 5/6 位代码（兜底）"
-        :disabled="disabled"
         style="width: 220px"
       />
-      <el-button :disabled="disabled" @click="addManual">手动添加</el-button>
+      <el-button @click="addManual">手动添加</el-button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
-import { searchStocks } from '@/api/grid-trading'
+import { searchMasterData } from '@/api/master-data'
+import { marketOfCode, stockMarketMap } from '@/codebook'
 
 const props = defineProps({
   modelValue: {
     type: Object,
     default: null
   },
+  type: {
+    type: String,
+    default: 'stock'
+  },
   disabled: {
     type: Boolean,
     default: false
+  },
+  manual: {
+    type: Boolean,
+    default: true
+  },
+  placeholder: {
+    type: String,
+    default: '输入拼音简写 / 代码 / 名称，如 albb、zgpa'
   }
 })
 
 const emit = defineEmits(['update:modelValue', 'change'])
 
 const selected = ref(props.modelValue)
+
+watch(
+  () => props.modelValue,
+  (value) => {
+    selected.value = value
+  }
+)
+
 const options = ref([])
 const loading = ref(false)
 const manualCode = ref('')
 
 function optionLabel(item) {
-  const market = item.market === 'H' ? '港股' : 'A股'
-  return `${item.stockName}（${item.stockCode} · ${market}）`
+  const market = stockMarketMap.get(item.market) || item.market
+  return `${item.name}（${item.code} · ${market}）`
 }
 
 async function doSearch(keyword) {
@@ -81,8 +101,12 @@ async function doSearch(keyword) {
   }
   loading.value = true
   try {
-    const { data } = await searchStocks(keyword)
-    options.value = data.results || []
+    const { data } = await searchMasterData(keyword)
+    options.value = (data.results || []).map((item) => ({
+      market: item.market,
+      code: String(item.code),
+      name: item.name
+    }))
   } finally {
     loading.value = false
   }
@@ -95,22 +119,21 @@ function emitSelected() {
 
 function addManual() {
   const code = manualCode.value.trim()
-  if (!/^\d{5,6}$/.test(code)) {
+  const market = marketOfCode(code)
+  if (!market) {
     return
   }
-  const item = {
-    stockCode: code,
-    stockName: code,
-    market: code.length === 5 ? 'H' : 'A'
-  }
+  const item = { market, code, name: code }
   selected.value = item
   options.value = [item]
   emitSelected()
 }
+
+defineExpose({ selected, doSearch, addManual, manualCode, options })
 </script>
 
 <style scoped lang="scss">
-.stock-search {
+.stock-select {
   display: flex;
   flex-direction: column;
   gap: 10px;
