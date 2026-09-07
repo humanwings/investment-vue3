@@ -10,7 +10,7 @@
         v-if="form.status === 'RUNNING'"
         type="warning"
         :closable="false"
-        title="修改结构参数（基准价、基准数量、间隔、档位数、保留底仓、最小数量、每档数量）保存时将按最新价重置当前档位与持仓；备注与估值区间可即时修改。"
+        title="修改结构参数（基准价、基准数量、间隔、档位数、保留底仓、最小数量、每档减仓/加仓数量）保存时将按最新价重置当前档位与持仓；备注与估值区间可即时修改。"
         class="status-alert"
       />
       <el-alert
@@ -117,8 +117,9 @@
       <div class="section">
         <h3>每档数量与估值区间</h3>
         <p class="hint">
-          数量 ≥ 0 且为最小加减仓数量的整数倍（0 =
-          该档不交易）；估值区间单选规则：基准档仅"合理"，上方档位可选
+          每档分减仓数量（升破该档价卖出）与加仓数量（跌破相邻档价买入），数量 ≥
+          0 且为最小加减仓数量的整数倍（0 =
+          该档该方向不交易）；上方档位加仓合计须与减仓合计相等（回到基准档配平）。估值区间单选规则：基准档仅"合理"，上方档位可选
           高估/合理，下方档位可选 合理/低估。
         </p>
         <TierTableEditor
@@ -166,7 +167,12 @@ import {
   getGridStrategy,
   updateGridStrategy
 } from '@/api/grid-trading'
-import { defaultValuation, formatNumber, tierLabel } from '@/utils/grid-trading'
+import {
+  defaultValuation,
+  formatNumber,
+  mirrorUpBuyQty,
+  tierLabel
+} from '@/utils/grid-trading'
 import GridLadder from './components/GridLadder.vue'
 import StockSearchSelect from './components/StockSearchSelect.vue'
 import TierTableEditor from './components/TierTableEditor.vue'
@@ -261,7 +267,7 @@ async function loadExisting() {
     minUnitQty: strategy.minUnitQty
   }
   originalQtys.value = (strategy.tiers || []).reduce((map, tier) => {
-    map[tier.level] = tier.qty
+    map[tier.level] = { qty: tier.qty, buyQty: tier.buyQty }
     return map
   }, {})
   // 等待参数 watcher 执行完（此时仍处于 loadingExisting 保护内），
@@ -299,11 +305,13 @@ function buildTiers(params) {
 
   const rows = []
   for (let n = 1; n <= params.downTierCount; n += 1) {
+    const qty = calcQty(n)
     rows.push({
       level: n,
       price: round2(params.basePrice * (1 - (n * params.intervalPct) / 100)),
       direction: 'BUY',
-      qty: calcQty(n),
+      qty,
+      buyQty: qty,
       valuation: defaultValuation(n)
     })
   }
@@ -312,6 +320,7 @@ function buildTiers(params) {
     price: params.basePrice,
     direction: 'BASE',
     qty: params.baseQty,
+    buyQty: 0,
     valuation: '合理'
   })
   for (let n = 1; n <= params.upTierCount; n += 1) {
@@ -320,6 +329,7 @@ function buildTiers(params) {
       price: round2(params.basePrice * (1 + params.intervalPct / 100) ** n),
       direction: 'SELL',
       qty: calcQty(n),
+      buyQty: 0,
       valuation: defaultValuation(-n)
     })
   }
@@ -332,6 +342,14 @@ function buildTiers(params) {
       .filter((row) => row !== highest)
       .reduce((sum, row) => sum + row.qty, 0)
     highest.qty = Math.max(0, limit - othersSum)
+    // 上方档加仓数量 = 减仓序列镜像反转（以最深一个减仓数量 > 0 的档位为界）
+    const nearestFirst = [...upRows].sort(
+      (a, b) => Math.abs(a.level) - Math.abs(b.level)
+    )
+    const buys = mirrorUpBuyQty(nearestFirst.map((row) => row.qty))
+    nearestFirst.forEach((row, index) => {
+      row.buyQty = buys[index]
+    })
   }
   return rows.sort((a, b) => a.level - b.level)
 }
@@ -348,7 +366,7 @@ function positionAt(level) {
   let position = form.baseQty
   for (const tier of form.tiers) {
     if (tier.level > 0 && tier.level <= level) {
-      position += Number(tier.qty) || 0
+      position += Number(tier.buyQty ?? tier.qty) || 0
     } else if (tier.level < 0 && tier.level >= level) {
       position -= Number(tier.qty) || 0
     }
@@ -371,7 +389,12 @@ function structuralChanged() {
   ) {
     return true
   }
-  return form.tiers.some((tier) => originalQtys.value[tier.level] !== tier.qty)
+  return form.tiers.some((tier) => {
+    const original = originalQtys.value[tier.level]
+    return (
+      !original || original.qty !== tier.qty || original.buyQty !== tier.buyQty
+    )
+  })
 }
 
 async function save() {

@@ -7,21 +7,28 @@
       :title="`向上减仓合计 ${formatNumber(totalUp)} 股超过上限（基准数量 − 保留底仓 = ${formatNumber(limit)}）`"
       class="limit-alert"
     />
+    <el-alert
+      v-if="balanceMismatch"
+      type="error"
+      :closable="false"
+      title="上方档位加仓数量合计与减仓数量合计不相等，回到基准档时持仓无法配平"
+      class="limit-alert"
+    />
     <el-table :data="sortedTiers" size="small">
-      <el-table-column label="档位" width="110">
+      <el-table-column label="档位" width="100">
         <template #default="{ row }">{{ tierLabel(row.level) }}</template>
       </el-table-column>
-      <el-table-column label="方向" width="90">
+      <el-table-column label="方向" width="80">
         <template #default="{ row }">
           <el-tag size="small" :type="tagType(row)">{{
             directionLabel(row)
           }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="price" label="档位价格" width="110">
+      <el-table-column prop="price" label="档位价格" width="100">
         <template #default="{ row }">{{ formatPrice(row.price) }}</template>
       </el-table-column>
-      <el-table-column label="数量（可改）" width="190">
+      <el-table-column label="减仓数量（升破卖出）" width="160">
         <template #default="{ row }">
           <el-input-number
             v-if="row.level !== 0"
@@ -32,12 +39,27 @@
             :step-strictly="true"
             :precision="0"
             size="small"
-            @change="(value) => onQtyChange(row, value)"
+            @change="(value) => onSellQtyChange(row, value)"
           />
           <span v-else>{{ formatNumber(row.qty) }} 股</span>
         </template>
       </el-table-column>
-      <el-table-column label="估值区间" min-width="180">
+      <el-table-column label="加仓数量（跌破买入）" width="160">
+        <template #default="{ row }">
+          <el-input-number
+            v-if="row.level !== 0"
+            v-model="row.buyQty"
+            :min="0"
+            :step="minUnitQty"
+            :step-strictly="true"
+            :precision="0"
+            size="small"
+            @change="(value) => onBuyQtyChange(row, value)"
+          />
+          <span v-else>—</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="估值区间" min-width="170">
         <template #default="{ row }">
           <el-radio-group
             v-if="row.level !== 0"
@@ -57,7 +79,8 @@
       共 {{ sortedTiers.length }} 档 · 向上减仓合计
       {{ formatNumber(totalUp) }} 股（剩余
       {{ formatNumber(remainingUp) }} 股，底仓
-      {{ formatNumber(props.keepQty) }} 股） · 基准仓位
+      {{ formatNumber(props.keepQty) }} 股） · 向上加仓（买回）合计
+      {{ formatNumber(totalUpBuy) }} 股 · 基准仓位
       {{ formatNumber(props.baseQty) }} 股（{{
         basePositionAmount
       }}
@@ -106,23 +129,27 @@ const sortedTiers = computed(() =>
   [...props.tiers].sort((a, b) => a.level - b.level)
 )
 
+const upTiers = computed(() => sortedTiers.value.filter((row) => row.level < 0))
+
 const totalUp = computed(() =>
-  sortedTiers.value
-    .filter((row) => row.level < 0)
-    .reduce((sum, row) => sum + (Number(row.qty) || 0), 0)
+  upTiers.value.reduce((sum, row) => sum + (Number(row.qty) || 0), 0)
+)
+
+const totalUpBuy = computed(() =>
+  upTiers.value.reduce((sum, row) => sum + (Number(row.buyQty) || 0), 0)
 )
 
 const totalBuy = computed(() =>
   sortedTiers.value
     .filter((row) => row.level > 0)
-    .reduce((sum, row) => sum + (Number(row.qty) || 0), 0)
+    .reduce((sum, row) => sum + (Number(row.buyQty) || 0), 0)
 )
 
 const totalBuyAmount = computed(() =>
   sortedTiers.value
     .filter((row) => row.level > 0)
     .reduce(
-      (sum, row) => sum + (Number(row.qty) || 0) * (Number(row.price) || 0),
+      (sum, row) => sum + (Number(row.buyQty) || 0) * (Number(row.price) || 0),
       0
     )
 )
@@ -130,6 +157,10 @@ const totalBuyAmount = computed(() =>
 const limit = computed(() => props.baseQty - props.keepQty)
 
 const overLimit = computed(() => totalUp.value > limit.value)
+
+const balanceMismatch = computed(
+  () => upTiers.value.length > 0 && totalUpBuy.value !== totalUp.value
+)
 
 const remainingUp = computed(() => Math.max(0, limit.value - totalUp.value))
 
@@ -143,16 +174,14 @@ const basePositionAmount = computed(() =>
 const buyAmount = computed(() => (totalBuyAmount.value / 10000).toFixed(2))
 
 const highestUpLevel = computed(() => {
-  const upLevels = sortedTiers.value
-    .filter((row) => row.level < 0)
-    .map((row) => row.level)
+  const upLevels = upTiers.value.map((row) => row.level)
   return upLevels.length ? Math.min(...upLevels) : null
 })
 
 const expectedHighestQty = computed(() => {
   if (highestUpLevel.value === null) return null
-  const others = sortedTiers.value
-    .filter((row) => row.level < 0 && row.level !== highestUpLevel.value)
+  const others = upTiers.value
+    .filter((row) => row.level !== highestUpLevel.value)
     .reduce((sum, row) => sum + (Number(row.qty) || 0), 0)
   return Math.max(0, limit.value - others)
 })
@@ -183,9 +212,27 @@ function changeValuation(row, value) {
   emitChange()
 }
 
-function onQtyChange(row, value) {
+function onSellQtyChange(row, value) {
+  const oldQty = Number(row.qty) || 0
   row.qty = value === null || value === undefined ? 0 : value
+  rebalanceBuyAfterSell(row, row.qty - oldQty)
   emitChange()
+}
+
+function onBuyQtyChange(row, value) {
+  row.buyQty = value === null || value === undefined ? 0 : value
+  emitChange()
+}
+
+// 减仓数量变化后，把差额落到最近上方档（-1）的加仓数量上，保持买卖合计配平
+function rebalanceBuyAfterSell(row, delta) {
+  if (!delta || row.level >= 0) {
+    return
+  }
+  const nearest = upTiers.value.find((item) => item.level === -1)
+  if (nearest) {
+    nearest.buyQty = Math.max(0, (Number(nearest.buyQty) || 0) + delta)
+  }
 }
 
 function syncHighestTier() {
@@ -196,7 +243,9 @@ function syncHighestTier() {
     (row) => row.level === highestUpLevel.value
   )
   if (highest && (Number(highest.qty) || 0) !== expectedHighestQty.value) {
+    const delta = expectedHighestQty.value - (Number(highest.qty) || 0)
     highest.qty = expectedHighestQty.value
+    rebalanceBuyAfterSell(highest, delta)
     emitChange()
   }
 }

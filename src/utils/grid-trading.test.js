@@ -5,6 +5,7 @@ import {
   defaultValuation,
   formatNumber,
   formatPrice,
+  mirrorUpBuyQty,
   tierLabel,
   valuationBarClass,
   valuationTagType
@@ -57,5 +58,21 @@ describe('grid-trading utils', () => {
     expect(rows[3].price).toBe(90)
     expect(rows[4].price).toBe(80)
     expect(rows[2].direction).toBe('BASE')
+  })
+
+  it('mirrors up-side sell quantities into buy quantities', () => {
+    // 华能水电 §3：减仓 -1..-5 = 0/1500/2000/3000/0 → 加仓 -1..-5 = 3000/2000/1500/0/0
+    expect(mirrorUpBuyQty([0, 1500, 2000, 3000, 0])).toEqual([
+      3000, 2000, 1500, 0, 0
+    ])
+    // 全 0 档位 → 全 0
+    expect(mirrorUpBuyQty([0, 0, 0])).toEqual([0, 0, 0])
+    // 镜像保持合计配平
+    const sells = [200, 300, 500, 800, 200]
+    const buys = mirrorUpBuyQty(sells)
+    expect(buys.reduce((a, b) => a + b, 0)).toBe(
+      sells.reduce((a, b) => a + b, 0)
+    )
+    expect(buys).toEqual([200, 800, 500, 300, 200])
   })
 })

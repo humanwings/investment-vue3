@@ -180,15 +180,23 @@
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="档位价格" width="110">
+            <el-table-column label="档位价格" width="100">
               <template #default="{ row }">{{
                 formatPrice(row.price)
               }}</template>
             </el-table-column>
-            <el-table-column label="数量" width="110">
+            <el-table-column label="减仓数量" width="100">
               <template #default="{ row }"
                 >{{ formatNumber(row.qty) }} 股</template
               >
+            </el-table-column>
+            <el-table-column label="加仓数量" width="100">
+              <template #default="{ row }">
+                <template v-if="row.level !== 0"
+                  >{{ formatNumber(row.buyQty ?? row.qty) }} 股</template
+                >
+                <template v-else>—</template>
+              </template>
             </el-table-column>
             <el-table-column label="状态">
               <template #default="{ row }">
@@ -508,7 +516,7 @@ function simulateManualTrade(tiers, currentLevel, price, action) {
         hints.push({
           tierLevel: traded.level,
           tierPrice: traded.price,
-          qty: traded.qty || 0,
+          qty: traded.buyQty ?? traded.qty ?? 0,
           toLevel: next.level
         })
         cur = next

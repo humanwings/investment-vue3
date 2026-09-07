@@ -67,16 +67,16 @@ export const appRoutes = [
         }
       },
       {
-        path: 'statistics',
-        name: 'PortfolioStatistics',
-        component: () => import('@/views/portfolio/PortfolioStatistics.vue'),
-        meta: { title: '统计分析' }
-      },
-      {
         path: 'cleared',
         name: 'ClearedPosition',
         component: () => import('@/views/portfolio/ClearedPosition.vue'),
         meta: { title: '已清仓一览' }
+      },
+      {
+        path: 'statistics',
+        name: 'PortfolioStatistics',
+        component: () => import('@/views/portfolio/PortfolioStatistics.vue'),
+        meta: { title: '统计分析' }
       }
     ]
   },

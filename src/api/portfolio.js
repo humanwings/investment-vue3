@@ -62,14 +62,6 @@ export function saveAllPortfolio(items) {
   })
 }
 
-export function updatePositionEarnings(positionId, earningsNote) {
-  return request({
-    url: `/portfolio/position/${positionId}/earnings`,
-    method: 'put',
-    data: { earningsNote }
-  })
-}
-
 export function deletePortfolioSnapshot(statsDate) {
   return request({ url: `/portfolio/snapshot/${statsDate}`, method: 'delete' })
 }

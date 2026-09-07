@@ -11,7 +11,7 @@
       <el-tag size="small" :type="tagType(row)">{{
         directionLabel(row)
       }}</el-tag>
-      <span class="qty">{{ formatNumber(row.qty) }} 股</span>
+      <span class="qty">{{ qtyLabel(row) }}</span>
       <div class="bar">
         <i :style="{ width: barWidth(row) }"></i>
       </div>
@@ -60,10 +60,17 @@ function directionLabel(row) {
   return row.level < 0 ? '减仓' : '加仓'
 }
 
+function qtyLabel(row) {
+  if (row.level === 0) return `${formatNumber(row.qty)} 股`
+  return `减 ${formatNumber(row.qty)} / 加 ${formatNumber(row.buyQty ?? row.qty)}`
+}
+
 function barWidth(row) {
   const maxQty = Math.max(
     1,
-    ...sortedTiers.value.map((item) => Number(item.qty) || 0)
+    ...sortedTiers.value.map((item) =>
+      Math.max(Number(item.qty) || 0, Number(item.buyQty) || 0)
+    )
   )
   return `${Math.round(((Number(row.qty) || 0) / maxQty) * 100)}%`
 }

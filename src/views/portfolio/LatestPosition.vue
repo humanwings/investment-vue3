@@ -76,10 +76,11 @@
           >
             <template #default="{ row }">
               <el-select
-                v-if="row.stockCode"
+                v-if="editReady && row.stockCode"
                 v-model="row.sourceType"
                 size="small"
                 clearable
+                :persistent="false"
                 @change="onSourceChange(row)"
               >
                 <el-option
@@ -89,6 +90,7 @@
                   :value="v"
                 />
               </el-select>
+              <span v-else-if="row.stockCode">{{ row.sourceType }}</span>
               <span v-else>-</span>
             </template>
           </el-table-column>
@@ -100,10 +102,11 @@
           >
             <template #default="{ row }">
               <el-select
-                v-if="row.stockCode"
+                v-if="editReady && row.stockCode"
                 v-model="row.buyReason"
                 size="small"
                 clearable
+                :persistent="false"
                 :disabled="row.sourceType === '大V推荐'"
               >
                 <el-option
@@ -113,6 +116,7 @@
                   :value="v"
                 />
               </el-select>
+              <span v-else-if="row.stockCode">{{ row.buyReason }}</span>
               <span v-else>-</span>
             </template>
           </el-table-column>
@@ -124,10 +128,11 @@
           >
             <template #default="{ row }">
               <el-select
-                v-if="row.stockCode"
+                v-if="editReady && row.stockCode"
                 v-model="row.holdStrategy"
                 size="small"
                 clearable
+                :persistent="false"
               >
                 <el-option
                   v-for="v in holdStrategies"
@@ -136,49 +141,53 @@
                   :value="v"
                 />
               </el-select>
+              <span v-else-if="row.stockCode">{{ row.holdStrategy }}</span>
               <span v-else>-</span>
             </template>
           </el-table-column>
           <el-table-column label="持股计划" width="150">
             <template #default="{ row }">
               <el-input
-                v-if="row.stockCode"
+                v-if="editReady && row.stockCode"
                 v-model="row.holdPlan"
                 size="small"
               />
+              <span v-else-if="row.stockCode">{{ row.holdPlan }}</span>
               <span v-else>-</span>
             </template>
           </el-table-column>
           <el-table-column label="当期业绩" min-width="180">
             <template #default="{ row }">
               <el-input
-                v-if="row.stockCode"
+                v-if="editReady && row.stockCode"
                 v-model="row.earningsNote"
                 type="textarea"
                 :rows="1"
                 :autosize="{ minRows: 1, maxRows: 10 }"
                 class="note-input"
               />
+              <span v-else-if="row.stockCode">{{ row.earningsNote }}</span>
               <span v-else>-</span>
             </template>
           </el-table-column>
           <el-table-column label="备考" min-width="220">
             <template #default="{ row }">
               <el-input
-                v-if="row.stockCode"
+                v-if="editReady && row.stockCode"
                 v-model="row.archiveRemark"
                 type="textarea"
                 :rows="1"
                 :autosize="{ minRows: 1, maxRows: 10 }"
                 class="note-input"
               />
+              <span v-else-if="row.stockCode">{{ row.archiveRemark }}</span>
               <span v-else>-</span>
             </template>
           </el-table-column>
         </el-table>
       </el-tab-pane>
 
-      <el-tab-pane label="国泰海通" name="gt">
+      <el-tab-pane label="国泰海通" name="gt" lazy>
         <el-table
           :data="gtTable"
           border
@@ -228,7 +237,7 @@
         </el-table>
       </el-tab-pane>
 
-      <el-tab-pane label="平安证券" name="pa">
+      <el-tab-pane label="平安证券" name="pa" lazy>
         <el-table
           :data="paTable"
           border
@@ -303,6 +312,9 @@ const summary = ref({})
 const positions = ref([])
 const prevAll = ref(null)
 const saving = ref(false)
+// 首屏先渲染纯文本表格，下一帧再挂载行内编辑组件（el-select/textarea），
+// 避免一次性挂载大量表单组件长时间阻塞主线程
+const editReady = ref(false)
 
 const totalAll = computed(
   () => (summary.value.totalMv || 0) + (summary.value.totalCash || 0)
@@ -369,7 +381,11 @@ const paTable = computed(() => {
 
 async function load() {
   try {
-    const res = await getPortfolioLatest()
+    editReady.value = false
+    const [res, sres] = await Promise.all([
+      getPortfolioLatest(),
+      getPortfolioSnapshots()
+    ])
     summary.value = res.data.summary || {}
     positions.value = (res.data.positions || []).map((p) => ({
       ...p,
@@ -380,13 +396,17 @@ async function load() {
       holdPlan: p.holdPlan || '',
       archiveRemark: p.archiveRemark || ''
     }))
-    const sres = await getPortfolioSnapshots()
     const snaps = sres.data.snapshots || []
     const idx = snaps.findIndex((s) => s.statsDate === summary.value.statsDate)
     const prevRow = idx >= 0 && idx + 1 < snaps.length ? snaps[idx + 1] : null
     prevAll.value = prevRow
       ? (prevRow.totalMv || 0) + (prevRow.totalCash || 0)
       : null
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        editReady.value = true
+      })
+    })
   } catch {
     // interceptor 已提示
   }

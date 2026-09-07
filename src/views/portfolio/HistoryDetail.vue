@@ -25,11 +25,6 @@
               format(row.stockCode ? pl(row) : '-')
             }}</template>
           </el-table-column>
-          <el-table-column
-            prop="earningsNote"
-            label="当期业绩"
-            min-width="220"
-          />
         </el-table>
       </el-tab-pane>
 

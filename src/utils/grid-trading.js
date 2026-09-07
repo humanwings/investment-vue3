@@ -51,6 +51,23 @@ export function buildTierPreview(params) {
   return rows
 }
 
+/**
+ * 上方档加仓数量 = 减仓序列镜像反转（非对称网格默认生成规则）。
+ *
+ * @param {number[]} sellQtys 上方档减仓数量，按离基准档由近到远排序（level -1、-2、…）
+ * @returns {number[]} 同序的加仓数量：第 k 档加仓 = 第 m+1-k 档减仓（m 为最深一个减仓数量 > 0
+ *   的档位序号），更深档为 0；保证减仓合计 = 加仓合计
+ */
+export function mirrorUpBuyQty(sellQtys) {
+  let deepestActive = 0
+  sellQtys.forEach((qty, index) => {
+    if ((Number(qty) || 0) > 0) deepestActive = index + 1
+  })
+  return sellQtys.map((_, index) =>
+    index < deepestActive ? sellQtys[deepestActive - 1 - index] : 0
+  )
+}
+
 function round2(value) {
   return Math.round(value * 100) / 100
 }
