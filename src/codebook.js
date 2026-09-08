@@ -159,3 +159,65 @@ export function marketOfCode(code) {
   }
   return null
 }
+
+// ===== 持仓管理 / 买入判定 共享决策枚举（DB 存中文 label）=====
+export const decisionBuyReasons = [
+  {
+    key: 'blueLong',
+    label: '蓝筹(长期持有)',
+    types: null,
+    positions: ['高位', '中位', '低位'],
+    noType: true
+  },
+  {
+    key: 'hotFollow',
+    label: '追热点 / 跟风',
+    types: ['龙头', '二线杂毛'],
+    positions: ['高位', '中位']
+  },
+  {
+    key: 'pullback',
+    label: '回调抄底',
+    types: ['蓝筹', '成长', '概念'],
+    positions: ['高位', '中位', '低位']
+  },
+  {
+    key: 'ambush',
+    label: '潜伏(中期)',
+    types: ['蓝筹', '成长', '概念'],
+    positions: ['高位', '中位', '低位']
+  },
+  {
+    key: 'bigV',
+    label: '大V推荐',
+    types: ['蓝筹', '成长', '概念'],
+    positions: ['高位', '中位', '低位']
+  },
+  {
+    key: 'smallV',
+    label: '小V推荐',
+    types: ['蓝筹', '成长', '概念'],
+    positions: ['高位', '中位', '低位']
+  },
+  {
+    key: 'tryIt',
+    label: '就是想买点试试',
+    types: ['蓝筹', '成长', '概念'],
+    positions: ['高位', '中位', '低位']
+  },
+  {
+    key: 'crash',
+    label: '暴跌抄底',
+    types: ['蓝筹', '成长', '概念'],
+    timing: true
+  }
+]
+
+export const decisionStockTypes = ['蓝筹', '成长', '概念', '龙头', '二线杂毛']
+export const decisionPositions = ['高位', '中位', '低位']
+export const decisionTimings = ['当日', '次日及以后']
+export const decisionLevels = ['别买', '观察', '轻仓', '正常', '重仓', '超重仓']
+
+export function getDecisionReasonByLabel(label) {
+  return decisionBuyReasons.find((r) => r.label === label) || null
+}

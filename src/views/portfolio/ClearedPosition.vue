@@ -4,22 +4,13 @@
       <el-table-column type="expand">
         <template #default="{ row }">
           <el-descriptions :column="3" border size="small">
-            <el-descriptions-item label="来源">{{
-              row.sourceType || '-'
-            }}</el-descriptions-item>
-            <el-descriptions-item label="大V">{{
-              row.bigV || '-'
-            }}</el-descriptions-item>
-            <el-descriptions-item label="买入原因">{{
-              row.buyReason || '-'
-            }}</el-descriptions-item>
             <el-descriptions-item label="持股策略">{{
               row.holdStrategy || '-'
             }}</el-descriptions-item>
             <el-descriptions-item label="持股计划">{{
               row.holdPlan || '-'
             }}</el-descriptions-item>
-            <el-descriptions-item label="备考">{{
+            <el-descriptions-item label="档案备考">{{
               row.archiveRemark || '-'
             }}</el-descriptions-item>
           </el-descriptions>
@@ -29,80 +20,62 @@
       <el-table-column prop="stockName" label="名称" width="110" />
       <el-table-column prop="clearedDate" label="清仓日期" width="110" />
       <el-table-column prop="lastStatsDate" label="最后持仓周" width="110" />
-      <el-table-column label="参考盈亏(只读)" width="120">
-        <template #default="{ row }">{{ formatPl(row.refTotalPl) }}</template>
+      <el-table-column
+        label="买入判定"
+        min-width="170"
+        :filters="decisionFilterOpts"
+        :filter-method="filterDecision"
+      >
+        <template #default="{ row }">{{ decisionText(row) }}</template>
       </el-table-column>
-      <el-table-column label="实现盈亏" width="130">
+      <el-table-column
+        label="大V"
+        width="110"
+        :filters="bigVOpts"
+        :filter-method="(value, row) => row.bigV === value"
+      >
         <template #default="{ row }">
-          <el-input-number
-            v-model="row.realizedPl"
-            :precision="2"
-            size="small"
-            controls-position="right"
-          />
+          <truncated-text :text="row.bigV" />
         </template>
       </el-table-column>
-      <el-table-column label="持股天数" width="110">
-        <template #default="{ row }">
-          <el-input-number
-            v-model="row.holdDays"
-            :min="0"
-            size="small"
-            controls-position="right"
-          />
-        </template>
+      <el-table-column label="实现盈亏" width="120">
+        <template #default="{ row }">{{ formatPl(row.realizedPl) }}</template>
       </el-table-column>
-      <el-table-column label="清仓原因" width="120">
-        <template #default="{ row }">
-          <el-select v-model="row.clearReason" size="small" clearable>
-            <el-option
-              v-for="r in clearReasons"
-              :key="r"
-              :label="r"
-              :value="r"
-            />
-          </el-select>
-        </template>
+      <el-table-column label="持股天数" width="90">
+        <template #default="{ row }">{{ row.holdDays ?? '-' }}</template>
       </el-table-column>
-      <el-table-column label="清仓原因备注" width="150">
+      <el-table-column prop="clearReason" label="清仓原因" width="100" />
+      <el-table-column label="备注" min-width="140">
         <template #default="{ row }">
-          <el-input v-model="row.clearReasonRemark" size="small" />
-        </template>
-      </el-table-column>
-      <el-table-column label="备注" width="160">
-        <template #default="{ row }">
-          <el-input v-model="row.clearedRemark" size="small" />
+          <truncated-text :text="row.clearedRemark" />
         </template>
       </el-table-column>
       <el-table-column label="操作" width="130" fixed="right">
         <template #default="{ row }">
-          <el-button type="primary" link @click="saveRow(row)">保存</el-button>
+          <el-button type="primary" link @click="openEdit(row)">编辑</el-button>
           <el-button type="danger" link @click="removeRow(row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
+    <ClearedEditDialog
+      v-model:visible="editVisible"
+      :row="editingRow"
+      @saved="load"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  getPortfolioCleared,
-  updatePortfolioCleared,
-  deletePortfolioCleared
-} from '@/api/portfolio'
+import { getPortfolioCleared, deletePortfolioCleared } from '@/api/portfolio'
+import ClearedEditDialog from './components/ClearedEditDialog.vue'
+import TruncatedText from './components/TruncatedText.vue'
+import { decisionText } from './decision-display'
 
-const clearReasons = [
-  '止损',
-  '止盈',
-  '消息利空',
-  '财报不佳',
-  '跟随大V',
-  '信心不足',
-  '其他'
-]
 const cleared = ref([])
+const editVisible = ref(false)
+const editingRow = ref(null)
 
 function formatPl(v) {
   return v == null
@@ -110,13 +83,39 @@ function formatPl(v) {
     : Number(v).toLocaleString('zh-CN', { maximumFractionDigits: 2 })
 }
 
+const decisionFilterOpts = computed(() => {
+  const seen = []
+  cleared.value.forEach((r) => {
+    if (r.buyReason && !seen.includes(r.buyReason)) seen.push(r.buyReason)
+    if (r.decisionLevel && !seen.includes(r.decisionLevel))
+      seen.push(r.decisionLevel)
+  })
+  return seen.map((v) => ({ text: v, value: v }))
+})
+function filterDecision(value, row) {
+  return row.buyReason === value || row.decisionLevel === value
+}
+
+const bigVOpts = computed(() => {
+  const seen = []
+  cleared.value.forEach((r) => {
+    if (r.bigV && !seen.includes(r.bigV)) seen.push(r.bigV)
+  })
+  return seen.map((v) => ({ text: v, value: v }))
+})
+
 async function load() {
   try {
     const res = await getPortfolioCleared()
     cleared.value = (res.data.cleared || []).map((c) => ({
       ...c,
+      bigV: c.bigV || '',
+      buyReason: c.buyReason || '',
+      stockType: c.stockType || '',
+      pricePosition: c.pricePosition || '',
+      timing: c.timing || '',
+      decisionLevel: c.decisionLevel || '',
       clearReason: c.clearReason || '',
-      clearReasonRemark: c.clearReasonRemark || '',
       realizedPl: c.realizedPl ?? null,
       holdDays: c.holdDays ?? null,
       clearedRemark: c.clearedRemark || ''
@@ -126,19 +125,9 @@ async function load() {
   }
 }
 
-async function saveRow(row) {
-  try {
-    await updatePortfolioCleared(row.clearedId, {
-      clearReason: row.clearReason,
-      clearReasonRemark: row.clearReasonRemark,
-      realizedPl: row.realizedPl,
-      holdDays: row.holdDays,
-      clearedRemark: row.clearedRemark
-    })
-    ElMessage.success('保存成功')
-  } catch {
-    // interceptor 已提示
-  }
+function openEdit(row) {
+  editingRow.value = row
+  editVisible.value = true
 }
 
 async function removeRow(row) {

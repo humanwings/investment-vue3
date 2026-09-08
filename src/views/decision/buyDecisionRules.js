@@ -1,58 +1,29 @@
-export const BUY_REASONS = {
-  blueLong: {
-    label: '蓝筹(长期持有)',
-    base: 2,
-    types: null,
-    positions: ['高位', '中位', '低位'],
-    noType: true
-  },
-  hotFollow: {
-    label: '追热点 / 跟风',
-    base: 0,
-    types: ['龙头', '二线杂毛'],
-    positions: ['高位', '中位'],
-    denyHigh: true
-  },
-  pullback: {
-    label: '回调抄底',
-    base: 2,
-    types: ['蓝筹', '成长', '概念'],
-    positions: ['高位', '中位', '低位'],
-    denyHigh: true
-  },
-  ambush: {
-    label: '潜伏(中期)',
-    base: 0,
-    types: ['蓝筹', '成长', '概念'],
-    positions: ['高位', '中位', '低位'],
-    special: true
-  },
-  bigV: {
-    label: '大V推荐',
-    base: 4,
-    types: ['蓝筹', '成长', '概念'],
-    positions: ['高位', '中位', '低位']
-  },
-  smallV: {
-    label: '小V推荐',
-    base: 2,
-    types: ['蓝筹', '成长', '概念'],
-    positions: ['高位', '中位', '低位']
-  },
-  tryIt: {
-    label: '就是想买点试试',
-    base: -2,
-    types: ['蓝筹', '成长', '概念'],
-    positions: ['高位', '中位', '低位'],
-    special: true
-  },
-  crash: {
-    label: '暴跌抄底',
-    base: 0,
-    types: ['蓝筹', '成长', '概念'],
-    timing: true
-  }
+import { decisionBuyReasons, decisionTimings } from '@/codebook'
+
+const REASON_BEHAVIOR = {
+  blueLong: { base: 2 },
+  hotFollow: { base: 0, denyHigh: true },
+  pullback: { base: 2, denyHigh: true },
+  ambush: { base: 0, special: true },
+  bigV: { base: 4 },
+  smallV: { base: 2 },
+  tryIt: { base: -2, special: true },
+  crash: { base: 0 }
 }
+
+export const BUY_REASONS = Object.fromEntries(
+  decisionBuyReasons.map(({ key, label, types, positions, noType, timing }) => [
+    key,
+    {
+      label,
+      types,
+      positions,
+      noType,
+      timing,
+      ...REASON_BEHAVIOR[key]
+    }
+  ])
+)
 
 export const POSITION_SCORE = {
   高位: -2,
@@ -104,7 +75,7 @@ export function getThirdStep(reasonKey) {
   }
 
   if (reason.timing) {
-    return { label: '时机', options: ['当日', '次日及以后'] }
+    return { label: '时机', options: [...decisionTimings] }
   }
 
   return { label: '股价位置', options: reason.positions || [] }
@@ -208,4 +179,24 @@ function describeDecision(reasonKey, stockType, position, level) {
   }
 
   return `${prefix}：建议${level}。`
+}
+
+export function getDecisionLevel({ reason, stockType, position, timing }) {
+  const reasonConfig = BUY_REASONS[reason]
+
+  if (!reasonConfig) {
+    return null
+  }
+
+  const pos = reasonConfig.timing ? timing : position
+
+  if (!pos) {
+    return null
+  }
+
+  if (!reasonConfig.noType && !stockType) {
+    return null
+  }
+
+  return evaluateDecision({ reason, stockType, position: pos }).level
 }

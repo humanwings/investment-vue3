@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   evaluateDecision,
   getBuyReasonOptions,
+  getDecisionLevel,
   getStockTypeOptions,
   getThirdStep,
   mapScoreToLevel
@@ -160,5 +161,33 @@ describe('buy decision rules', () => {
         position: '中位'
       }).level
     ).toBe('观察')
+  })
+})
+
+describe('getDecisionLevel', () => {
+  it('computes level from full decision inputs', () => {
+    expect(
+      getDecisionLevel({ reason: 'bigV', stockType: '成长', position: '低位' })
+    ).toBe('重仓')
+    expect(getDecisionLevel({ reason: 'blueLong', position: '低位' })).toBe(
+      '正常'
+    )
+    expect(
+      getDecisionLevel({
+        reason: 'crash',
+        stockType: '蓝筹',
+        timing: '次日及以后'
+      })
+    ).toBe('正常')
+    expect(
+      getDecisionLevel({ reason: 'crash', stockType: '蓝筹', timing: '当日' })
+    ).toBe('别买')
+  })
+
+  it('returns null when required inputs are missing', () => {
+    expect(getDecisionLevel({ reason: 'bigV', position: '低位' })).toBeNull()
+    expect(getDecisionLevel({ reason: 'crash', stockType: '蓝筹' })).toBeNull()
+    expect(getDecisionLevel({ reason: 'unknown' })).toBeNull()
+    expect(getDecisionLevel({})).toBeNull()
   })
 })

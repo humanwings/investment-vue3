@@ -47,20 +47,16 @@
         <div id="chart-industry" class="chart"></div>
       </div>
       <div class="chart-box">
-        <div class="chart-title">来源</div>
-        <div id="chart-source" class="chart"></div>
-      </div>
-      <div class="chart-box">
         <div class="chart-title">买入原因</div>
         <div id="chart-buyReason" class="chart"></div>
       </div>
       <div class="chart-box">
+        <div class="chart-title">股票种类</div>
+        <div id="chart-stockType" class="chart"></div>
+      </div>
+      <div class="chart-box">
         <div class="chart-title">持股策略</div>
         <div id="chart-holdStrategy" class="chart"></div>
-      </div>
-      <div v-if="showBigV" class="chart-box">
-        <div class="chart-title">大V（大V推荐细分）</div>
-        <div id="chart-bigV" class="chart"></div>
       </div>
     </div>
 
@@ -102,8 +98,8 @@
           <div id="chart-clearedReason" class="chart"></div>
         </div>
         <div>
-          <div class="chart-subtitle">来源分布</div>
-          <div id="chart-clearedSource" class="chart"></div>
+          <div class="chart-subtitle">买入原因分布</div>
+          <div id="chart-clearedBuyReason" class="chart"></div>
         </div>
         <div>
           <div class="chart-subtitle">实现盈亏（按清仓日期）</div>
@@ -113,8 +109,14 @@
 
       <div class="dim-grid">
         <dimension-table title="按清仓原因" :rows="clearedSummary.byReason" />
-        <dimension-table title="按来源" :rows="clearedSummary.bySource" />
-        <dimension-table title="按持股策略" :rows="clearedSummary.byStrategy" />
+        <dimension-table
+          title="按买入原因"
+          :rows="clearedSummary.byBuyReason"
+        />
+        <dimension-table
+          title="按股票种类"
+          :rows="clearedSummary.byStockType"
+        />
         <dimension-table title="按持股天数" :rows="clearedSummary.byHoldDays" />
       </div>
     </div>
@@ -155,7 +157,6 @@ const range = ref(null)
 const metric = ref('value')
 const weeks = ref([])
 const stats = ref(null)
-const showBigV = ref(false)
 const clearedSummary = ref({
   count: 0,
   decided: 0,
@@ -171,12 +172,11 @@ function initCharts() {
   const ids = [
     'chart-line',
     'chart-industry',
-    'chart-source',
+    'chart-stockType',
     'chart-buyReason',
     'chart-holdStrategy',
-    'chart-bigV',
     'chart-clearedReason',
-    'chart-clearedSource',
+    'chart-clearedBuyReason',
     'chart-clearedPl'
   ]
   ids.forEach((id) => {
@@ -237,13 +237,9 @@ function renderStats() {
     )
   }
   renderPie('chart-industry', s.industryPie, '行业')
-  renderPie('chart-source', s.sourcePie, '来源')
+  renderPie('chart-stockType', s.stockTypePie, '股票种类')
   renderPie('chart-buyReason', s.buyReasonPie, '买入原因')
   renderPie('chart-holdStrategy', s.holdStrategyPie, '持股策略')
-
-  const empty = !s.bigVPie || s.bigVPie.length === 0
-  showBigV.value = !empty
-  renderPie('chart-bigV', s.bigVPie, '大V')
 }
 
 function formatAxisNumber(v) {
@@ -254,7 +250,7 @@ function formatAxisNumber(v) {
 function renderCleared() {
   const s = clearedSummary.value
   renderPie('chart-clearedReason', s.reasonPie, '清仓原因', 'count')
-  renderPie('chart-clearedSource', s.sourcePie, '清仓来源', 'count')
+  renderPie('chart-clearedBuyReason', s.buyReasonPie, '买入原因', 'count')
 
   const bar = chartInstances['chart-clearedPl']
   if (bar) {

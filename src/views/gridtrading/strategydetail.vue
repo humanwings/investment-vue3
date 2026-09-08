@@ -273,7 +273,8 @@
         当前档位
         {{
           tierLabelOf(strategy?.currentTierLevel)
-        }}；填入股价后，系统会像"刷新股价"一样重新检测跨档并生成已触发提示（不依赖网络）。
+        }}；填入股价后，系统会像"刷新股价"一样重新检测跨档：0
+        股档位自动跳档，实交易跨档生成已触发提示（不依赖网络）。
       </div>
       <el-form label-width="60px">
         <el-form-item label="股价">
@@ -529,7 +530,7 @@ function simulateManualTrade(tiers, currentLevel, price, action) {
   const realHints = hints.filter((h) => Number(h.qty) > 0)
   if (realHints.length === 0) {
     error = hints.length
-      ? '跨越的档位计划数量均为 0 股，无法记录成交。请先确认该档位的 0 股提示'
+      ? '跨越的档位计划数量均为 0 股，无法记录成交。0 股档位会在刷新股价或手动设价时自动跳档，请先同步现价后再补录'
       : action === 'SELL'
         ? '成交价未升破相邻更高档位价，无法推导卖出档位'
         : '成交价未跌破相邻更低档位价，无法推导买入档位'

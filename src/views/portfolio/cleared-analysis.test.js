@@ -8,8 +8,10 @@ describe('summarizeCleared', () => {
       stockCode: '000725.SZ',
       clearedDate: '2026-09-05',
       refTotalPl: 426.6,
-      sourceType: '自选',
       clearReason: '信心不足',
+      buyReason: '',
+      stockType: '',
+      decisionLevel: '',
       realizedPl: null,
       holdDays: 14
     },
@@ -17,8 +19,10 @@ describe('summarizeCleared', () => {
       stockCode: '600745.SH',
       clearedDate: '2026-08-29',
       refTotalPl: -157.88,
-      sourceType: '大V推荐',
       clearReason: '止盈',
+      buyReason: '暴跌抄底',
+      stockType: '成长',
+      decisionLevel: '轻仓',
       realizedPl: 6740.0,
       holdDays: 24
     },
@@ -26,8 +30,10 @@ describe('summarizeCleared', () => {
       stockCode: '01024.HK',
       clearedDate: '2026-08-22',
       refTotalPl: 3016.0,
-      sourceType: '大V推荐',
       clearReason: '止损',
+      buyReason: '蓝筹(长期持有)',
+      stockType: '蓝筹',
+      decisionLevel: '正常',
       realizedPl: -9672.0,
       holdDays: 34
     },
@@ -35,8 +41,10 @@ describe('summarizeCleared', () => {
       stockCode: '601101.SH',
       clearedDate: '2026-08-22',
       refTotalPl: 3528.7,
-      sourceType: '自选',
       clearReason: '止盈',
+      buyReason: '大V推荐',
+      stockType: '蓝筹',
+      decisionLevel: '重仓',
       realizedPl: 1881.0,
       holdDays: 10
     }
@@ -59,16 +67,17 @@ describe('summarizeCleared', () => {
     expect(s.avgHoldDays).toBe((14 + 24 + 34 + 10) / 4)
   })
 
-  it('groups reason and source pie by row count', () => {
+  it('groups clear reason and buy reason pies by row count', () => {
     const s = summarizeCleared(rows, null)
     expect(s.reasonPie).toEqual([
       { name: '止盈', count: 2 },
       { name: '信心不足', count: 1 },
       { name: '止损', count: 1 }
     ])
-    expect(s.sourcePie).toEqual([
-      { name: '自选', count: 2 },
-      { name: '大V推荐', count: 2 }
+    expect(s.buyReasonPie).toEqual([
+      { name: '暴跌抄底', count: 1 },
+      { name: '蓝筹(长期持有)', count: 1 },
+      { name: '大V推荐', count: 1 }
     ])
   })
 
@@ -93,7 +102,7 @@ describe('summarizeCleared', () => {
     expect(s.winRate).toBeNull()
     expect(s.avgHoldDays).toBeNull()
     expect(s.reasonPie).toEqual([])
-    expect(s.sourcePie).toEqual([])
+    expect(s.buyReasonPie).toEqual([])
     expect(s.plByDate).toEqual([])
   })
 
@@ -129,10 +138,19 @@ describe('summarizeCleared', () => {
         totalPl: -9672
       }
     ])
-    expect(s.bySource).toEqual([
+    expect(s.byBuyReason).toEqual([
       {
-        name: '自选',
-        count: 2,
+        name: '暴跌抄底',
+        count: 1,
+        decided: 1,
+        wins: 1,
+        winRate: 1,
+        avgPl: 6740,
+        totalPl: 6740
+      },
+      {
+        name: '大V推荐',
+        count: 1,
         decided: 1,
         wins: 1,
         winRate: 1,
@@ -140,13 +158,33 @@ describe('summarizeCleared', () => {
         totalPl: 1881
       },
       {
-        name: '大V推荐',
+        name: '蓝筹(长期持有)',
+        count: 1,
+        decided: 1,
+        wins: 0,
+        winRate: 0,
+        avgPl: -9672,
+        totalPl: -9672
+      }
+    ])
+    expect(s.byStockType).toEqual([
+      {
+        name: '成长',
+        count: 1,
+        decided: 1,
+        wins: 1,
+        winRate: 1,
+        avgPl: 6740,
+        totalPl: 6740
+      },
+      {
+        name: '蓝筹',
         count: 2,
         decided: 2,
         wins: 1,
         winRate: 0.5,
-        avgPl: -1466,
-        totalPl: -2932
+        avgPl: (1881 - 9672) / 2,
+        totalPl: -7791
       }
     ])
   })
@@ -161,11 +199,6 @@ describe('summarizeCleared', () => {
     const mid = s.byHoldDays.find((b) => b.name === '11~30天')
     expect(mid.count).toBe(3)
     expect(mid.winRate).toBe(1)
-  })
-
-  it('groups by strategy when present', () => {
-    const s = summarizeCleared(rows, null)
-    expect(s.byStrategy).toEqual([])
   })
 
   it('breakdowns sort by totalPl desc', () => {

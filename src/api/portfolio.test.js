@@ -51,7 +51,7 @@ describe('portfolio api', () => {
     await getPortfolioLatest()
     await getPortfolioSnapshots()
     await getPortfolioSnapshot('2026-08-08')
-    await updatePortfolioArchive('00700.HK', { sourceType: '自选' })
+    await updatePortfolioArchive('00700.HK', { decisionLevel: '重仓' })
     await getPortfolioCleared()
     await updatePortfolioCleared(1, { clearReason: '止损' })
     await getPortfolioStats({ scope: 'all', week: '2026-08-08' })
@@ -59,6 +59,9 @@ describe('portfolio api', () => {
     const putUrls = mock.history.put.map((r) => r.url)
     expect(putUrls).toContain('/portfolio/archive/00700.HK')
     expect(putUrls).toContain('/portfolio/cleared/1')
+    expect(JSON.parse(mock.history.put[0].data)).toEqual({
+      decisionLevel: '重仓'
+    })
     expect(JSON.parse(mock.history.put[1].data)).toEqual({
       clearReason: '止损'
     })

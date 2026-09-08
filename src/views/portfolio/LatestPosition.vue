@@ -4,14 +4,6 @@
       <el-button type="primary" @click="importVisible = true"
         >导入 Excel</el-button
       >
-      <el-button
-        type="success"
-        :loading="saving"
-        :disabled="saving"
-        @click="saveAll"
-        >保存</el-button
-      >
-      <el-button @click="reset">重置</el-button>
       <span v-if="summary.statsDate" class="summary">
         最新统计日期：{{ summary.statsDate }} ｜ 持仓
         {{ summary.positionCount }} 只 ｜ 总市值(含现金)
@@ -69,55 +61,24 @@
             </template>
           </el-table-column>
           <el-table-column
-            label="来源"
-            width="120"
-            :filters="sourceOpts"
-            :filter-method="(value, row) => row.sourceType === value"
+            label="买入判定"
+            min-width="170"
+            :filters="decisionFilterOpts"
+            :filter-method="filterDecision"
           >
             <template #default="{ row }">
-              <el-select
-                v-if="editReady && row.stockCode"
-                v-model="row.sourceType"
-                size="small"
-                clearable
-                :persistent="false"
-                @change="onSourceChange(row)"
-              >
-                <el-option
-                  v-for="v in sources"
-                  :key="v"
-                  :label="v"
-                  :value="v"
-                />
-              </el-select>
-              <span v-else-if="row.stockCode">{{ row.sourceType }}</span>
+              <span v-if="row.stockCode">{{ decisionText(row) }}</span>
               <span v-else>-</span>
             </template>
           </el-table-column>
           <el-table-column
-            label="买入原因"
+            label="大V"
             width="110"
-            :filters="reasonOpts"
-            :filter-method="(value, row) => row.buyReason === value"
+            :filters="bigVOpts"
+            :filter-method="(value, row) => row.bigV === value"
           >
             <template #default="{ row }">
-              <el-select
-                v-if="editReady && row.stockCode"
-                v-model="row.buyReason"
-                size="small"
-                clearable
-                :persistent="false"
-                :disabled="row.sourceType === '大V推荐'"
-              >
-                <el-option
-                  v-for="v in buyReasons"
-                  :key="v"
-                  :label="v"
-                  :value="v"
-                />
-              </el-select>
-              <span v-else-if="row.stockCode">{{ row.buyReason }}</span>
-              <span v-else>-</span>
+              <truncated-text :text="row.stockCode ? row.bigV : ''" />
             </template>
           </el-table-column>
           <el-table-column
@@ -126,62 +87,34 @@
             :filters="strategyOpts"
             :filter-method="(value, row) => row.holdStrategy === value"
           >
+            <template #default="{ row }">{{
+              row.stockCode ? row.holdStrategy || '-' : '-'
+            }}</template>
+          </el-table-column>
+          <el-table-column label="持股计划" min-width="140">
             <template #default="{ row }">
-              <el-select
-                v-if="editReady && row.stockCode"
-                v-model="row.holdStrategy"
-                size="small"
-                clearable
-                :persistent="false"
+              <truncated-text :text="row.stockCode ? row.holdPlan : ''" />
+            </template>
+          </el-table-column>
+          <el-table-column label="当期业绩" min-width="150">
+            <template #default="{ row }">
+              <truncated-text :text="row.stockCode ? row.earningsNote : ''" />
+            </template>
+          </el-table-column>
+          <el-table-column label="备考" min-width="150">
+            <template #default="{ row }">
+              <truncated-text :text="row.stockCode ? row.archiveRemark : ''" />
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="90" fixed="right">
+            <template #default="{ row }">
+              <el-button
+                v-if="row.stockCode"
+                type="primary"
+                link
+                @click="openEdit(row)"
+                >编辑</el-button
               >
-                <el-option
-                  v-for="v in holdStrategies"
-                  :key="v"
-                  :label="v"
-                  :value="v"
-                />
-              </el-select>
-              <span v-else-if="row.stockCode">{{ row.holdStrategy }}</span>
-              <span v-else>-</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="持股计划" width="150">
-            <template #default="{ row }">
-              <el-input
-                v-if="editReady && row.stockCode"
-                v-model="row.holdPlan"
-                size="small"
-              />
-              <span v-else-if="row.stockCode">{{ row.holdPlan }}</span>
-              <span v-else>-</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="当期业绩" min-width="180">
-            <template #default="{ row }">
-              <el-input
-                v-if="editReady && row.stockCode"
-                v-model="row.earningsNote"
-                type="textarea"
-                :rows="1"
-                :autosize="{ minRows: 1, maxRows: 10 }"
-                class="note-input"
-              />
-              <span v-else-if="row.stockCode">{{ row.earningsNote }}</span>
-              <span v-else>-</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="备考" min-width="220">
-            <template #default="{ row }">
-              <el-input
-                v-if="editReady && row.stockCode"
-                v-model="row.archiveRemark"
-                type="textarea"
-                :rows="1"
-                :autosize="{ minRows: 1, maxRows: 10 }"
-                class="note-input"
-              />
-              <span v-else-if="row.stockCode">{{ row.archiveRemark }}</span>
-              <span v-else>-</span>
             </template>
           </el-table-column>
         </el-table>
@@ -229,11 +162,11 @@
           >
             <template #default="{ row }">{{ format(row.gtPl) }}</template>
           </el-table-column>
-          <el-table-column
-            prop="earningsNote"
-            label="当期业绩"
-            min-width="220"
-          />
+          <el-table-column label="当期业绩" min-width="180">
+            <template #default="{ row }">
+              <truncated-text :text="row.earningsNote" />
+            </template>
+          </el-table-column>
         </el-table>
       </el-tab-pane>
 
@@ -279,42 +212,39 @@
           >
             <template #default="{ row }">{{ format(row.paPl) }}</template>
           </el-table-column>
-          <el-table-column
-            prop="earningsNote"
-            label="当期业绩"
-            min-width="220"
-          />
+          <el-table-column label="当期业绩" min-width="180">
+            <template #default="{ row }">
+              <truncated-text :text="row.earningsNote" />
+            </template>
+          </el-table-column>
         </el-table>
       </el-tab-pane>
     </el-tabs>
 
     <ImportDialog v-model:visible="importVisible" @success="load" />
+    <PositionEditDialog
+      v-model:visible="editVisible"
+      :row="editingRow"
+      @saved="load"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  getPortfolioLatest,
-  getPortfolioSnapshots,
-  saveAllPortfolio
-} from '@/api/portfolio'
+import { getPortfolioLatest, getPortfolioSnapshots } from '@/api/portfolio'
 import ImportDialog from './components/ImportDialog.vue'
-
-const sources = ['大V推荐', '自选']
-const buyReasons = ['蓝筹', '反转', '短线', '其他']
-const holdStrategies = ['非卖品', '长期持有', '中期持有', '可卖品', '跟随大V']
+import PositionEditDialog from './components/PositionEditDialog.vue'
+import TruncatedText from './components/TruncatedText.vue'
+import { decisionText } from './decision-display'
 
 const activeTab = ref('total')
 const importVisible = ref(false)
+const editVisible = ref(false)
+const editingRow = ref(null)
 const summary = ref({})
 const positions = ref([])
 const prevAll = ref(null)
-const saving = ref(false)
-// 首屏先渲染纯文本表格，下一帧再挂载行内编辑组件（el-select/textarea），
-// 避免一次性挂载大量表单组件长时间阻塞主线程
-const editReady = ref(false)
 
 const totalAll = computed(
   () => (summary.value.totalMv || 0) + (summary.value.totalCash || 0)
@@ -355,9 +285,20 @@ function opts(key) {
   return seen.map((v) => ({ text: v, value: v }))
 }
 const industryOpts = computed(() => opts('industryL1'))
-const sourceOpts = computed(() => opts('sourceType'))
-const reasonOpts = computed(() => opts('buyReason'))
 const strategyOpts = computed(() => opts('holdStrategy'))
+const bigVOpts = computed(() => opts('bigV'))
+const decisionFilterOpts = computed(() => {
+  const seen = []
+  positions.value.forEach((p) => {
+    if (p.buyReason && !seen.includes(p.buyReason)) seen.push(p.buyReason)
+    if (p.decisionLevel && !seen.includes(p.decisionLevel))
+      seen.push(p.decisionLevel)
+  })
+  return seen.map((v) => ({ text: v, value: v }))
+})
+function filterDecision(value, row) {
+  return row.buyReason === value || row.decisionLevel === value
+}
 
 const totalTable = computed(() => {
   const rows = [...positions.value]
@@ -381,7 +322,6 @@ const paTable = computed(() => {
 
 async function load() {
   try {
-    editReady.value = false
     const [res, sres] = await Promise.all([
       getPortfolioLatest(),
       getPortfolioSnapshots()
@@ -389,12 +329,16 @@ async function load() {
     summary.value = res.data.summary || {}
     positions.value = (res.data.positions || []).map((p) => ({
       ...p,
-      sourceType: p.sourceType || '',
       bigV: p.bigV || '',
       buyReason: p.buyReason || '',
+      stockType: p.stockType || '',
+      pricePosition: p.pricePosition || '',
+      timing: p.timing || '',
+      decisionLevel: p.decisionLevel || '',
       holdStrategy: p.holdStrategy || '',
       holdPlan: p.holdPlan || '',
-      archiveRemark: p.archiveRemark || ''
+      archiveRemark: p.archiveRemark || '',
+      earningsNote: p.earningsNote || ''
     }))
     const snaps = sres.data.snapshots || []
     const idx = snaps.findIndex((s) => s.statsDate === summary.value.statsDate)
@@ -402,93 +346,15 @@ async function load() {
     prevAll.value = prevRow
       ? (prevRow.totalMv || 0) + (prevRow.totalCash || 0)
       : null
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        editReady.value = true
-      })
-    })
   } catch {
     // interceptor 已提示
   }
 }
 
-function onSourceChange(row) {
-  if (row.sourceType === '大V推荐') row.buyReason = ''
-}
-
-async function saveAll() {
-  if (saving.value) return
-  saving.value = true
-  try {
-    await saveAllWithRetry(3)
-    ElMessage.success('保存成功')
-  } catch (e) {
-    const msg = String(e?.message || '').toLowerCase()
-    const busy =
-      msg.includes('sqlite_busy') || msg.includes('database is locked')
-    if (busy) {
-      ElMessage.error('保存失败：数据库正忙，请稍后重试')
-    }
-    // 其它错误已由 request 拦截器提示
-  } finally {
-    saving.value = false
-  }
-}
-
-async function saveAllWithRetry(maxAttempts) {
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      await persistAll()
-      return
-    } catch (e) {
-      const msg = String(e?.message || '').toLowerCase()
-      const busy =
-        msg.includes('sqlite_busy') || msg.includes('database is locked')
-      if (!busy || attempt === maxAttempts) {
-        throw e
-      }
-      await sleep(300 * attempt)
-    }
-  }
-}
-
-async function persistAll() {
-  const items = positions.value
-    .filter((p) => p.stockCode)
-    .map((row) => ({
-      stockCode: row.stockCode,
-      stockName: row.stockName,
-      sourceType: row.sourceType || null,
-      bigV: row.sourceType === '大V推荐' ? row.bigV : null,
-      buyReason: row.buyReason || null,
-      holdStrategy: row.holdStrategy || null,
-      holdPlan: row.holdPlan,
-      remark: row.archiveRemark,
-      positionId: row.positionId != null ? row.positionId : null,
-      earningsNote: row.earningsNote || null
-    }))
-  await saveAllPortfolio(items)
-}
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
-async function reset() {
-  try {
-    await ElMessageBox.confirm(
-      '将放弃本次所有未保存的修改，确定重置吗？',
-      '提示',
-      {
-        confirmButtonText: '重置',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-    await load()
-  } catch {
-    // 用户取消，不处理
-  }
+function openEdit(row) {
+  if (!row.stockCode) return
+  editingRow.value = row
+  editVisible.value = true
 }
 
 onMounted(load)
@@ -525,8 +391,5 @@ onMounted(load)
 }
 .down {
   color: #67c23a;
-}
-:deep(.note-input .el-textarea__inner) {
-  resize: vertical;
 }
 </style>
