@@ -50,7 +50,7 @@
         v-if="preview.newCodes && preview.newCodes.length"
         type="info"
         title="新标的（尚未配置档案信息）"
-        :description="preview.newCodes.join('、')"
+        :description="newCodeLabels.join('、')"
         :closable="false"
         show-icon
         class="margin-t"
@@ -101,6 +101,19 @@ const canConfirm = computed(() => {
   if (preview.value.fatal || !preview.value.rows || !preview.value.rows.length)
     return false
   return !!selectedDate.value
+})
+
+const newCodeLabels = computed(() => {
+  if (!preview.value?.newCodes?.length) return []
+  const nameByCode = {}
+  for (const r of preview.value.rows || []) {
+    if (r.stockCode && r.stockName && !(r.stockCode in nameByCode)) {
+      nameByCode[r.stockCode] = r.stockName
+    }
+  }
+  return preview.value.newCodes.map((c) =>
+    nameByCode[c] ? `${nameByCode[c]}（${c}）` : c
+  )
 })
 
 async function onFileChange(uploadFile) {

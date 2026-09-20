@@ -6,7 +6,9 @@ import {
   formatNumber,
   formatPrice,
   mirrorUpBuyQty,
+  roundTo,
   tierLabel,
+  tierPriceDecimals,
   valuationBarClass,
   valuationTagType
 } from './grid-trading'
@@ -42,6 +44,19 @@ describe('grid-trading utils', () => {
     expect(formatNumber(2000)).toBe('2,000')
     expect(formatPrice(115.3)).toBe('115.30')
     expect(formatPrice(undefined)).toBe('—')
+    // 超过 2 位小数的价格按自身精度展示
+    expect(formatPrice(3.456)).toBe('3.456')
+    expect(formatPrice(161)).toBe('161.00')
+  })
+
+  it('aligns tier price decimals with the base price', () => {
+    expect(tierPriceDecimals('3.456')).toBe(3)
+    expect(tierPriceDecimals(3.45)).toBe(2)
+    expect(tierPriceDecimals('37')).toBe(2)
+    // 十进制 HALF_UP，与后端 BigDecimal.setScale 对齐
+    expect(roundTo(3.8016, 3)).toBe(3.802)
+    expect(roundTo(2.675, 2)).toBe(2.68)
+    expect(roundTo(121.00000000000001, 2)).toBe(121)
   })
 
   it('builds the hybrid price ladder from params', () => {
@@ -58,6 +73,16 @@ describe('grid-trading utils', () => {
     expect(rows[3].price).toBe(90)
     expect(rows[4].price).toBe(80)
     expect(rows[2].direction).toBe('BASE')
+
+    const preciseRows = buildTierPreview({
+      basePrice: 3.456,
+      intervalPct: 10,
+      upTierCount: 1,
+      downTierCount: 1
+    })
+    expect(preciseRows[0].price).toBe(3.802)
+    expect(preciseRows[1].price).toBe(3.456)
+    expect(preciseRows[2].price).toBe(3.11)
   })
 
   it('mirrors up-side sell quantities into buy quantities', () => {

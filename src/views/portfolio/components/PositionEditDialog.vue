@@ -6,59 +6,7 @@
     @update:model-value="(v) => emit('update:visible', v)"
   >
     <el-form label-width="90px">
-      <el-form-item label="买入原因">
-        <el-select
-          v-model="form.buyReason"
-          clearable
-          style="width: 100%"
-          @change="handleReasonChange"
-        >
-          <el-option
-            v-for="r in decisionBuyReasons"
-            :key="r.key"
-            :label="r.label"
-            :value="r.label"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="股票种类">
-        <el-select
-          v-model="form.stockType"
-          clearable
-          :disabled="!stockTypeOptions.length"
-          :placeholder="stockTypeOptions.length ? '' : '—'"
-          style="width: 100%"
-          @change="recalcLevel"
-        >
-          <el-option
-            v-for="t in stockTypeOptions"
-            :key="t"
-            :label="t"
-            :value="t"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item :label="thirdLabel">
-        <el-select
-          v-model="thirdValue"
-          clearable
-          style="width: 100%"
-          @change="recalcLevel"
-        >
-          <el-option v-for="o in thirdOptions" :key="o" :label="o" :value="o" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="判定档位">
-        <el-select
-          v-model="form.decisionLevel"
-          disabled
-          placeholder="自动计算"
-          style="width: 100%"
-        />
-      </el-form-item>
-      <el-form-item v-if="showBigV" label="大V姓名">
-        <el-input v-model="form.bigV" placeholder="大V/小V推荐时填写" />
-      </el-form-item>
+      <DecisionSixFields :form="form" />
       <el-form-item label="持股策略">
         <el-select v-model="form.holdStrategy" clearable style="width: 100%">
           <el-option
@@ -94,11 +42,11 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch } from 'vue'
+import { reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { decisionBuyReasons } from '@/codebook'
 import { updatePortfolioArchive } from '@/api/portfolio'
 import { useDecisionFields } from '../decision-fields'
+import DecisionSixFields from './DecisionSixFields.vue'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -111,11 +59,12 @@ const holdStrategies = ['非卖品', '长期持有', '中期持有', '可卖品'
 const form = reactive({
   stockCode: '',
   stockName: '',
-  buyReason: '',
+  reco: [],
+  factor: '',
+  trend: '',
+  fame: '',
   stockType: '',
   pricePosition: '',
-  timing: '',
-  decisionLevel: '',
   bigV: '',
   holdStrategy: '',
   holdPlan: '',
@@ -124,25 +73,7 @@ const form = reactive({
 })
 const saving = ref(false)
 
-const {
-  reasonConfig,
-  stockTypeOptions,
-  thirdLabel,
-  thirdOptions,
-  thirdValue,
-  onReasonChange,
-  recalcLevel
-} = useDecisionFields(form)
-
-const showBigV = computed(
-  () =>
-    reasonConfig.value?.key === 'bigV' || reasonConfig.value?.key === 'smallV'
-)
-
-function handleReasonChange() {
-  onReasonChange()
-  form.bigV = ''
-}
+const { showBigV } = useDecisionFields(form)
 
 watch(
   () => [props.visible, props.row],
@@ -151,11 +82,12 @@ watch(
     Object.assign(form, {
       stockCode: row.stockCode || '',
       stockName: row.stockName || '',
-      buyReason: row.buyReason || '',
+      reco: row.reco ? String(row.reco).split(',') : [],
+      factor: row.factor || '',
+      trend: row.trend || '',
+      fame: row.fame || '',
       stockType: row.stockType || '',
       pricePosition: row.pricePosition || '',
-      timing: row.timing || '',
-      decisionLevel: row.decisionLevel || '',
       bigV: row.bigV || '',
       holdStrategy: row.holdStrategy || '',
       holdPlan: row.holdPlan || '',
@@ -170,12 +102,13 @@ async function confirm() {
   saving.value = true
   try {
     await updatePortfolioArchive(form.stockCode, {
-      buyReason: form.buyReason || null,
+      reco: form.reco.length ? form.reco.join(',') : null,
+      factor: form.factor || null,
+      trend: form.trend || null,
+      fame: form.fame || null,
       stockType: form.stockType || null,
       pricePosition: form.pricePosition || null,
-      timing: form.timing || null,
-      decisionLevel: form.decisionLevel || null,
-      bigV: form.bigV || null,
+      bigV: showBigV.value ? form.bigV || null : null,
       holdStrategy: form.holdStrategy || null,
       holdPlan: form.holdPlan,
       remark: form.archiveRemark,
@@ -191,11 +124,5 @@ async function confirm() {
   }
 }
 
-defineExpose({
-  form,
-  onReasonChange,
-  recalcLevel,
-  handleReasonChange,
-  showBigV
-})
+defineExpose({ form, showBigV })
 </script>

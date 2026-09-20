@@ -61,7 +61,7 @@
             </template>
           </el-table-column>
           <el-table-column
-            label="买入判定"
+            label="买入原因"
             min-width="170"
             :filters="decisionFilterOpts"
             :filter-method="filterDecision"
@@ -237,6 +237,7 @@ import ImportDialog from './components/ImportDialog.vue'
 import PositionEditDialog from './components/PositionEditDialog.vue'
 import TruncatedText from './components/TruncatedText.vue'
 import { decisionText } from './decision-display'
+import { DECISION_DIMENSIONS } from '@/views/decision/buyDecisionRules2'
 
 const activeTab = ref('total')
 const importVisible = ref(false)
@@ -287,17 +288,23 @@ function opts(key) {
 const industryOpts = computed(() => opts('industryL1'))
 const strategyOpts = computed(() => opts('holdStrategy'))
 const bigVOpts = computed(() => opts('bigV'))
-const decisionFilterOpts = computed(() => {
-  const seen = []
-  positions.value.forEach((p) => {
-    if (p.buyReason && !seen.includes(p.buyReason)) seen.push(p.buyReason)
-    if (p.decisionLevel && !seen.includes(p.decisionLevel))
-      seen.push(p.decisionLevel)
-  })
-  return seen.map((v) => ({ text: v, value: v }))
-})
+const recoOptions = DECISION_DIMENSIONS.find(
+  (d) => d.key === 'recommends'
+).options
+const typeOptions = DECISION_DIMENSIONS.find((d) => d.key === 'type').options
+const decisionFilterOpts = computed(() => [
+  ...recoOptions.map((v) => ({ text: `推荐：${v}`, value: `reco:${v}` })),
+  ...typeOptions.map((v) => ({ text: `类型：${v}`, value: `type:${v}` }))
+])
 function filterDecision(value, row) {
-  return row.buyReason === value || row.decisionLevel === value
+  const idx = value.indexOf(':')
+  const kind = value.slice(0, idx)
+  const v = value.slice(idx + 1)
+  if (kind === 'reco')
+    return String(row.reco || '')
+      .split(',')
+      .includes(v)
+  return row.stockType === v
 }
 
 const totalTable = computed(() => {
@@ -330,11 +337,12 @@ async function load() {
     positions.value = (res.data.positions || []).map((p) => ({
       ...p,
       bigV: p.bigV || '',
-      buyReason: p.buyReason || '',
+      reco: p.reco || '',
+      factor: p.factor || '',
+      trend: p.trend || '',
+      fame: p.fame || '',
       stockType: p.stockType || '',
       pricePosition: p.pricePosition || '',
-      timing: p.timing || '',
-      decisionLevel: p.decisionLevel || '',
       holdStrategy: p.holdStrategy || '',
       holdPlan: p.holdPlan || '',
       archiveRemark: p.archiveRemark || '',

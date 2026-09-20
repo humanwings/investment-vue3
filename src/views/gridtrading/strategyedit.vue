@@ -10,7 +10,7 @@
         v-if="form.status === 'RUNNING'"
         type="warning"
         :closable="false"
-        title="修改结构参数（基准价、基准数量、间隔、档位数、保留底仓、最小数量、每档减仓/加仓数量）保存时将按最新价重置当前档位与持仓；备注与估值区间可即时修改。"
+        title="修改结构参数（基准价、基准数量、间隔、档位数、保留底仓、最小数量、每档突破/回归数量）保存时将按最新价重置当前档位与持仓；备注与估值区间可即时修改。"
         class="status-alert"
       />
       <el-alert
@@ -27,11 +27,10 @@
         </el-form-item>
         <div class="form-grid">
           <el-form-item label="基准价格" required>
-            <el-input-number
+            <el-input
               v-model="form.basePrice"
-              :min="0.01"
-              :precision="2"
-              :step="0.01"
+              class="base-price-input"
+              placeholder="如 3.456，小数位不限"
             />
           </el-form-item>
           <el-form-item label="基准数量" required>
@@ -117,16 +116,18 @@
       <div class="section">
         <h3>每档数量与估值区间</h3>
         <p class="hint">
-          每档分减仓数量（升破该档价卖出）与加仓数量（跌破相邻档价买入），数量 ≥
-          0 且为最小加减仓数量的整数倍（0 =
-          该档该方向不交易）；上方档位加仓合计须与减仓合计相等（回到基准档配平）。估值区间单选规则：基准档仅"合理"，上方档位可选
+          每档分突破数量与回归数量：突破 =
+          价格向远离基准档方向击穿该档位（上方档升破卖出、下方档跌破买入），回归
+          = 价格向基准档方向折返（上方档跌破买回、下方档升破卖出）；数量 ≥ 0
+          且为最小加减仓数量的整数倍（0 =
+          该档该方向不交易）。修改上方档突破数量时，各档回归数量按镜像原则自动重排（保持回到基准档配平，最高档自动补齐上限）；修改下方档突破数量时，同档回归数量同步更新；回归数量也可单独微调。估值区间单选规则：基准档仅"合理"，上方档位可选
           高估/合理，下方档位可选 合理/低估。
         </p>
         <TierTableEditor
           v-if="tiersReady"
           v-model:tiers="form.tiers"
           :base-qty="form.baseQty"
-          :base-price="form.basePrice"
+          :base-price="basePriceValue"
           :keep-qty="form.keepQty"
           :min-unit-qty="form.minUnitQty"
         />
@@ -171,7 +172,9 @@ import {
   defaultValuation,
   formatNumber,
   mirrorUpBuyQty,
-  tierLabel
+  roundTo,
+  tierLabel,
+  tierPriceDecimals
 } from '@/utils/grid-trading'
 import GridLadder from './components/GridLadder.vue'
 import StockSelect from '@/components/StockSelect.vue'
@@ -195,7 +198,7 @@ const form = reactive({
   stockCode: '',
   stockName: '',
   market: '',
-  basePrice: 100,
+  basePrice: '100',
   baseQty: 2000,
   intervalPct: 10,
   upTierCount: 5,
@@ -208,13 +211,29 @@ const form = reactive({
   tiers: []
 })
 
+const basePriceValue = computed(() => {
+  const num = Number(form.basePrice)
+  return Number.isFinite(num) ? num : 0
+})
+
+watch(
+  () => form.basePrice,
+  (value) => {
+    const sanitized = String(value ?? '')
+      .replace(/[^\d.]/g, '')
+      .replace(/(\..*?)\./g, '$1')
+    if (sanitized !== value) {
+      form.basePrice = sanitized
+    }
+  }
+)
+
 watch(tierSelection, (value) => {
   form.currentTierLevel = value === 'not-set' ? null : value
 })
 
 watch(
   () => [
-    form.basePrice,
     form.intervalPct,
     form.upTierCount,
     form.downTierCount,
@@ -223,6 +242,34 @@ watch(
     form.minUnitQty
   ],
   regenerateTiers
+)
+
+// 基准价格变化只重算档位价格，保留已设置的每档数量与估值区间
+watch(
+  () => form.basePrice,
+  () => {
+    if (loadingExisting) {
+      return
+    }
+    const basePrice = Number(form.basePrice) || 0
+    const decimals = tierPriceDecimals(basePrice)
+    form.tiers = form.tiers.map((tier) => ({
+      ...tier,
+      price:
+        tier.level === 0
+          ? basePrice
+          : tier.level < 0
+            ? roundTo(
+                basePrice *
+                  (1 + form.intervalPct / 100) ** Math.abs(tier.level),
+                decimals
+              )
+            : roundTo(
+                basePrice * (1 - (tier.level * form.intervalPct) / 100),
+                decimals
+              )
+    }))
+  }
 )
 
 if (isEdit.value) {
@@ -239,7 +286,7 @@ async function loadExisting() {
     stockCode: strategy.stockCode,
     stockName: strategy.stockName,
     market: strategy.market,
-    basePrice: strategy.basePrice,
+    basePrice: String(strategy.basePrice ?? ''),
     baseQty: strategy.baseQty,
     intervalPct: strategy.intervalPct,
     upTierCount: strategy.upTierCount,
@@ -297,6 +344,8 @@ function regenerateTiers() {
 function buildTiers(params) {
   const ramp = [0.1, 0.15, 0.25, 0.4, 0.6, 0.8, 1.0, 1.2]
   const unit = params.minUnitQty
+  const basePrice = Number(params.basePrice) || 0
+  const decimals = tierPriceDecimals(basePrice)
   const calcQty = (distance) =>
     Math.max(
       unit,
@@ -308,7 +357,10 @@ function buildTiers(params) {
     const qty = calcQty(n)
     rows.push({
       level: n,
-      price: round2(params.basePrice * (1 - (n * params.intervalPct) / 100)),
+      price: roundTo(
+        basePrice * (1 - (n * params.intervalPct) / 100),
+        decimals
+      ),
       direction: 'BUY',
       qty,
       buyQty: qty,
@@ -317,7 +369,7 @@ function buildTiers(params) {
   }
   rows.push({
     level: 0,
-    price: params.basePrice,
+    price: basePrice,
     direction: 'BASE',
     qty: params.baseQty,
     buyQty: 0,
@@ -326,7 +378,7 @@ function buildTiers(params) {
   for (let n = 1; n <= params.upTierCount; n += 1) {
     rows.push({
       level: -n,
-      price: round2(params.basePrice * (1 + params.intervalPct / 100) ** n),
+      price: roundTo(basePrice * (1 + params.intervalPct / 100) ** n, decimals),
       direction: 'SELL',
       qty: calcQty(n),
       buyQty: 0,
@@ -342,7 +394,7 @@ function buildTiers(params) {
       .filter((row) => row !== highest)
       .reduce((sum, row) => sum + row.qty, 0)
     highest.qty = Math.max(0, limit - othersSum)
-    // 上方档加仓数量 = 减仓序列镜像反转（以最深一个减仓数量 > 0 的档位为界）
+    // 上方档回归（买回）数量 = 突破（卖出）序列镜像反转（以最深一个突破卖出数量 > 0 的档位为界）
     const nearestFirst = [...upRows].sort(
       (a, b) => Math.abs(a.level) - Math.abs(b.level)
     )
@@ -352,10 +404,6 @@ function buildTiers(params) {
     })
   }
   return rows.sort((a, b) => a.level - b.level)
-}
-
-function round2(value) {
-  return Math.round(value * 100) / 100
 }
 
 function onTierSelectChange(value) {
@@ -379,7 +427,7 @@ function structuralChanged() {
     return false
   }
   if (
-    originalParams.value.basePrice !== form.basePrice ||
+    Number(originalParams.value.basePrice) !== Number(form.basePrice) ||
     originalParams.value.baseQty !== form.baseQty ||
     originalParams.value.intervalPct !== form.intervalPct ||
     originalParams.value.upTierCount !== form.upTierCount ||
@@ -400,6 +448,10 @@ function structuralChanged() {
 async function save() {
   if (!selectedStock.value) {
     ElMessage.warning('请先选择标的')
+    return
+  }
+  if (!(basePriceValue.value > 0)) {
+    ElMessage.warning('请输入有效的基准价格（大于 0）')
     return
   }
   if (
@@ -423,6 +475,7 @@ async function save() {
   }
   const payload = {
     ...form,
+    basePrice: basePriceValue.value,
     stockCode: selectedStock.value.code,
     stockName: selectedStock.value.name,
     market: selectedStock.value.market,
@@ -465,6 +518,10 @@ async function save() {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 4px 24px;
+}
+
+.base-price-input {
+  width: 180px;
 }
 
 .section {

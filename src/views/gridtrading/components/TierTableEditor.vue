@@ -4,14 +4,14 @@
       v-if="overLimit"
       type="error"
       :closable="false"
-      :title="`向上减仓合计 ${formatNumber(totalUp)} 股超过上限（基准数量 − 保留底仓 = ${formatNumber(limit)}）`"
+      :title="`向上突破卖出合计 ${formatNumber(totalUp)} 股超过上限（基准数量 − 保留底仓 = ${formatNumber(limit)}）`"
       class="limit-alert"
     />
     <el-alert
       v-if="balanceMismatch"
       type="error"
       :closable="false"
-      title="上方档位加仓数量合计与减仓数量合计不相等，回到基准档时持仓无法配平"
+      title="上方档位回归（买回）数量合计与突破（卖出）数量合计不相等，回到基准档时持仓无法配平"
       class="limit-alert"
     />
     <el-table :data="sortedTiers" size="small">
@@ -21,17 +21,17 @@
       <el-table-column label="方向" width="80">
         <template #default="{ row }">
           <el-tag size="small" :type="tagType(row)">{{
-            directionLabel(row)
+            valuationOf(row)
           }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="price" label="档位价格" width="100">
         <template #default="{ row }">{{ formatPrice(row.price) }}</template>
       </el-table-column>
-      <el-table-column label="减仓数量（升破卖出）" width="160">
+      <el-table-column label="突破数量（上减下加）" width="170">
         <template #default="{ row }">
           <el-input-number
-            v-if="row.level !== 0"
+            v-if="row.level < 0"
             v-model="row.qty"
             :disabled="row.level === highestUpLevel"
             :min="0"
@@ -41,13 +41,8 @@
             size="small"
             @change="(value) => onSellQtyChange(row, value)"
           />
-          <span v-else>{{ formatNumber(row.qty) }} 股</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="加仓数量（跌破买入）" width="160">
-        <template #default="{ row }">
           <el-input-number
-            v-if="row.level !== 0"
+            v-else-if="row.level > 0"
             v-model="row.buyQty"
             :min="0"
             :step="minUnitQty"
@@ -55,6 +50,31 @@
             :precision="0"
             size="small"
             @change="(value) => onBuyQtyChange(row, value)"
+          />
+          <span v-else>—</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="回归数量（上加下减）" width="170">
+        <template #default="{ row }">
+          <el-input-number
+            v-if="row.level < 0"
+            v-model="row.buyQty"
+            :min="0"
+            :step="minUnitQty"
+            :step-strictly="true"
+            :precision="0"
+            size="small"
+            @change="(value) => onBuyQtyChange(row, value)"
+          />
+          <el-input-number
+            v-else-if="row.level > 0"
+            v-model="row.qty"
+            :min="0"
+            :step="minUnitQty"
+            :step-strictly="true"
+            :precision="0"
+            size="small"
+            @change="(value) => onSellQtyChange(row, value)"
           />
           <span v-else>—</span>
         </template>
@@ -76,15 +96,15 @@
       </el-table-column>
     </el-table>
     <div class="summary">
-      共 {{ sortedTiers.length }} 档 · 向上减仓合计
+      共 {{ sortedTiers.length }} 档 · 向上突破卖出合计
       {{ formatNumber(totalUp) }} 股（剩余
       {{ formatNumber(remainingUp) }} 股，底仓
-      {{ formatNumber(props.keepQty) }} 股） · 向上加仓（买回）合计
+      {{ formatNumber(props.keepQty) }} 股） · 向上回归买回合计
       {{ formatNumber(totalUpBuy) }} 股 · 基准仓位
       {{ formatNumber(props.baseQty) }} 股（{{
         basePositionAmount
       }}
-      万元），向下加仓合计 {{ formatNumber(totalBuy) }} 股（约
+      万元），向下突破买入合计 {{ formatNumber(totalBuy) }} 股（约
       {{ buyAmount }} 万元）
     </div>
   </div>
@@ -96,6 +116,7 @@ import { computed, watch } from 'vue'
 import {
   formatNumber,
   formatPrice,
+  mirrorUpBuyQty,
   tierLabel,
   valuationTagType
 } from '@/utils/grid-trading'
@@ -202,37 +223,48 @@ function tagType(row) {
   return valuationTagType(valuationOf(row))
 }
 
-function directionLabel(row) {
-  if (row.level === 0) return '基准'
-  return row.level < 0 ? '减仓' : '加仓'
-}
-
 function changeValuation(row, value) {
   row.valuation = value
   emitChange()
 }
 
 function onSellQtyChange(row, value) {
-  const oldQty = Number(row.qty) || 0
   row.qty = value === null || value === undefined ? 0 : value
-  rebalanceBuyAfterSell(row, row.qty - oldQty)
+  if (row.level < 0) {
+    fitHighestUpTier()
+  }
   emitChange()
 }
 
 function onBuyQtyChange(row, value) {
-  row.buyQty = value === null || value === undefined ? 0 : value
+  const qty = value === null || value === undefined ? 0 : value
+  row.buyQty = qty
+  // 下方档：突破（买入）变化时同档回归（卖出）同步更新；上方档回归可单独微调
+  if (row.level > 0) {
+    row.qty = qty
+  }
   emitChange()
 }
 
-// 减仓数量变化后，把差额落到最近上方档（-1）的加仓数量上，保持买卖合计配平
-function rebalanceBuyAfterSell(row, delta) {
-  if (!delta || row.level >= 0) {
+// 上方档突破（卖出）数量变化后：最高档自动补齐上限，各档回归（买回）数量按镜像原则重排
+// （第 k 档回归 = 第 m+1-k 档突破，m 为最深一个突破数量 > 0 的档位），保持回到基准档配平
+function fitHighestUpTier() {
+  if (highestUpLevel.value === null || expectedHighestQty.value === null) {
     return
   }
-  const nearest = upTiers.value.find((item) => item.level === -1)
-  if (nearest) {
-    nearest.buyQty = Math.max(0, (Number(nearest.buyQty) || 0) + delta)
+  const highest = sortedTiers.value.find(
+    (row) => row.level === highestUpLevel.value
+  )
+  if (highest && (Number(highest.qty) || 0) !== expectedHighestQty.value) {
+    highest.qty = expectedHighestQty.value
   }
+  const nearestFirst = [...upTiers.value].sort(
+    (a, b) => Math.abs(a.level) - Math.abs(b.level)
+  )
+  const buys = mirrorUpBuyQty(nearestFirst.map((row) => Number(row.qty) || 0))
+  nearestFirst.forEach((row, index) => {
+    row.buyQty = buys[index]
+  })
 }
 
 function syncHighestTier() {
@@ -243,9 +275,7 @@ function syncHighestTier() {
     (row) => row.level === highestUpLevel.value
   )
   if (highest && (Number(highest.qty) || 0) !== expectedHighestQty.value) {
-    const delta = expectedHighestQty.value - (Number(highest.qty) || 0)
-    highest.qty = expectedHighestQty.value
-    rebalanceBuyAfterSell(highest, delta)
+    fitHighestUpTier()
     emitChange()
   }
 }

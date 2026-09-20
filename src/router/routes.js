@@ -97,6 +97,14 @@ export const appRoutes = [
         meta: {
           title: '买入判定'
         }
+      },
+      {
+        path: 'buy-check-ii',
+        name: 'BuyDecisionII',
+        component: () => import('@/views/decision/BuyDecisionII.vue'),
+        meta: {
+          title: '买入判定 II'
+        }
       }
     ]
   },

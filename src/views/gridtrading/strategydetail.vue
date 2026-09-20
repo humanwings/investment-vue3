@@ -142,15 +142,16 @@
                 现价 {{ formatPrice(strategy?.lastPrice) }} 已{{
                   hint.action === 'SELL' ? '升破' : '跌破'
                 }}
-                {{ tierLabel(hint.tierLevel) }}（档位价
-                {{ formatPrice(hint.tierPrice) }}）→ 该档位计划数量为
+                {{ tierLabel(hint.toTierLevel) }}（触发价
+                {{ formatPrice(hint.tierPrice) }}）→
+                {{ tierLabel(hint.tierLevel) }}计划数量为
                 <b>0</b> 股，确认后仅变更当前档位，无成交记录
               </template>
               <template v-else>
                 现价 {{ formatPrice(strategy?.lastPrice) }} 已{{
                   hint.action === 'SELL' ? '升破' : '跌破'
                 }}
-                {{ tierLabel(hint.tierLevel) }}（档位价
+                {{ tierLabel(hint.toTierLevel) }}（触发价
                 {{ formatPrice(hint.tierPrice) }}）→ 建议
                 {{ hint.action === 'SELL' ? '卖出' : '买入' }}
                 <b>{{ formatNumber(hint.qty) }}</b> 股
@@ -174,9 +175,7 @@
             <el-table-column label="方向" width="90">
               <template #default="{ row }">
                 <el-tag size="small" :type="tagType(row)">
-                  {{
-                    row.level === 0 ? '基准' : row.level < 0 ? '减仓' : '加仓'
-                  }}
+                  {{ valuationOf(row) }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -185,31 +184,30 @@
                 formatPrice(row.price)
               }}</template>
             </el-table-column>
-            <el-table-column label="减仓数量" width="100">
-              <template #default="{ row }"
-                >{{ formatNumber(row.qty) }} 股</template
-              >
-            </el-table-column>
-            <el-table-column label="加仓数量" width="100">
+            <el-table-column label="突破数量（上减下加）" width="150">
               <template #default="{ row }">
-                <template v-if="row.level !== 0"
-                  >{{ formatNumber(row.buyQty ?? row.qty) }} 股</template
-                >
+                <template v-if="row.level !== 0">
+                  {{ formatNumber(breakoutQty(row)) }} 股
+                </template>
                 <template v-else>—</template>
               </template>
             </el-table-column>
-            <el-table-column label="状态">
+            <el-table-column label="回归数量（上加下减）" width="150">
+              <template #default="{ row }">
+                <template v-if="row.level !== 0">
+                  {{ formatNumber(returnQty(row)) }} 股
+                </template>
+                <template v-else>—</template>
+              </template>
+            </el-table-column>
+            <el-table-column label="状态" width="200">
               <template #default="{ row }">
                 <el-tag
                   v-if="row.level === strategy?.imminentLevel"
                   type="warning"
                   style="margin-right: 4px"
                 >
-                  {{
-                    strategy?.imminentAction === 'SELL'
-                      ? '即将升破'
-                      : '即将跌破'
-                  }}
+                  {{ imminentTagText() }}
                 </el-tag>
                 <el-tag
                   v-if="row.level === strategy?.currentTierLevel"
@@ -434,6 +432,26 @@ const sortedTiers = computed(() =>
   [...(strategy.value?.tiers || [])].sort((a, b) => a.level - b.level)
 )
 
+// 突破数量：价格向远离基准档方向击穿该档位时的计划数量（上方档升破卖出、下方档跌破买入）
+function breakoutQty(row) {
+  return row.level < 0 ? row.qty : (row.buyQty ?? row.qty)
+}
+
+// 回归数量：价格向基准档方向折返时的计划数量（上方档跌破买回、下方档升破卖出）
+function returnQty(row) {
+  return row.level < 0 ? (row.buyQty ?? row.qty) : row.qty
+}
+
+// 即将升破/跌破标签：数量为后端按"目标持仓 − 当前持仓"模拟的触发数量（与实际提示口径一致）
+function imminentTagText() {
+  const isSell = strategy.value?.imminentAction === 'SELL'
+  const label = isSell ? '即将升破' : '即将跌破'
+  const qty = Number(strategy.value?.imminentQty) || 0
+  return qty > 0
+    ? `${label} · ${isSell ? '减' : '加'} ${formatNumber(qty)} 股`
+    : label
+}
+
 const pendingHints = computed(() => strategy.value?.pendingHints || [])
 
 const records = computed(() => strategy.value?.records || [])
@@ -652,10 +670,14 @@ function tierLabelOf(level) {
   return tierLabel(level)
 }
 
-function tagType(row) {
-  return valuationTagType(
+function valuationOf(row) {
+  return (
     row.valuation || (row.level < 0 ? '高估' : row.level > 0 ? '低估' : '合理')
   )
+}
+
+function tagType(row) {
+  return valuationTagType(valuationOf(row))
 }
 
 function statusLabel(status) {

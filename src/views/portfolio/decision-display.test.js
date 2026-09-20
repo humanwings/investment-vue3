@@ -3,37 +3,29 @@ import { describe, expect, it } from 'vitest'
 import { decisionText } from './decision-display'
 
 describe('decisionText', () => {
-  it('joins non-empty parts with dash, leading with buy reason', () => {
+  it('joins non-empty dims in II card order with ·', () => {
     expect(
       decisionText({
-        buyReason: '回调抄底',
+        reco: '大V推荐',
+        factor: '热点',
+        trend: '回调',
+        fame: '龙头',
         stockType: '蓝筹',
-        pricePosition: '低位',
-        decisionLevel: '重仓'
+        pricePosition: '高位'
       })
-    ).toBe('回调抄底-蓝筹-低位-重仓')
-    expect(
-      decisionText({
-        buyReason: '暴跌抄底',
-        stockType: '概念',
-        timing: '当日',
-        decisionLevel: '轻仓'
-      })
-    ).toBe('暴跌抄底-概念-当日-轻仓')
+    ).toBe('大V推荐·热点·回调·龙头·蓝筹·高位')
   })
 
-  it('still renders rows without buy reason', () => {
-    expect(
-      decisionText({
-        stockType: '蓝筹',
-        pricePosition: '低位',
-        decisionLevel: '重仓'
-      })
-    ).toBe('蓝筹-低位-重仓')
+  it('renders multi reco with 、 inside its segment', () => {
+    expect(decisionText({ reco: '大V推荐,小V推荐', trend: '暴跌' })).toBe(
+      '大V推荐、小V推荐·暴跌'
+    )
   })
 
-  it('skips empty parts and returns dash when empty', () => {
-    expect(decisionText({ decisionLevel: '轻仓' })).toBe('轻仓')
+  it('skips empty dims and returns dash when empty', () => {
+    expect(decisionText({ stockType: '蓝筹', pricePosition: '低位' })).toBe(
+      '蓝筹·低位'
+    )
     expect(decisionText({})).toBe('-')
     expect(decisionText(null)).toBe('-')
   })

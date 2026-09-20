@@ -12,14 +12,14 @@ import {
 describe('buy decision rules', () => {
   it('exposes ordered buy reason options', () => {
     expect(getBuyReasonOptions().map((item) => item.value)).toEqual([
-      'blueLong',
-      'hotFollow',
-      'pullback',
-      'ambush',
       'bigV',
       'smallV',
-      'tryIt',
-      'crash'
+      'blueLong',
+      'ambush',
+      'pullback',
+      'crash',
+      'hotFollow',
+      'tryIt'
     ])
   })
 

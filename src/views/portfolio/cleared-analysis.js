@@ -1,12 +1,12 @@
 /**
  * 已清仓一览的纯统计分析：汇总卡片 + 分布图数据 + 维度胜率/盈亏分析。
- * realizedPl 为空的记录不计入实现盈亏与胜率，但计入笔数与原因/买入原因分布。
+ * realizedPl 为空的记录不计入实现盈亏与胜率，但计入笔数与原因/各维度分布。
  */
 export const HOLD_DAY_BUCKETS = [
-  { name: '≤10天', max: 10 },
-  { name: '11~30天', max: 30 },
-  { name: '31~90天', max: 90 },
-  { name: '90天以上', max: Infinity }
+  { name: '≤10天', min: 0, max: 10 },
+  { name: '11~30天', min: 11, max: 30 },
+  { name: '31~90天', min: 31, max: 90 },
+  { name: '90天以上', min: 91, max: Infinity }
 ]
 
 export function summarizeCleared(rows, range) {
@@ -22,15 +22,23 @@ export function summarizeCleared(rows, range) {
   let holdDaysSum = 0
   let holdDaysCount = 0
   const reasonAcc = new Map()
-  const buyReasonAcc = new Map()
+  const recoAcc = new Map()
+  const factorAcc = new Map()
+  const trendAcc = new Map()
+  const fameAcc = new Map()
+  const stockTypeAcc = new Map()
+  const positionAcc = new Map()
   const plAcc = new Map()
 
   for (const r of filtered) {
     const reason = r.clearReason || ''
     if (reason) reasonAcc.set(reason, (reasonAcc.get(reason) || 0) + 1)
-    const buyReason = r.buyReason || ''
-    if (buyReason)
-      buyReasonAcc.set(buyReason, (buyReasonAcc.get(buyReason) || 0) + 1)
+    countDim(recoAcc, r.reco)
+    countDim(factorAcc, r.factor)
+    countDim(trendAcc, r.trend)
+    countDim(fameAcc, r.fame)
+    countDim(stockTypeAcc, r.stockType)
+    countDim(positionAcc, r.pricePosition)
     if (r.realizedPl != null) {
       realizedTotal += r.realizedPl
       decided += 1
@@ -50,7 +58,6 @@ export function summarizeCleared(rows, range) {
       .sort((a, b) => b.count - a.count)
 
   const byReason = breakdown(filtered, (r) => r.clearReason || '')
-  const byBuyReason = breakdown(filtered, (r) => r.buyReason || '')
   const byStockType = breakdown(filtered, (r) => r.stockType || '')
   const byHoldDays = HOLD_DAY_BUCKETS.map((bucket) => {
     const bucketRows = filtered.filter((r) => inBucket(r.holdDays, bucket))
@@ -64,19 +71,31 @@ export function summarizeCleared(rows, range) {
     winRate: decided > 0 ? wins / decided : null,
     avgHoldDays: holdDaysCount > 0 ? holdDaysSum / holdDaysCount : null,
     reasonPie: pie(reasonAcc),
-    buyReasonPie: pie(buyReasonAcc),
+    recoPie: pie(recoAcc),
+    factorPie: pie(factorAcc),
+    trendPie: pie(trendAcc),
+    famePie: pie(fameAcc),
+    stockTypePie: pie(stockTypeAcc),
+    positionPie: pie(positionAcc),
     plByDate: [...plAcc.entries()]
       .map(([date, pl]) => ({ date, pl: round(pl) }))
       .sort((a, b) => a.date.localeCompare(b.date)),
     byReason,
-    byBuyReason,
     byStockType,
     byHoldDays
   }
 }
 
+function countDim(acc, value) {
+  const v = String(value || '')
+  if (!v) return
+  for (const part of v.split(',')) {
+    if (part) acc.set(part, (acc.get(part) || 0) + 1)
+  }
+}
+
 function inBucket(days, bucket) {
-  return days != null && days >= 0 && days <= bucket.max
+  return days != null && days >= bucket.min && days <= bucket.max
 }
 
 /**

@@ -51,7 +51,14 @@ describe('portfolio api', () => {
     await getPortfolioLatest()
     await getPortfolioSnapshots()
     await getPortfolioSnapshot('2026-08-08')
-    await updatePortfolioArchive('00700.HK', { decisionLevel: '重仓' })
+    await updatePortfolioArchive('00700.HK', {
+      reco: '大V推荐',
+      factor: null,
+      trend: null,
+      fame: null,
+      stockType: '蓝筹',
+      pricePosition: '低位'
+    })
     await getPortfolioCleared()
     await updatePortfolioCleared(1, { clearReason: '止损' })
     await getPortfolioStats({ scope: 'all', week: '2026-08-08' })
@@ -60,7 +67,12 @@ describe('portfolio api', () => {
     expect(putUrls).toContain('/portfolio/archive/00700.HK')
     expect(putUrls).toContain('/portfolio/cleared/1')
     expect(JSON.parse(mock.history.put[0].data)).toEqual({
-      decisionLevel: '重仓'
+      reco: '大V推荐',
+      factor: null,
+      trend: null,
+      fame: null,
+      stockType: '蓝筹',
+      pricePosition: '低位'
     })
     expect(JSON.parse(mock.history.put[1].data)).toEqual({
       clearReason: '止损'

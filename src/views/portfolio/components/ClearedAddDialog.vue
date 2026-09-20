@@ -1,11 +1,23 @@
 <template>
   <el-dialog
     :model-value="visible"
-    :title="`编辑清仓 ${row?.stockName || row?.stockCode || ''}`"
+    title="新增清仓记录"
     width="500px"
     @update:model-value="(v) => emit('update:visible', v)"
   >
     <el-form label-width="90px">
+      <el-form-item label="标的" required>
+        <StockSelect v-model="stock" :manual="false" />
+      </el-form-item>
+      <el-form-item label="清仓日期" required>
+        <el-date-picker
+          v-model="clearedDate"
+          type="date"
+          value-format="YYYY-MM-DD"
+          placeholder="选择清仓日期"
+          style="width: 100%"
+        />
+      </el-form-item>
       <DecisionSixFields :form="form" />
       <el-form-item label="清仓原因">
         <el-select v-model="form.clearReason" clearable style="width: 100%">
@@ -40,6 +52,7 @@
       <el-button
         type="primary"
         :loading="saving"
+        :disabled="!canConfirm"
         data-test="confirm"
         @click="confirm"
       >
@@ -50,15 +63,15 @@
 </template>
 
 <script setup>
-import { reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
-import { updatePortfolioCleared } from '@/api/portfolio'
+import { createPortfolioCleared } from '@/api/portfolio'
 import { useDecisionFields } from '../decision-fields'
 import DecisionSixFields from './DecisionSixFields.vue'
+import StockSelect from '@/components/StockSelect.vue'
 
 const props = defineProps({
-  visible: { type: Boolean, default: false },
-  row: { type: Object, default: null }
+  visible: { type: Boolean, default: false }
 })
 const emit = defineEmits(['update:visible', 'saved'])
 
@@ -73,8 +86,9 @@ const clearReasons = [
   '其他'
 ]
 
+const stock = ref(null)
+const clearedDate = ref('')
 const form = reactive({
-  clearedId: null,
   reco: [],
   factor: '',
   trend: '',
@@ -90,27 +104,31 @@ const form = reactive({
 })
 const saving = ref(false)
 
+const canConfirm = computed(
+  () => !!(stock.value && stock.value.code && clearedDate.value)
+)
+
 watch(
-  () => [props.visible, props.row],
-  ([visible, row]) => {
-    if (!visible || !row) return
+  () => props.visible,
+  (visible) => {
+    if (!visible) return
+    stock.value = null
+    clearedDate.value = ''
     Object.assign(form, {
-      clearedId: row.clearedId ?? null,
-      reco: row.reco ? String(row.reco).split(',') : [],
-      factor: row.factor || '',
-      trend: row.trend || '',
-      fame: row.fame || '',
-      stockType: row.stockType || '',
-      pricePosition: row.pricePosition || '',
-      bigV: row.bigV || '',
-      clearReason: row.clearReason || '',
-      clearReasonRemark: row.clearReasonRemark || '',
-      realizedPl: row.realizedPl ?? null,
-      holdDays: row.holdDays ?? null,
-      clearedRemark: row.clearedRemark || ''
+      reco: [],
+      factor: '',
+      trend: '',
+      fame: '',
+      stockType: '',
+      pricePosition: '',
+      bigV: '',
+      clearReason: '',
+      clearReasonRemark: '',
+      realizedPl: null,
+      holdDays: null,
+      clearedRemark: ''
     })
-  },
-  { immediate: true }
+  }
 )
 
 const { showBigV } = useDecisionFields(form)
@@ -118,7 +136,11 @@ const { showBigV } = useDecisionFields(form)
 async function confirm() {
   saving.value = true
   try {
-    await updatePortfolioCleared(form.clearedId, {
+    await createPortfolioCleared({
+      stockCode: stock.value.code,
+      stockName: stock.value.name,
+      market: stock.value.market,
+      clearedDate: clearedDate.value,
       reco: form.reco.length ? form.reco.join(',') : null,
       factor: form.factor || null,
       trend: form.trend || null,
@@ -132,7 +154,7 @@ async function confirm() {
       holdDays: form.holdDays,
       clearedRemark: form.clearedRemark
     })
-    ElMessage.success('保存成功')
+    ElMessage.success('添加成功')
     emit('saved')
     emit('update:visible', false)
   } catch {
@@ -142,5 +164,5 @@ async function confirm() {
   }
 }
 
-defineExpose({ form })
+defineExpose({ stock, clearedDate, form })
 </script>

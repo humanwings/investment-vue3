@@ -85,4 +85,14 @@ describe('router smoke test', () => {
     expect(decisionGroup?.meta?.title).toBe('决策判定')
     expect(decisionGroup?.children?.[0]?.meta?.title).toBe('买入判定')
   })
+
+  it('registers the decision buy check II page', () => {
+    const resolved = router.resolve('/decision/buy-check-ii')
+
+    expect(resolved.name).toBe('BuyDecisionII')
+
+    const decisionGroup = appRoutes.find((route) => route.path === '/decision')
+
+    expect(decisionGroup?.children?.[1]?.meta?.title).toBe('买入判定 II')
+  })
 })

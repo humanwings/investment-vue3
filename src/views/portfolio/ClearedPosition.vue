@@ -1,6 +1,21 @@
 <template>
   <div>
-    <el-table :data="cleared" border stripe>
+    <div class="toolbar">
+      <el-button type="primary" @click="openAdd">新增清仓记录</el-button>
+      <StockSelect
+        v-model="stockFilter"
+        :manual="false"
+        placeholder="按标的过滤：拼音简写 / 代码 / 名称"
+        class="stock-filter"
+      />
+    </div>
+    <el-table
+      ref="tableRef"
+      :data="pagedCleared"
+      border
+      stripe
+      @filter-change="onFilterChange"
+    >
       <el-table-column type="expand">
         <template #default="{ row }">
           <el-descriptions :column="3" border size="small">
@@ -21,7 +36,8 @@
       <el-table-column prop="clearedDate" label="清仓日期" width="110" />
       <el-table-column prop="lastStatsDate" label="最后持仓周" width="110" />
       <el-table-column
-        label="买入判定"
+        column-key="decision"
+        label="买入原因"
         min-width="170"
         :filters="decisionFilterOpts"
         :filter-method="filterDecision"
@@ -29,6 +45,7 @@
         <template #default="{ row }">{{ decisionText(row) }}</template>
       </el-table-column>
       <el-table-column
+        column-key="bigV"
         label="大V"
         width="110"
         :filters="bigVOpts"
@@ -57,25 +74,73 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-pagination
+      v-model:current-page="currentPage"
+      v-model:page-size="pageSize"
+      :page-sizes="[20, 50, 100]"
+      :total="filteredCleared.length"
+      layout="total, sizes, prev, pager, next, jumper"
+      class="pagination"
+      @size-change="currentPage = 1"
+    />
     <ClearedEditDialog
       v-model:visible="editVisible"
       :row="editingRow"
       @saved="load"
     />
+    <ClearedAddDialog v-model:visible="addVisible" @saved="load" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getPortfolioCleared, deletePortfolioCleared } from '@/api/portfolio'
+import StockSelect from '@/components/StockSelect.vue'
 import ClearedEditDialog from './components/ClearedEditDialog.vue'
+import ClearedAddDialog from './components/ClearedAddDialog.vue'
 import TruncatedText from './components/TruncatedText.vue'
 import { decisionText } from './decision-display'
+import {
+  applyClearedFilters,
+  applyStockFilter,
+  paginateCleared
+} from './cleared-pagination'
+import { DECISION_DIMENSIONS } from '@/views/decision/buyDecisionRules2'
 
 const cleared = ref([])
 const editVisible = ref(false)
 const editingRow = ref(null)
+const addVisible = ref(false)
+
+const activeFilters = ref({})
+const currentPage = ref(1)
+const pageSize = ref(20)
+const stockFilter = ref(null)
+const tableRef = ref(null)
+
+const filteredCleared = computed(() =>
+  applyStockFilter(
+    applyClearedFilters(cleared.value, activeFilters.value),
+    stockFilter.value
+  )
+)
+const pagedCleared = computed(() =>
+  paginateCleared(filteredCleared.value, currentPage.value, pageSize.value)
+)
+
+function onFilterChange(filters) {
+  activeFilters.value = { ...activeFilters.value, ...filters }
+  currentPage.value = 1
+}
+
+watch(stockFilter, (stock) => {
+  if (stock) {
+    activeFilters.value = {}
+    tableRef.value?.clearFilter()
+  }
+  currentPage.value = 1
+})
 
 function formatPl(v) {
   return v == null
@@ -83,17 +148,23 @@ function formatPl(v) {
     : Number(v).toLocaleString('zh-CN', { maximumFractionDigits: 2 })
 }
 
-const decisionFilterOpts = computed(() => {
-  const seen = []
-  cleared.value.forEach((r) => {
-    if (r.buyReason && !seen.includes(r.buyReason)) seen.push(r.buyReason)
-    if (r.decisionLevel && !seen.includes(r.decisionLevel))
-      seen.push(r.decisionLevel)
-  })
-  return seen.map((v) => ({ text: v, value: v }))
-})
+const recoOptions = DECISION_DIMENSIONS.find(
+  (d) => d.key === 'recommends'
+).options
+const typeOptions = DECISION_DIMENSIONS.find((d) => d.key === 'type').options
+const decisionFilterOpts = computed(() => [
+  ...recoOptions.map((v) => ({ text: `推荐：${v}`, value: `reco:${v}` })),
+  ...typeOptions.map((v) => ({ text: `类型：${v}`, value: `type:${v}` }))
+])
 function filterDecision(value, row) {
-  return row.buyReason === value || row.decisionLevel === value
+  const idx = value.indexOf(':')
+  const kind = value.slice(0, idx)
+  const v = value.slice(idx + 1)
+  if (kind === 'reco')
+    return String(row.reco || '')
+      .split(',')
+      .includes(v)
+  return row.stockType === v
 }
 
 const bigVOpts = computed(() => {
@@ -110,11 +181,12 @@ async function load() {
     cleared.value = (res.data.cleared || []).map((c) => ({
       ...c,
       bigV: c.bigV || '',
-      buyReason: c.buyReason || '',
+      reco: c.reco || '',
+      factor: c.factor || '',
+      trend: c.trend || '',
+      fame: c.fame || '',
       stockType: c.stockType || '',
       pricePosition: c.pricePosition || '',
-      timing: c.timing || '',
-      decisionLevel: c.decisionLevel || '',
       clearReason: c.clearReason || '',
       realizedPl: c.realizedPl ?? null,
       holdDays: c.holdDays ?? null,
@@ -128,6 +200,10 @@ async function load() {
 function openEdit(row) {
   editingRow.value = row
   editVisible.value = true
+}
+
+function openAdd() {
+  addVisible.value = true
 }
 
 async function removeRow(row) {
@@ -155,3 +231,19 @@ async function removeRow(row) {
 
 onMounted(load)
 </script>
+
+<style scoped>
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.stock-filter {
+  width: 300px;
+}
+.pagination {
+  margin-top: 12px;
+  justify-content: flex-end;
+}
+</style>

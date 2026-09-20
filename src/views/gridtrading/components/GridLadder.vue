@@ -8,9 +8,7 @@
     >
       <span class="level">{{ tierLabel(row.level) }}</span>
       <span class="price">{{ formatPrice(row.price) }}</span>
-      <el-tag size="small" :type="tagType(row)">{{
-        directionLabel(row)
-      }}</el-tag>
+      <el-tag size="small" :type="tagType(row)">{{ valuationOf(row) }}</el-tag>
       <span class="qty">{{ qtyLabel(row) }}</span>
       <div class="bar">
         <i :style="{ width: barWidth(row) }"></i>
@@ -55,14 +53,11 @@ function tagType(row) {
   return valuationTagType(valuationOf(row))
 }
 
-function directionLabel(row) {
-  if (row.level === 0) return '基准'
-  return row.level < 0 ? '减仓' : '加仓'
-}
-
 function qtyLabel(row) {
   if (row.level === 0) return `${formatNumber(row.qty)} 股`
-  return `减 ${formatNumber(row.qty)} / 加 ${formatNumber(row.buyQty ?? row.qty)}`
+  const breakout = row.level < 0 ? row.qty : (row.buyQty ?? row.qty)
+  const back = row.level < 0 ? (row.buyQty ?? row.qty) : row.qty
+  return `突 ${formatNumber(breakout)} / 归 ${formatNumber(back)}`
 }
 
 function barWidth(row) {

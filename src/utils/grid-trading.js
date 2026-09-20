@@ -27,25 +27,71 @@ export function formatNumber(value) {
   return Number(value).toLocaleString('zh-CN')
 }
 
-export function formatPrice(value) {
+export function formatPrice(value, minDecimals = 2) {
   if (value === null || value === undefined || Number.isNaN(Number(value))) {
     return '—'
   }
-  return Number(value).toFixed(2)
+  const num = Number(value)
+  return num.toFixed(Math.max(minDecimals, priceDecimalsOf(num)))
+}
+
+export function priceDecimalsOf(value) {
+  const num = Number(value)
+  if (!Number.isFinite(num)) {
+    return 0
+  }
+  const text = String(num)
+  const dotIndex = text.indexOf('.')
+  if (dotIndex === -1) {
+    return 0
+  }
+  return Math.min(text.length - dotIndex - 1, 6)
+}
+
+/**
+ * 档位价格小数位数：跟随基准价，至少保留 2 位（与后端
+ * GridTierCalculator.priceScale 保持一致）。
+ */
+export function tierPriceDecimals(basePrice) {
+  return Math.max(2, priceDecimalsOf(basePrice))
+}
+
+/**
+ * 十进制四舍五入（HALF_UP），与后端
+ * BigDecimal.valueOf(value).setScale(n, HALF_UP) 保持一致。
+ */
+export function roundTo(value, decimals) {
+  const num = Number(value)
+  if (!Number.isFinite(num)) {
+    return num
+  }
+  const text = String(num)
+  if (/[eE]/.test(text)) {
+    return Number(num.toFixed(decimals))
+  }
+  const dotIndex = text.indexOf('.')
+  const fracLen = dotIndex === -1 ? 0 : text.length - dotIndex - 1
+  if (fracLen <= decimals) {
+    return num
+  }
+  const digits = text.replace('.', '')
+  const scaled = Math.round(Number(`${digits}e${decimals - fracLen}`))
+  return Number(`${scaled}e${-decimals}`)
 }
 
 export function buildTierPreview(params) {
   const { basePrice, intervalPct, upTierCount, downTierCount } = params
+  const decimals = tierPriceDecimals(basePrice)
   const rows = []
   for (let n = upTierCount; n >= 1; n -= 1) {
     const level = -n
-    const price = round2(basePrice * (1 + intervalPct / 100) ** n)
+    const price = roundTo(basePrice * (1 + intervalPct / 100) ** n, decimals)
     rows.push({ level, price, direction: 'SELL' })
   }
   rows.push({ level: 0, price: basePrice, direction: 'BASE' })
   for (let n = 1; n <= downTierCount; n += 1) {
     const level = n
-    const price = round2(basePrice * (1 - (n * intervalPct) / 100))
+    const price = roundTo(basePrice * (1 - (n * intervalPct) / 100), decimals)
     rows.push({ level, price, direction: 'BUY' })
   }
   return rows
@@ -66,8 +112,4 @@ export function mirrorUpBuyQty(sellQtys) {
   return sellQtys.map((_, index) =>
     index < deepestActive ? sellQtys[deepestActive - 1 - index] : 0
   )
-}
-
-function round2(value) {
-  return Math.round(value * 100) / 100
 }

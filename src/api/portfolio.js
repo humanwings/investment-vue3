@@ -51,6 +51,10 @@ export function updatePortfolioCleared(id, data) {
   return request({ url: `/portfolio/cleared/${id}`, method: 'put', data })
 }
 
+export function createPortfolioCleared(data) {
+  return request({ url: '/portfolio/cleared', method: 'post', data })
+}
+
 export function getPortfolioStats(params) {
   return request({ url: '/portfolio/stats', method: 'get', params })
 }

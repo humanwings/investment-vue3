@@ -47,12 +47,28 @@
         <div id="chart-industry" class="chart"></div>
       </div>
       <div class="chart-box">
-        <div class="chart-title">买入原因</div>
-        <div id="chart-buyReason" class="chart"></div>
+        <div class="chart-title">推荐来源</div>
+        <div id="chart-reco" class="chart"></div>
       </div>
       <div class="chart-box">
-        <div class="chart-title">股票种类</div>
+        <div class="chart-title">因素</div>
+        <div id="chart-factor" class="chart"></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">走势</div>
+        <div id="chart-trend" class="chart"></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">知名度</div>
+        <div id="chart-fame" class="chart"></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">类型</div>
         <div id="chart-stockType" class="chart"></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">股价位置</div>
+        <div id="chart-position" class="chart"></div>
       </div>
       <div class="chart-box">
         <div class="chart-title">持股策略</div>
@@ -98,8 +114,28 @@
           <div id="chart-clearedReason" class="chart"></div>
         </div>
         <div>
-          <div class="chart-subtitle">买入原因分布</div>
-          <div id="chart-clearedBuyReason" class="chart"></div>
+          <div class="chart-subtitle">推荐来源分布</div>
+          <div id="chart-clearedReco" class="chart"></div>
+        </div>
+        <div>
+          <div class="chart-subtitle">因素分布</div>
+          <div id="chart-clearedFactor" class="chart"></div>
+        </div>
+        <div>
+          <div class="chart-subtitle">走势分布</div>
+          <div id="chart-clearedTrend" class="chart"></div>
+        </div>
+        <div>
+          <div class="chart-subtitle">知名度分布</div>
+          <div id="chart-clearedFame" class="chart"></div>
+        </div>
+        <div>
+          <div class="chart-subtitle">类型分布</div>
+          <div id="chart-clearedStockType" class="chart"></div>
+        </div>
+        <div>
+          <div class="chart-subtitle">股价位置分布</div>
+          <div id="chart-clearedPosition" class="chart"></div>
         </div>
         <div>
           <div class="chart-subtitle">实现盈亏（按清仓日期）</div>
@@ -109,14 +145,7 @@
 
       <div class="dim-grid">
         <dimension-table title="按清仓原因" :rows="clearedSummary.byReason" />
-        <dimension-table
-          title="按买入原因"
-          :rows="clearedSummary.byBuyReason"
-        />
-        <dimension-table
-          title="按股票种类"
-          :rows="clearedSummary.byStockType"
-        />
+        <dimension-table title="按类型" :rows="clearedSummary.byStockType" />
         <dimension-table title="按持股天数" :rows="clearedSummary.byHoldDays" />
       </div>
     </div>
@@ -130,7 +159,9 @@ import { BarChart, LineChart, PieChart } from 'echarts/charts'
 import {
   GridComponent,
   TooltipComponent,
-  LegendComponent
+  LegendComponent,
+  DataZoomComponent,
+  MarkLineComponent
 } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import {
@@ -148,6 +179,8 @@ echarts.use([
   GridComponent,
   TooltipComponent,
   LegendComponent,
+  DataZoomComponent,
+  MarkLineComponent,
   CanvasRenderer
 ])
 
@@ -172,11 +205,20 @@ function initCharts() {
   const ids = [
     'chart-line',
     'chart-industry',
+    'chart-reco',
+    'chart-factor',
+    'chart-trend',
+    'chart-fame',
     'chart-stockType',
-    'chart-buyReason',
+    'chart-position',
     'chart-holdStrategy',
     'chart-clearedReason',
-    'chart-clearedBuyReason',
+    'chart-clearedReco',
+    'chart-clearedFactor',
+    'chart-clearedTrend',
+    'chart-clearedFame',
+    'chart-clearedStockType',
+    'chart-clearedPosition',
     'chart-clearedPl'
   ]
   ids.forEach((id) => {
@@ -192,65 +234,136 @@ function renderStats() {
   const s = stats.value
   const line = chartInstances['chart-line']
   if (line) {
-    line.setOption(
-      {
-        tooltip: { trigger: 'axis' },
-        legend: { data: ['持仓市值', '持股个数'], top: 0 },
-        grid: { left: 80, right: 60, top: 50, bottom: 40 },
-        xAxis: { type: 'category', data: s.trendLabels },
-        yAxis: [
-          {
-            type: 'value',
-            name: '市值(元)',
-            min: 2500000,
-            axisLabel: { formatter: (v) => formatAxisNumber(v) }
+    const labels = s.trendLabels || []
+    if (!labels.length) {
+      line.clear()
+      line.setOption({
+        title: {
+          text: '暂无数据',
+          left: 'center',
+          top: 'middle',
+          textStyle: { color: '#909399', fontSize: 14, fontWeight: 'normal' }
+        }
+      })
+    } else {
+      const many = labels.length > 15
+      line.setOption(
+        {
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' },
+            formatter(params) {
+              const rows = [params[0].axisValue]
+              params.forEach((p) => {
+                const v =
+                  p.seriesType === 'bar'
+                    ? `${p.value} 只`
+                    : `${formatMoney(p.value)} 元`
+                rows.push(`${p.marker}${p.seriesName}：${v}`)
+              })
+              return rows.join('<br/>')
+            }
           },
-          {
-            type: 'value',
-            name: '只',
-            min: 30,
-            minInterval: 1,
-            alignTicks: true,
-            splitLine: { show: false }
-          }
-        ],
-        series: [
-          {
-            name: '持仓市值',
-            type: 'line',
-            smooth: true,
-            lineStyle: { color: '#e6a23c', width: 3 },
-            itemStyle: { color: '#e6a23c' },
-            data: s.trendMv
+          legend: { data: ['持仓市值(含现金)', '持股个数'], top: 0 },
+          grid: { left: 80, right: 60, top: 50, bottom: many ? 64 : 40 },
+          xAxis: {
+            type: 'category',
+            data: labels,
+            axisLabel: {
+              rotate: labels.length > 8 ? 40 : 0,
+              hideOverlap: true
+            }
           },
-          {
-            name: '持股个数',
-            type: 'bar',
-            yAxisIndex: 1,
-            barMaxWidth: 28,
-            itemStyle: { color: '#8ea9d6', opacity: 0.7 },
-            data: s.trendCount
-          }
-        ]
-      },
-      true
-    )
+          yAxis: [
+            {
+              type: 'value',
+              name: '市值(元)',
+              min: (v) => Math.round(Math.min(v.min, mvBaseline()) * 0.9),
+              max: (v) => Math.round(Math.max(v.max, mvBaseline()) * 1.05),
+              axisLabel: { formatter: (v) => formatAxisNumber(v) }
+            },
+            {
+              type: 'value',
+              name: '只',
+              min: (v) => Math.floor(v.min * 0.8),
+              max: (v) => Math.ceil(v.max * 1.1),
+              minInterval: 1,
+              splitLine: { show: false }
+            }
+          ],
+          dataZoom: many
+            ? [{ type: 'inside' }, { type: 'slider', height: 18, bottom: 10 }]
+            : [{ type: 'inside' }],
+          series: [
+            {
+              name: '持股个数',
+              type: 'bar',
+              yAxisIndex: 1,
+              z: 1,
+              barMaxWidth: 28,
+              itemStyle: { color: '#8ea9d6', opacity: 0.7 },
+              data: s.trendCount
+            },
+            {
+              name: '持仓市值(含现金)',
+              type: 'line',
+              z: 3,
+              smooth: false,
+              lineStyle: { color: '#e6a23c', width: 3 },
+              itemStyle: { color: '#e6a23c' },
+              data: s.trendMv,
+              markLine: {
+                silent: true,
+                symbol: 'none',
+                lineStyle: { color: '#f56c6c', type: 'dashed', width: 1.5 },
+                label: {
+                  position: 'insideEndTop',
+                  formatter: `基准 ${formatAxisNumber(mvBaseline())}`
+                },
+                data: [{ yAxis: mvBaseline() }]
+              }
+            }
+          ]
+        },
+        true
+      )
+    }
   }
   renderPie('chart-industry', s.industryPie, '行业')
-  renderPie('chart-stockType', s.stockTypePie, '股票种类')
-  renderPie('chart-buyReason', s.buyReasonPie, '买入原因')
+  renderPie('chart-reco', s.recoPie, '推荐来源')
+  renderPie('chart-factor', s.factorPie, '因素')
+  renderPie('chart-trend', s.trendPie, '走势')
+  renderPie('chart-fame', s.famePie, '知名度')
+  renderPie('chart-stockType', s.stockTypePie, '类型')
+  renderPie('chart-position', s.positionPie, '股价位置')
   renderPie('chart-holdStrategy', s.holdStrategyPie, '持股策略')
 }
 
+const MV_BASELINES = { all: 2894060, gt: 1123230, pa: 1770830 }
+
+function mvBaseline() {
+  return MV_BASELINES[scope.value] ?? MV_BASELINES.all
+}
+
 function formatAxisNumber(v) {
-  if (Math.abs(v) >= 10000) return v / 10000 + '万'
+  if (Math.abs(v) >= 100000000) return trimAxisNumber(v / 100000000) + '亿'
+  if (Math.abs(v) >= 10000) return trimAxisNumber(v / 10000) + '万'
   return v
+}
+
+function trimAxisNumber(n) {
+  return Number(n.toFixed(1)).toString()
 }
 
 function renderCleared() {
   const s = clearedSummary.value
   renderPie('chart-clearedReason', s.reasonPie, '清仓原因', 'count')
-  renderPie('chart-clearedBuyReason', s.buyReasonPie, '买入原因', 'count')
+  renderPie('chart-clearedReco', s.recoPie, '推荐来源', 'count')
+  renderPie('chart-clearedFactor', s.factorPie, '因素', 'count')
+  renderPie('chart-clearedTrend', s.trendPie, '走势', 'count')
+  renderPie('chart-clearedFame', s.famePie, '知名度', 'count')
+  renderPie('chart-clearedStockType', s.stockTypePie, '类型', 'count')
+  renderPie('chart-clearedPosition', s.positionPie, '股价位置', 'count')
 
   const bar = chartInstances['chart-clearedPl']
   if (bar) {

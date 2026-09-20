@@ -3,7 +3,7 @@
     <div class="page-card">
       <div class="page-head">
         <div>
-          <h2>网格策略</h2>
+          <h2>策略列表</h2>
           <p>
             网格策略管理 +
             模拟信号跟踪；股价需手动刷新，系统检测跨档后生成已触发提示。
@@ -53,20 +53,24 @@
         <el-table-column label="标的" min-width="160">
           <template #default="{ row }">
             <div class="stock-cell">
-              <b>{{ row.stockName }}</b>
-              <el-tag size="small" type="info">{{ row.stockCode }}</el-tag>
-              <span
-                :class="row.market === 'H' ? 'market-h' : 'market-a'"
-                class="market-badge"
-                >{{ row.market }}</span
-              >
+              <b class="stock-name" :title="row.stockName">{{
+                row.stockName
+              }}</b>
+              <span class="stock-sub">
+                <el-tag size="small" type="info">{{ row.stockCode }}</el-tag>
+                <span
+                  :class="row.market === 'H' ? 'market-h' : 'market-a'"
+                  class="market-badge"
+                  >{{ row.market }}</span
+                >
+              </span>
             </div>
           </template>
         </el-table-column>
         <el-table-column
           prop="pendingCount"
           label="已触发"
-          width="90"
+          width="100"
           sortable="custom"
         >
           <template #default="{ row }">
@@ -101,18 +105,50 @@
             <span v-else />
           </template>
         </el-table-column>
-        <el-table-column label="触发价格" width="90">
-          <template #default="{ row }">{{
-            formatPrice(row.imminentPrice)
-          }}</template>
+        <el-table-column label="触发价格" width="112">
+          <template #default="{ row }">
+            <div v-if="triggerPriceLines(row).length" class="trigger-qty">
+              <div
+                v-for="line in triggerPriceLines(row)"
+                :key="line.text"
+                :title="line.title"
+                :class="line.type"
+                class="trigger-qty-line"
+              >
+                {{ line.text }}
+              </div>
+            </div>
+            <span v-else>—</span>
+          </template>
         </el-table-column>
-        <el-table-column prop="intervalPct" label="档位间隔" width="90">
-          <template #default="{ row }">{{ intervalLabel(row) }}</template>
+        <el-table-column label="触发数量" width="110">
+          <template #default="{ row }">
+            <div v-if="triggerQtyLines(row).length" class="trigger-qty">
+              <div
+                v-for="line in triggerQtyLines(row)"
+                :key="line.text"
+                :title="line.title"
+                :class="line.type"
+                class="trigger-qty-line"
+              >
+                {{ line.text }}
+              </div>
+            </div>
+            <span v-else>—</span>
+          </template>
         </el-table-column>
         <el-table-column label="现价" width="90">
           <template #default="{ row }">{{
             formatPrice(row.lastPrice)
           }}</template>
+        </el-table-column>
+        <el-table-column
+          prop="intervalPct"
+          label="档位间隔"
+          width="110"
+          sortable="custom"
+        >
+          <template #default="{ row }">{{ intervalLabel(row) }}</template>
         </el-table-column>
         <el-table-column label="当前档位" width="100">
           <template #default="{ row }">
@@ -122,11 +158,6 @@
                 ? '—'
                 : tierLabel(row.currentTierLevel)
             }}
-          </template>
-        </el-table-column>
-        <el-table-column label="当前持仓" width="110">
-          <template #default="{ row }">
-            {{ row.positionQty ? `${formatNumber(row.positionQty)} 股` : '—' }}
           </template>
         </el-table-column>
         <el-table-column
@@ -249,6 +280,9 @@ const sortedRows = computed(() => {
   } else if (prop === 'imminent') {
     const dir = order === 'ascending' ? 1 : -1
     rows.sort((a, b) => (imminentRank(b) - imminentRank(a)) * dir)
+  } else if (prop === 'intervalPct') {
+    const dir = order === 'ascending' ? 1 : -1
+    rows.sort((a, b) => (intervalValue(a) - intervalValue(b)) * dir)
   } else {
     // 缺省：已触发多 → 即将触发 → 市值大，依次优先
     rows.sort((a, b) => {
@@ -291,6 +325,37 @@ function imminentTitle(row) {
   return `即将${row.imminentAction === 'SELL' ? '升破' : '跌破'} ${tierLabel(
     row.imminentLevel
   )} ${formatPrice(row.imminentPrice)}`
+}
+
+// 触发数量：已触发提示按方向汇总 + 即将触发档位的计划数量
+function triggerQtyLines(row) {
+  const lines = []
+  const pendingSell = Number(row.pendingSellQty) || 0
+  const pendingBuy = Number(row.pendingBuyQty) || 0
+  const imminentQty = Number(row.imminentQty) || 0
+  if (pendingSell > 0) {
+    lines.push({
+      text: `减 ${formatNumber(pendingSell)}`,
+      title: `已触发提示合计：减仓 ${formatNumber(pendingSell)} 股`,
+      type: 'qty-sell'
+    })
+  }
+  if (pendingBuy > 0) {
+    lines.push({
+      text: `加 ${formatNumber(pendingBuy)}`,
+      title: `已触发提示合计：加仓 ${formatNumber(pendingBuy)} 股`,
+      type: 'qty-buy'
+    })
+  }
+  if (imminentQty > 0) {
+    lines.push({
+      text: `即将${row.imminentAction === 'SELL' ? '减' : '加'} ${formatNumber(imminentQty)}`,
+      title: `${imminentTitle(row)} → ${row.imminentAction === 'SELL' ? '减仓' : '加仓'} ${formatNumber(imminentQty)} 股`,
+      type:
+        row.imminentAction === 'SELL' ? 'qty-sell imminent' : 'qty-buy imminent'
+    })
+  }
+  return lines
 }
 
 async function refreshAll() {
@@ -388,10 +453,47 @@ function marketValue(row) {
   return formatNumber(Number(row.lastPrice) * Number(row.positionQty))
 }
 
+function intervalValue(row) {
+  const v = row.intervalPct
+  if (v === null || v === undefined || Number.isNaN(Number(v))) {
+    return -Infinity
+  }
+  return Number(v)
+}
+
 function intervalLabel(row) {
   const v = row.intervalPct
   if (v === null || v === undefined || Number.isNaN(Number(v))) return '—'
   return `${Number(v)}%`
+}
+
+// 触发价格：已触发提示被穿越的档位边界价 + 即将触发档位价格
+function triggerPriceLines(row) {
+  const lines = []
+  const sellPrice = row.pendingSellPrice
+  const buyPrice = row.pendingBuyPrice
+  if (sellPrice !== null && sellPrice !== undefined) {
+    lines.push({
+      text: `升破 ${formatPrice(sellPrice)}`,
+      title: `已触发提示：现价升破 ${formatPrice(sellPrice)} 时减仓`,
+      type: 'qty-sell'
+    })
+  }
+  if (buyPrice !== null && buyPrice !== undefined) {
+    lines.push({
+      text: `跌破 ${formatPrice(buyPrice)}`,
+      title: `已触发提示：现价跌破 ${formatPrice(buyPrice)} 时加仓`,
+      type: 'qty-buy'
+    })
+  }
+  if (row.imminentPrice !== null && row.imminentPrice !== undefined) {
+    lines.push({
+      text: `即将${row.imminentAction === 'SELL' ? '升破' : '跌破'} ${formatPrice(row.imminentPrice)}`,
+      title: imminentTitle(row),
+      type: 'imminent'
+    })
+  }
+  return lines
 }
 
 function statusLabel(status) {
@@ -418,6 +520,10 @@ function statusType(status) {
 </script>
 
 <style scoped lang="scss">
+:deep(.el-table th .cell) {
+  white-space: nowrap;
+}
+
 .page-head {
   display: flex;
   justify-content: space-between;
@@ -473,8 +579,22 @@ function statusType(status) {
 
 .stock-cell {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+
+  .stock-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .stock-sub {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
 }
 
 .market-badge {
@@ -539,6 +659,32 @@ function statusType(status) {
 
   &.imminent-down {
     background: #67c23a;
+  }
+}
+
+.trigger-qty {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.4;
+}
+
+.trigger-qty-line {
+  font-size: 12px;
+  font-weight: 600;
+  cursor: default;
+  white-space: nowrap;
+
+  &.qty-sell {
+    color: #f56c6c;
+  }
+
+  &.qty-buy {
+    color: #67c23a;
+  }
+
+  &.imminent {
+    opacity: 0.75;
   }
 }
 </style>

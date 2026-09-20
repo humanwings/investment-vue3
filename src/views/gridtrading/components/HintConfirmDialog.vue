@@ -9,7 +9,8 @@
       <template v-if="isZeroQtyHint">
         操作：{{ hint?.action === 'SELL' ? '卖出' : '买入' }}
         <b>0</b>
-        股（{{ tierLabel(hint?.tierLevel) }} · 档位价
+        股（{{ hint?.action === 'SELL' ? '升破' : '跌破' }}
+        {{ tierLabel(hint?.toTierLevel) }}
         {{ formatPrice(hint?.tierPrice) }}）
         <br />
         当前现价 {{ formatPrice(currentPrice) }}。该档位的计划数量为
@@ -18,7 +19,8 @@
       <template v-else>
         操作：{{ hint?.action === 'SELL' ? '卖出' : '买入' }}
         <b>{{ formatNumber(hint?.qty) }}</b>
-        股（{{ tierLabel(hint?.tierLevel) }} · 档位价
+        股（{{ hint?.action === 'SELL' ? '升破' : '跌破' }}
+        {{ tierLabel(hint?.toTierLevel) }}
         {{ formatPrice(hint?.tierPrice) }}）
         <br />
         当前现价
